@@ -1,0 +1,31 @@
+{
+  "name": "tslox",
+  "version": "0.0.1",
+  "description": "Lox interpreter written in TypeScript",
+  "main": "built/main.js",
+  "scripts": {
+    "build": "tsc",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "bin": {
+    "tslox": "src/main.ts"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/davidtimms/tslox.git"
+  },
+  "keywords": [
+    "typescript",
+    "lox",
+    "crafting",
+    "interpreters"
+  ],
+  "author": "David Timms",
+  "license": "UNLICENSED",
+  "homepage": "https://github.com/davidtimms/tslox#readme",
+  "devDependencies": {
+    "@types/node": "^13.11.1",
+    "ts-node": "^8.8.2",
+    "typescript": "^3.8.3"
+  }
+}
