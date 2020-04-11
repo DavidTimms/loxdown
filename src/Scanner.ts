@@ -94,6 +94,8 @@ export default class Scanner {
                     while (this.peek() !== "\n" && !this.isAtEnd()) {
                         this.advance();
                     }
+                } else if (this.match("*")) {
+                    this.blockComment();
                 } else {
                     this.addToken(TokenType.Slash);
                 }
@@ -120,6 +122,16 @@ export default class Scanner {
                         `Unexpected character: ${JSON.stringify(c)}`,
                     );
                 }
+        }
+    }
+
+    blockComment(): void {
+        while (
+            !(this.match("*") && this.match("/")) &&
+            !this.isAtEnd()
+        ) {
+            if (this.peek() === "\n") this.line += 1;
+            this.advance();
         }
     }
 
