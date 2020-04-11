@@ -49,4 +49,4 @@ enum TokenType {
     EOF = "EOF",
 }
 
-export default TokenType
+export default TokenType;
