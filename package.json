@@ -10,7 +10,8 @@
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "bin": {
-    "tslox": "src/main.ts"
+    "tslox": "src/main.ts",
+    "tslox-generate-ast": "src/tool/generateAst.ts"
   },
   "repository": {
     "type": "git",
