@@ -24,6 +24,7 @@ module.exports = {
         "indent": ["warn", 4, {
             "SwitchCase": 1,
         }],
+        "curly": ["warn", "multi-line"],
         "eqeqeq": ["error", "always"],
     }
 };

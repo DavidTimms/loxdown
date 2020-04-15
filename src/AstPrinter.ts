@@ -1,29 +1,36 @@
-import * as Expr from "./Expr";
+import {
+    Expr,
+    BinaryExpr,
+    GroupingExpr,
+    LiteralExpr,
+    UnaryExpr,
+    ExprVisitor,
+} from "./Expr";
 
 // Creates an unambiguous, if ugly, string representation of AST nodes
-export default class AstPrinter implements Expr.Visitor<string> {
-    print(expr: Expr.Expr): string {
+export default class AstPrinter implements ExprVisitor<string> {
+    print(expr: Expr): string {
         return expr.accept(this);
     }
 
-    visitBinaryExpr(expr: Expr.Binary): string {
+    visitBinaryExpr(expr: BinaryExpr): string {
         return this.parenthesize(expr.operator.lexeme, expr.left, expr.right);
     }
 
-    visitGroupingExpr(expr: Expr.Grouping): string {
+    visitGroupingExpr(expr: GroupingExpr): string {
         return this.parenthesize("group", expr.expression);
     }
 
-    visitLiteralExpr(expr: Expr.Literal): string {
+    visitLiteralExpr(expr: LiteralExpr): string {
         if (expr.value === null) return "nil";
         return `${expr.value}`;
     }
 
-    visitUnaryExpr(expr: Expr.Unary): string {
+    visitUnaryExpr(expr: UnaryExpr): string {
         return this.parenthesize(expr.operator.lexeme, expr.right);
     }
 
-    private parenthesize(name: string, ...exprs: Expr.Expr[]): string {
+    private parenthesize(name: string, ...exprs: Expr[]): string {
         const exprStrings = exprs.map(expr => expr.accept(this));
         return `(${name} ${exprStrings.join(" ")})`;
     }

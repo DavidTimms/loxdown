@@ -4,17 +4,17 @@ import Token from "./Token";
 import LiteralValue from "./LiteralValue";
 
 export abstract class Expr {
-    abstract accept<R>(visitor: Visitor<R>): R;
+    abstract accept<R>(visitor: ExprVisitor<R>): R;
 }
 
-export interface Visitor<R> {
-    visitBinaryExpr(expr: Binary): R;
-    visitGroupingExpr(expr: Grouping): R;
-    visitLiteralExpr(expr: Literal): R;
-    visitUnaryExpr(expr: Unary): R;
+export interface ExprVisitor<R> {
+    visitBinaryExpr(expr: BinaryExpr): R;
+    visitGroupingExpr(expr: GroupingExpr): R;
+    visitLiteralExpr(expr: LiteralExpr): R;
+    visitUnaryExpr(expr: UnaryExpr): R;
 }
 
-export class Binary extends Expr {
+export class BinaryExpr extends Expr {
     constructor(
         readonly left: Expr,
         readonly operator: Token,
@@ -26,12 +26,12 @@ export class Binary extends Expr {
         this.right = right;
     }
 
-    accept<R>(visitor: Visitor<R>): R {
+    accept<R>(visitor: ExprVisitor<R>): R {
         return visitor.visitBinaryExpr(this);
     }
 }
 
-export class Grouping extends Expr {
+export class GroupingExpr extends Expr {
     constructor(
         readonly expression: Expr,
     ) {
@@ -39,12 +39,12 @@ export class Grouping extends Expr {
         this.expression = expression;
     }
 
-    accept<R>(visitor: Visitor<R>): R {
+    accept<R>(visitor: ExprVisitor<R>): R {
         return visitor.visitGroupingExpr(this);
     }
 }
 
-export class Literal extends Expr {
+export class LiteralExpr extends Expr {
     constructor(
         readonly value: LiteralValue,
     ) {
@@ -52,12 +52,12 @@ export class Literal extends Expr {
         this.value = value;
     }
 
-    accept<R>(visitor: Visitor<R>): R {
+    accept<R>(visitor: ExprVisitor<R>): R {
         return visitor.visitLiteralExpr(this);
     }
 }
 
-export class Unary extends Expr {
+export class UnaryExpr extends Expr {
     constructor(
         readonly operator: Token,
         readonly right: Expr,
@@ -67,7 +67,7 @@ export class Unary extends Expr {
         this.right = right;
     }
 
-    accept<R>(visitor: Visitor<R>): R {
+    accept<R>(visitor: ExprVisitor<R>): R {
         return visitor.visitUnaryExpr(this);
     }
 }

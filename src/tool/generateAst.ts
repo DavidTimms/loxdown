@@ -27,14 +27,14 @@ function defineAst(outputDir: string, baseName: string, types: string[]): void {
         "import LiteralValue from \"./LiteralValue\";",
         "",
         `export abstract class ${baseName} {`,
-        "    abstract accept<R>(visitor: Visitor<R>): R;",
+        `    abstract accept<R>(visitor: ${baseName}Visitor<R>): R;`,
         "}",
         "",
         ...defineVisitor(baseName, types),
         "",
         ...types.flatMap(type => {
-            const [className, fields] = type.split(":").map(s => s.trim());
-            return defineType(baseName, className, fields);
+            const [classPrefix, fields] = type.split(":").map(s => s.trim());
+            return defineType(baseName, classPrefix, fields);
         }),
     ];
 
@@ -43,11 +43,11 @@ function defineAst(outputDir: string, baseName: string, types: string[]): void {
 
 function defineType(
     baseName: string,
-    className: string,
+    classPrefix: string,
     fieldList: string,
 ): string[] {
+    const className = classPrefix + baseName;
     const fields = fieldList.split(", ").map(field => field.split(" "));
-    console.log(className, fields);
     return [
         `export class ${className} extends ${baseName} {`,
 
@@ -65,8 +65,8 @@ function defineType(
         "",
 
         // Visitor pattern
-        "    accept<R>(visitor: Visitor<R>): R {",
-        `        return visitor.visit${className}${baseName}(this);`,
+        `    accept<R>(visitor: ${baseName}Visitor<R>): R {`,
+        `        return visitor.visit${className}(this);`,
         "    }",
 
         "}",
@@ -76,10 +76,11 @@ function defineType(
 
 function defineVisitor(baseName: string, types: string[]): string[] {
     return [
-        "export interface Visitor<R> {",
+        `export interface ${baseName}Visitor<R> {`,
         ...types.map(type => {
-            const className = type.split(":")[0].trim();
-            const method = `visit${className}${baseName}`;
+            const classPrefix = type.split(":")[0].trim();
+            const className = classPrefix + baseName;
+            const method = `visit${className}`;
             return `    ${method}(${baseName.toLowerCase()}: ${className}): R;`;
         }),
         "}",
