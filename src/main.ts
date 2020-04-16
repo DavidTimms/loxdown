@@ -3,7 +3,11 @@
 import * as fs from "fs";
 import * as readline from "readline";
 
+import Token from "./Token";
+import TokenType from "./TokenType";
 import Scanner from "./Scanner";
+import Parser from "./Parser";
+import AstPrinter from "./AstPrinter";
 
 // TODO fix this global variable once we know how it'll be used.
 // Perhaps move it into run() and have report() close over it?
@@ -49,13 +53,24 @@ function run(source: string): void {
     const scanner = new Scanner(source, printError);
     const tokens = scanner.scanTokens();
 
-    for (const token of tokens) {
-        console.log(token);
-    }
+    const parser = new Parser(tokens, printError);
+    const expr = parser.parse();
+
+    const astPrinter = new AstPrinter();
+    console.log(astPrinter.print(expr));
 }
 
-function printError(line: number, message: string): void {
-    report(line, "", message);
+function printError(location: number | Token, message: string): void {
+    if (location instanceof Token) {
+        if (location.type === TokenType.EOF) {
+            report(location.line, " at end", message);
+        } else {
+            report(location.line, " at '" + location.lexeme + "'", message);
+        }
+    }
+    else {
+        report(location, "", message);
+    }
 }
 
 function report(line: number, where: string, message: string): void {
