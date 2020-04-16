@@ -19,8 +19,15 @@ export default class Parser {
         this.tokens = tokens;
     }
 
-    parse(): Expr {
-        return this.expression();
+    parse(): Expr | null {
+        try {
+            return this.expression();}
+        catch (error) {
+            if (error instanceof ParseError) {
+                return null;
+            }
+            throw error;
+        }
     }
 
     private expression(): Expr {
@@ -103,10 +110,11 @@ export default class Parser {
             this.consume(TokenType.RightParen, "Expect ')' after expression.");
             return new GroupingExpr(expr);
         }
-        throw this.parseError(this.peek(), "Unexpected token");
+
+        throw this.parseError(this.peek(), "Expect expression.");
     }
 
-    private consume(type: TokenType, message: string) {
+    private consume(type: TokenType, message: string): Token {
         if (this.check(type)) return this.advance();
 
         throw this.parseError(this.peek(), message);
@@ -115,6 +123,28 @@ export default class Parser {
     private parseError(token: Token, message: string): ParseError {
         this.error(token, message);
         return new ParseError();
+    }
+
+    private synchronize(): void {
+        this.advance();
+
+        while (!this.isAtEnd()) {
+            if (this.previous().type === TokenType.Semicolon) return;
+
+            switch (this.peek().type) {
+                case TokenType.Class:
+                case TokenType.Fun:
+                case TokenType.Var:
+                case TokenType.For:
+                case TokenType.If:
+                case TokenType.While:
+                case TokenType.Print:
+                case TokenType.Return:
+                    return;
+            }
+
+            this.advance();
+        }
     }
 
     private match(...types: TokenType[]): boolean {

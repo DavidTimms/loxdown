@@ -56,8 +56,7 @@ function run(source: string): void {
     const parser = new Parser(tokens, printError);
     const expr = parser.parse();
 
-    const astPrinter = new AstPrinter();
-    console.log(astPrinter.print(expr));
+    if (expr) console.log(new AstPrinter().print(expr));
 }
 
 function printError(location: number | Token, message: string): void {
