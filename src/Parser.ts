@@ -7,8 +7,40 @@ import {
     GroupingExpr,
     LiteralExpr,
     UnaryExpr,
-    ExprVisitor,
 } from "./Expr";
+
+type Associativity = "LEFT" | "RIGHT"
+
+class OperatorLevel {
+    constructor(
+        readonly associativity: Associativity,
+        readonly operators: TokenType[],
+    ) {
+        this.associativity = associativity;
+        this.operators = operators;
+    }
+}
+
+const operatorPrecedence: OperatorLevel[] = [
+    new OperatorLevel("LEFT", [
+        TokenType.BangEqual,
+        TokenType.EqualEqual,
+    ]),
+    new OperatorLevel("LEFT", [
+        TokenType.Greater,
+        TokenType.GreaterEqual,
+        TokenType.Less,
+        TokenType.LessEqual,
+    ]),
+    new OperatorLevel("LEFT", [
+        TokenType.Plus,
+        TokenType.Minus,
+    ]),
+    new OperatorLevel("LEFT", [
+        TokenType.Slash,
+        TokenType.Star,
+    ]),
+];
 
 class ParseError extends Error {}
 
@@ -31,56 +63,28 @@ export default class Parser {
     }
 
     private expression(): Expr {
-        return this.equality();
+        return this.binary();
     }
 
-    private equality(): Expr {
-        let expr = this.comparison();
+    private binary(precedence = 0): Expr {
+        const operatorLevel = operatorPrecedence[precedence];
 
-        while (this.match(TokenType.BangEqual, TokenType.EqualEqual)) {
-            const operator = this.previous();
-            const right = this.comparison();
-            expr = new BinaryExpr(expr, operator, right);
+        if (!operatorLevel) {
+            return this.unary();
         }
 
-        return expr;
-    }
+        let expr = this.binary(precedence + 1);
 
-    private comparison(): Expr {
-        let expr = this.addition();
-
-        while (this.match(
-            TokenType.Greater,
-            TokenType.GreaterEqual,
-            TokenType.Less,
-            TokenType.LessEqual,
-        )) {
+        while (this.match(...operatorLevel.operators)) {
             const operator = this.previous();
-            const right = this.addition();
-            expr = new BinaryExpr(expr, operator, right);
-        }
 
-        return expr;
-    }
+            const rightPrecedence =
+                operatorLevel.associativity === "LEFT"
+                    ? precedence + 1
+                    : precedence;
 
-    private addition(): Expr {
-        let expr = this.multiplication();
+            const right = this.binary(rightPrecedence);
 
-        while (this.match(TokenType.Plus, TokenType.Minus)) {
-            const operator = this.previous();
-            const right = this.multiplication();
-            expr = new BinaryExpr(expr, operator, right);
-        }
-
-        return expr;
-    }
-
-    private multiplication(): Expr {
-        let expr = this.unary();
-
-        while (this.match(TokenType.Slash, TokenType.Star)) {
-            const operator = this.previous();
-            const right = this.unary();
             expr = new BinaryExpr(expr, operator, right);
         }
 
