@@ -1,11 +1,11 @@
 import TokenType from "./TokenType";
-import LiteralValue from "./LiteralValue";
+import LoxValue from "./LoxValue";
 
 export default class Token {
     constructor(
         readonly type: TokenType,
         readonly lexeme: string,
-        readonly literal: LiteralValue,
+        readonly literal: LoxValue,
         readonly line: number,
     ) {
         this.type = type;

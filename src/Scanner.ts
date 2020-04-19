@@ -1,7 +1,7 @@
 import Token from "./Token";
 import TokenType from "./TokenType";
 import ErrorHandler from "./ErrorHandler";
-import LiteralValue from "./LiteralValue";
+import LoxValue from "./LoxValue";
 
 const keywords = new Map([
     ["and", TokenType.And],
@@ -184,7 +184,7 @@ export default class Scanner {
         return this.source.charAt(this.current - 1);
     }
 
-    addToken(type: TokenType, literal: LiteralValue = null): void {
+    addToken(type: TokenType, literal: LoxValue = null): void {
         const text = this.source.substring(this.start, this.current);
         this.tokens.push(new Token(type, text, literal, this.line));
     }

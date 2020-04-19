@@ -7,7 +7,7 @@ import Token from "./Token";
 import TokenType from "./TokenType";
 import Scanner from "./Scanner";
 import Parser from "./Parser";
-import AstPrinter from "./AstPrinter";
+import Interpreter from "./Interpreter";
 
 // TODO fix this global variable once we know how it'll be used.
 // Perhaps move it into run() and have report() close over it?
@@ -56,7 +56,7 @@ function run(source: string): void {
     const parser = new Parser(tokens, printError);
     const expr = parser.parse();
 
-    if (expr) console.log(new AstPrinter().print(expr));
+    if (expr) console.log(new Interpreter().evaluate(expr));
 }
 
 function printError(location: number | Token, message: string): void {

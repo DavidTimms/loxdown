@@ -1,7 +1,7 @@
 // This file is programatically generated. Do not edit it directly.
 
 import Token from "./Token";
-import LiteralValue from "./LiteralValue";
+import LoxValue from "./LoxValue";
 
 export abstract class Expr {
     abstract accept<R>(visitor: ExprVisitor<R>): R;
@@ -46,7 +46,7 @@ export class GroupingExpr extends Expr {
 
 export class LiteralExpr extends Expr {
     constructor(
-        readonly value: LiteralValue,
+        readonly value: LoxValue,
     ) {
         super();
         this.value = value;

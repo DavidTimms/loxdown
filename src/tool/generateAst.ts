@@ -12,7 +12,7 @@ function main(args: string[]): void {
     defineAst(outputDir, "Expr", [
         "Binary   : Expr left, Token operator, Expr right",
         "Grouping : Expr expression",
-        "Literal  : LiteralValue value",
+        "Literal  : LoxValue value",
         "Unary    : Token operator, Expr right",
     ]);
 }
@@ -24,7 +24,7 @@ function defineAst(outputDir: string, baseName: string, types: string[]): void {
         "// This file is programatically generated. Do not edit it directly.",
         "",
         "import Token from \"./Token\";",
-        "import LiteralValue from \"./LiteralValue\";",
+        "import LoxValue from \"./LoxValue\";",
         "",
         `export abstract class ${baseName} {`,
         `    abstract accept<R>(visitor: ${baseName}Visitor<R>): R;`,
