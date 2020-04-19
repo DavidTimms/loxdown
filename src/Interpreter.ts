@@ -8,6 +8,8 @@ import {
 } from "./Expr";
 import LoxValue from "./LoxValue";
 import TokenType from "./TokenType";
+import Token from "./Token";
+import RuntimeError from "./RuntimeError";
 
 export default class Interpreter implements ExprVisitor<LoxValue> {
 
@@ -31,15 +33,12 @@ export default class Interpreter implements ExprVisitor<LoxValue> {
             case TokenType.Bang:
                 return !this.isTruthy(right);
             case TokenType.Minus:
+                this.checkNumberOperand(expr.operator, right);
                 return -(right as number);
         }
 
         // Unreachable
-        throw Error(`Unexpected unary operator: ${expr.operator.lexeme}`);
-    }
-
-    private isTruthy(object: LoxValue): boolean {
-        return object !== null && object !== false;
+        throw new Error(`Unexpected unary operator: ${expr.operator.lexeme}`);
     }
 
     visitBinaryExpr(expr: BinaryExpr): LoxValue {
@@ -55,20 +54,30 @@ export default class Interpreter implements ExprVisitor<LoxValue> {
                 if (typeof left === "string" && typeof right === "string") {
                     return left + right;
                 }
-                break;
+                throw new RuntimeError(
+                    expr.operator,
+                    "Operands must be two numbers or two strings.",
+                );
             case TokenType.Minus:
+                this.checkNumberOperands(expr.operator, left, right);
                 return (left as number) - (right as number);
             case TokenType.Slash:
+                this.checkNumberOperands(expr.operator, left, right);
                 return (left as number) / (right as number);
             case TokenType.Star:
+                this.checkNumberOperands(expr.operator, left, right);
                 return (left as number) * (right as number);
             case TokenType.Greater:
+                this.checkNumberOperands(expr.operator, left, right);
                 return (left as number) > (right as number);
             case TokenType.GreaterEqual:
+                this.checkNumberOperands(expr.operator, left, right);
                 return (left as number) >= (right as number);
             case TokenType.Less:
+                this.checkNumberOperands(expr.operator, left, right);
                 return (left as number) < (right as number);
             case TokenType.LessEqual:
+                this.checkNumberOperands(expr.operator, left, right);
                 return (left as number) <= (right as number);
             case TokenType.EqualEqual:
                 return this.isEqual(left, right);
@@ -77,10 +86,31 @@ export default class Interpreter implements ExprVisitor<LoxValue> {
         }
 
         // Unreachable
-        throw Error(`Unexpected binary operator: ${expr.operator.lexeme}`);
+        throw new Error(`Unexpected binary operator: ${expr.operator.lexeme}`);
     }
 
     private isEqual(left: LoxValue, right: LoxValue): boolean {
         return left === right;
+    }
+
+    private isTruthy(object: LoxValue): boolean {
+        return object !== null && object !== false;
+    }
+
+    private checkNumberOperand(
+        operator: Token,
+        operand: LoxValue,
+    ): operand is number {
+        if (typeof operand === "number") return true;
+        throw new RuntimeError(operator, "Operand must be a number.");
+    }
+
+    private checkNumberOperands(
+        operator: Token,
+        left: LoxValue,
+        right: LoxValue,
+    ): void {
+        if (typeof left === "number" && typeof right === "number") return;
+        throw new RuntimeError(operator, "Operands must be numbers.");
     }
 }
