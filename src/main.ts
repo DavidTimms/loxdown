@@ -8,10 +8,12 @@ import TokenType from "./TokenType";
 import Scanner from "./Scanner";
 import Parser from "./Parser";
 import Interpreter from "./Interpreter";
+import RuntimeError from "./RuntimeError";
 
-// TODO fix this global variable once we know how it'll be used.
-// Perhaps move it into run() and have report() close over it?
+// TODO fix these global variables once we know how they'll be used.
+// Perhaps move it into run() and have report() close over them?
 let hadError = false;
+let hadRuntimeError = false;
 
 function main(args: string[]): void {
     if (args.length > 1) {
@@ -29,6 +31,7 @@ function runFile(path: string): void {
 
     // Indicate an error in the exit code
     if (hadError) process.exit(65);
+    if (hadRuntimeError) process.exit(70);
 }
 
 function runPrompt(): void {
@@ -56,7 +59,9 @@ function run(source: string): void {
     const parser = new Parser(tokens, printError);
     const expr = parser.parse();
 
-    if (expr) console.log(new Interpreter().evaluate(expr));
+    const interpreter = new Interpreter(runtimeError);
+
+    if (expr) interpreter.interpret(expr);
 }
 
 function printError(location: number | Token, message: string): void {
@@ -70,6 +75,11 @@ function printError(location: number | Token, message: string): void {
     else {
         report(location, "", message);
     }
+}
+
+function runtimeError(error: RuntimeError): void {
+    console.log(`${error.message}\n[line ${error.token.line}]`);
+    hadRuntimeError = true;
 }
 
 function report(line: number, where: string, message: string): void {

@@ -13,8 +13,29 @@ import RuntimeError from "./RuntimeError";
 
 export default class Interpreter implements ExprVisitor<LoxValue> {
 
-    evaluate(expr: Expr): LoxValue {
+    constructor(public runtimeError: (error: RuntimeError) => void) {
+        this.runtimeError = runtimeError;
+    }
+
+    interpret(expr: Expr): void {
+        try {
+            const value = this.evaluate(expr);
+            console.log(this.stringify(value));
+        } catch (error) {
+            if (error instanceof RuntimeError) {
+                this.runtimeError(error);
+            }
+            else throw error;
+        }
+    }
+
+    private evaluate(expr: Expr): LoxValue {
         return expr.accept(this);
+    }
+
+    private stringify(object: LoxValue): string {
+        if (object === null) return "nil";
+        return String(object);
     }
 
     visitLiteralExpr(expr: LiteralExpr): LoxValue {
