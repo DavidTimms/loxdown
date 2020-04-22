@@ -2,6 +2,15 @@
 
 import * as fs from "fs";
 
+interface ClassDefinition {
+    baseName: string;
+    className: string;
+    fields: {
+        type: string;
+        name: string;
+    }[];
+}
+
 function main(args: string[]): void {
     if (args.length !== 1) {
         console.error("Usage: tslox-generate-ast <output directory>");
@@ -15,51 +24,56 @@ function main(args: string[]): void {
         "Literal  : LoxValue value",
         "Unary    : Token operator, Expr right",
     ]);
+
+    defineAst(outputDir, "Stmt", [
+        "Expression : Expr expression",
+        "Print      : Expr expression",
+    ]);
 }
 
 function defineAst(outputDir: string, baseName: string, types: string[]): void {
     const path = `${outputDir}/${baseName}.ts`;
 
+    const classDefs = types.map(type => parseClassDefinition(baseName, type));
+
+    const importedTypes = new Set(
+        classDefs
+            .flatMap(({fields}) => fields)
+            .map(({type}) => type)
+            .filter(type => type !== baseName),
+    );
+
     const lines = [
         "// This file is programatically generated. Do not edit it directly.",
         "",
-        "import Token from \"./Token\";",
-        "import LoxValue from \"./LoxValue\";",
+        ...Array.from(importedTypes)
+            .map(type => `import ${type} from "./${type}";`),
         "",
         `export abstract class ${baseName} {`,
         `    abstract accept<R>(visitor: ${baseName}Visitor<R>): R;`,
         "}",
         "",
-        ...defineVisitor(baseName, types),
+        `export default ${baseName};`,
         "",
-        ...types.flatMap(type => {
-            const [classPrefix, fields] = type.split(":").map(s => s.trim());
-            return defineType(baseName, classPrefix, fields);
-        }),
+        ...defineVisitor(baseName, classDefs),
+        "",
+        ...classDefs.flatMap(defineType),
     ];
 
     fs.writeFileSync(path, lines.join("\n"));
 }
 
-function defineType(
-    baseName: string,
-    classPrefix: string,
-    fieldList: string,
-): string[] {
-    const className = classPrefix + baseName;
-    const fields = fieldList.split(", ").map(field => field.split(" "));
+function defineType({baseName, className, fields}: ClassDefinition): string[] {
     return [
         `export class ${className} extends ${baseName} {`,
 
         // Constructor with all fields
         "    constructor(",
-        ...fields.map(([fieldType, fieldName]) =>
-            `        readonly ${fieldName}: ${fieldType},`,
+        ...fields.map(({type, name}) => `        readonly ${name}: ${type},`,
         ),
         "    ) {",
         "        super();",
-        ...fields.map(([_, fieldName]) =>
-            `        this.${fieldName} = ${fieldName};`,
+        ...fields.map(({name}) => `        this.${name} = ${name};`,
         ),
         "    }",
         "",
@@ -74,17 +88,32 @@ function defineType(
     ];
 }
 
-function defineVisitor(baseName: string, types: string[]): string[] {
+function defineVisitor(
+    baseName: string,
+    classDefs: ClassDefinition[],
+): string[] {
     return [
         `export interface ${baseName}Visitor<R> {`,
-        ...types.map(type => {
-            const classPrefix = type.split(":")[0].trim();
-            const className = classPrefix + baseName;
+        ...classDefs.map(({className}) => {
             const method = `visit${className}`;
             return `    ${method}(${baseName.toLowerCase()}: ${className}): R;`;
         }),
         "}",
     ];
+}
+
+function parseClassDefinition(
+    baseName: string,
+    definition: string,
+): ClassDefinition {
+    const [classPrefix, fieldList] = definition.split(":").map(s => s.trim());
+    const className = classPrefix + baseName;
+    const fields = fieldList.split(", ").map(field => {
+        const [type, name] = field.split(" ");
+        return {type, name};
+    });
+
+    return {baseName, className, fields};
 }
 
 main(process.argv.slice(2));
