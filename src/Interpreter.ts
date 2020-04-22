@@ -10,11 +10,12 @@ import LoxValue from "./LoxValue";
 import TokenType from "./TokenType";
 import Token from "./Token";
 import RuntimeError from "./RuntimeError";
+import Lox from "./Lox";
 
 export default class Interpreter implements ExprVisitor<LoxValue> {
 
-    constructor(public runtimeError: (error: RuntimeError) => void) {
-        this.runtimeError = runtimeError;
+    constructor(private readonly lox: Lox) {
+        this.lox = lox;
     }
 
     interpret(expr: Expr): void {
@@ -23,7 +24,7 @@ export default class Interpreter implements ExprVisitor<LoxValue> {
             console.log(this.stringify(value));
         } catch (error) {
             if (error instanceof RuntimeError) {
-                this.runtimeError(error);
+                this.lox.runtimeError(error);
             }
             else throw error;
         }

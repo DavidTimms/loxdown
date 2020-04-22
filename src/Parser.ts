@@ -1,6 +1,5 @@
 import Token from "./Token";
 import TokenType from "./TokenType";
-import ErrorHandler from "./ErrorHandler";
 import {
     Expr,
     BinaryExpr,
@@ -8,6 +7,7 @@ import {
     LiteralExpr,
     UnaryExpr,
 } from "./Expr";
+import Lox from "./Lox";
 
 type Associativity = "LEFT" | "RIGHT"
 
@@ -47,7 +47,8 @@ class ParseError extends Error {}
 export default class Parser {
     private current = 0
 
-    constructor(private readonly tokens: Token[], public error: ErrorHandler) {
+    constructor(private readonly lox: Lox, private readonly tokens: Token[]) {
+        this.lox = lox;
         this.tokens = tokens;
     }
 
@@ -125,7 +126,7 @@ export default class Parser {
     }
 
     private parseError(token: Token, message: string): ParseError {
-        this.error(token, message);
+        this.lox.error(token, message);
         return new ParseError();
     }
 

@@ -1,7 +1,7 @@
 import Token from "./Token";
 import TokenType from "./TokenType";
-import ErrorHandler from "./ErrorHandler";
 import LoxValue from "./LoxValue";
+import Lox from "./Lox";
 
 const keywords = new Map([
     ["and", TokenType.And],
@@ -28,7 +28,8 @@ export default class Scanner {
     private current = 0;
     private line = 1;
 
-    constructor(private readonly source: string, public error: ErrorHandler) {
+    constructor(private readonly lox: Lox, private readonly source: string) {
+        this.lox = lox;
         this.source = source;
     }
 
@@ -117,7 +118,7 @@ export default class Scanner {
                 } else if (isAlpha(c)) {
                     this.identifier();
                 } else {
-                    this.error(
+                    this.lox.error(
                         this.line,
                         `Unexpected character: ${JSON.stringify(c)}`,
                     );
@@ -143,7 +144,7 @@ export default class Scanner {
 
         // Unterminated string
         if (this.isAtEnd()) {
-            this.error(this.line, "Unterminated string.");
+            this.lox.error(this.line, "Unterminated string.");
             return;
         }
 
