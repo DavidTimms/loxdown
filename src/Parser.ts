@@ -1,3 +1,4 @@
+import Lox from "./Lox";
 import Token from "./Token";
 import TokenType from "./TokenType";
 import {
@@ -7,7 +8,11 @@ import {
     LiteralExpr,
     UnaryExpr,
 } from "./Expr";
-import Lox from "./Lox";
+import {
+    Stmt,
+    PrintStmt,
+    ExpressionStmt,
+} from "./Stmt";
 
 type Associativity = "LEFT" | "RIGHT"
 
@@ -52,15 +57,31 @@ export default class Parser {
         this.tokens = tokens;
     }
 
-    parse(): Expr | null {
-        try {
-            return this.expression();}
-        catch (error) {
-            if (error instanceof ParseError) {
-                return null;
-            }
-            throw error;
+    parse(): Stmt[] | null {
+        const statements: Stmt[] = [];
+        while (!this.isAtEnd()) {
+            statements.push(this.statement());
         }
+
+        return statements;
+    }
+
+    private statement(): Stmt {
+        if (this.match(TokenType.Print)) return this.printStatement();
+
+        return this.expressionStatement();
+    }
+
+    private printStatement(): Stmt {
+        const value = this.expression();
+        this.consume(TokenType.Semicolon, "Expect ';' after value.");
+        return new PrintStmt(value);
+    }
+
+    private expressionStatement(): Stmt {
+        const expr = this.expression();
+        this.consume(TokenType.Semicolon, "Expect ';' after expression.");
+        return new ExpressionStmt(expr);
     }
 
     private expression(): Expr {

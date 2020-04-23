@@ -1,3 +1,8 @@
+import Lox from "./Lox";
+import LoxValue from "./LoxValue";
+import TokenType from "./TokenType";
+import Token from "./Token";
+import RuntimeError from "./RuntimeError";
 import {
     Expr,
     BinaryExpr,
@@ -6,22 +11,25 @@ import {
     UnaryExpr,
     ExprVisitor,
 } from "./Expr";
-import LoxValue from "./LoxValue";
-import TokenType from "./TokenType";
-import Token from "./Token";
-import RuntimeError from "./RuntimeError";
-import Lox from "./Lox";
+import {
+    Stmt,
+    StmtVisitor,
+    ExpressionStmt,
+    PrintStmt,
+} from "./Stmt";
 
-export default class Interpreter implements ExprVisitor<LoxValue> {
+export default class Interpreter
+implements ExprVisitor<LoxValue>, StmtVisitor<void> {
 
     constructor(private readonly lox: Lox) {
         this.lox = lox;
     }
 
-    interpret(expr: Expr): void {
+    interpret(statements: Stmt[]): void {
         try {
-            const value = this.evaluate(expr);
-            console.log(this.stringify(value));
+            for (const statement of statements) {
+                this.execute(statement);
+            }
         } catch (error) {
             if (error instanceof RuntimeError) {
                 this.lox.runtimeError(error);
@@ -34,9 +42,17 @@ export default class Interpreter implements ExprVisitor<LoxValue> {
         return expr.accept(this);
     }
 
-    private stringify(object: LoxValue): string {
-        if (object === null) return "nil";
-        return String(object);
+    private execute(stmt: Stmt): void {
+        stmt.accept(this);
+    }
+
+    visitExpressionStmt(stmt: ExpressionStmt): void {
+        this.evaluate(stmt.expression);
+    }
+
+    visitPrintStmt(stmt: PrintStmt): void {
+        const value = this.evaluate(stmt.expression);
+        console.log(this.stringify(value));
     }
 
     visitLiteralExpr(expr: LiteralExpr): LoxValue {
@@ -134,5 +150,10 @@ export default class Interpreter implements ExprVisitor<LoxValue> {
     ): void {
         if (typeof left === "number" && typeof right === "number") return;
         throw new RuntimeError(operator, "Operands must be numbers.");
+    }
+
+    private stringify(object: LoxValue): string {
+        if (object === null) return "nil";
+        return String(object);
     }
 }

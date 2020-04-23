@@ -1,7 +1,7 @@
+import Lox from "./Lox";
 import Token from "./Token";
 import TokenType from "./TokenType";
 import LoxValue from "./LoxValue";
-import Lox from "./Lox";
 
 const keywords = new Map([
     ["and", TokenType.And],

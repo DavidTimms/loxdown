@@ -44,9 +44,9 @@ export default class Lox {
         const tokens = scanner.scanTokens();
 
         const parser = new Parser(this, tokens);
-        const expr = parser.parse();
+        const statements = parser.parse();
 
-        if (expr) this.interpreter.interpret(expr);
+        if (statements) this.interpreter.interpret(statements);
     }
 
     error(location: number | Token, message: string): void {
