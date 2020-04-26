@@ -63,12 +63,20 @@ export default class Lox {
     }
 
     runtimeError(error: RuntimeError): void {
-        console.log(`${error.message}\n[line ${error.token.line}]`);
+        this.printError(`${error.message}\n[line ${error.token.line}]`);
         this.hadRuntimeError = true;
     }
 
     report(line: number, where: string, message: string): void {
-        console.error(`[line ${line}] Error${where}: ${message}`);
+        this.printError(`[line ${line}] Error${where}: ${message}`);
         this.hadError = true;
+    }
+
+    printError(message: string): void {
+        console.error(message);
+    }
+
+    print(message: string): void {
+        console.log(message);
     }
 }

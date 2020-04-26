@@ -1,0 +1,3 @@
+print "Bagel " + "Salmon " + "Cream Cheese!";
+-- OUTPUT --
+Bagel Salmon Cream Cheese!

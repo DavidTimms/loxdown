@@ -52,7 +52,7 @@ implements ExprVisitor<LoxValue>, StmtVisitor<void> {
 
     visitPrintStmt(stmt: PrintStmt): void {
         const value = this.evaluate(stmt.expression);
-        console.log(this.stringify(value));
+        this.lox.print(this.stringify(value));
     }
 
     visitLiteralExpr(expr: LiteralExpr): LoxValue {
