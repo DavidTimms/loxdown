@@ -1,0 +1,4 @@
+var beverage = "espresso";
+print beverage;
+-- OUTPUT --
+espresso

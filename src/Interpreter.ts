@@ -2,6 +2,7 @@ import Lox from "./Lox";
 import LoxValue from "./LoxValue";
 import TokenType from "./TokenType";
 import Token from "./Token";
+import Environment from "./Environment";
 import RuntimeError from "./RuntimeError";
 import {
     Expr,
@@ -10,16 +11,19 @@ import {
     LiteralExpr,
     UnaryExpr,
     ExprVisitor,
+    VariableExpr,
 } from "./Expr";
 import {
     Stmt,
     StmtVisitor,
     ExpressionStmt,
     PrintStmt,
+    VarStmt,
 } from "./Stmt";
 
 export default class Interpreter
 implements ExprVisitor<LoxValue>, StmtVisitor<void> {
+    private readonly environment = new Environment();
 
     constructor(private readonly lox: Lox) {
         this.lox = lox;
@@ -55,6 +59,11 @@ implements ExprVisitor<LoxValue>, StmtVisitor<void> {
         this.lox.print(this.stringify(value));
     }
 
+    visitVarStmt(stmt: VarStmt): void {
+        const value = stmt.initializer ? this.evaluate(stmt.initializer) : null;
+        this.environment.define(stmt.name.lexeme, value);
+    }
+
     visitLiteralExpr(expr: LiteralExpr): LoxValue {
         return expr.value;
     }
@@ -77,6 +86,10 @@ implements ExprVisitor<LoxValue>, StmtVisitor<void> {
 
         // Unreachable
         throw new Error(`Unexpected unary operator: ${expr.operator.lexeme}`);
+    }
+
+    visitVariableExpr(expr: VariableExpr): LoxValue {
+        return this.environment.get(expr.name);
     }
 
     visitBinaryExpr(expr: BinaryExpr): LoxValue {

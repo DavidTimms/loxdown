@@ -7,11 +7,13 @@ import {
     GroupingExpr,
     LiteralExpr,
     UnaryExpr,
+    VariableExpr,
 } from "./Expr";
 import {
     Stmt,
     PrintStmt,
     ExpressionStmt,
+    VarStmt,
 } from "./Stmt";
 
 type Associativity = "LEFT" | "RIGHT"
@@ -57,13 +59,28 @@ export default class Parser {
         this.tokens = tokens;
     }
 
-    parse(): Stmt[] | null {
+    parse(): Stmt[] {
         const statements: Stmt[] = [];
         while (!this.isAtEnd()) {
-            statements.push(this.statement());
+            const declaration = this.declaration();
+            if (declaration !== null) statements.push(declaration);
         }
 
         return statements;
+    }
+
+    private declaration(): Stmt | null {
+        try {
+            if (this.match(TokenType.Var)) return this.varDeclaration();
+
+            return this.statement();
+        } catch (error) {
+            if (error instanceof ParseError) {
+                this.synchronize();
+                return null;
+            }
+            throw error;
+        }
     }
 
     private statement(): Stmt {
@@ -76,6 +93,19 @@ export default class Parser {
         const value = this.expression();
         this.consume(TokenType.Semicolon, "Expect ';' after value.");
         return new PrintStmt(value);
+    }
+
+    private varDeclaration(): Stmt {
+        const name =
+            this.consume(TokenType.Identifier, "Expect variable name.");
+
+        const initializer =
+            this.match(TokenType.Equal) ? this.expression() : null;
+
+        this.consume(
+            TokenType.Semicolon, "Expect ';' after variable declaration");
+
+        return new VarStmt(name, initializer);
     }
 
     private expressionStatement(): Stmt {
@@ -129,6 +159,10 @@ export default class Parser {
 
         if (this.match(TokenType.Number, TokenType.String)) {
             return new LiteralExpr(this.previous().literal);
+        }
+
+        if (this.match(TokenType.Identifier)) {
+            return new VariableExpr(this.previous());
         }
 
         if (this.match(TokenType.LeftParen)) {

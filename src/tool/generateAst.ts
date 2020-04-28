@@ -6,7 +6,7 @@ interface ClassDefinition {
     baseName: string;
     className: string;
     fields: {
-        type: string;
+        types: string[];
         name: string;
     }[];
 }
@@ -19,15 +19,17 @@ function main(args: string[]): void {
     const outputDir = args[0];
 
     defineAst(outputDir, "Expr", [
-        "Binary   : Expr left, Token operator, Expr right",
-        "Grouping : Expr expression",
-        "Literal  : LoxValue value",
-        "Unary    : Token operator, Expr right",
+        "Binary   -> left: Expr, operator: Token, right: Expr",
+        "Grouping -> expression: Expr",
+        "Literal  -> value: LoxValue",
+        "Unary    -> operator: Token, right: Expr",
+        "Variable -> name: Token",
     ]);
 
     defineAst(outputDir, "Stmt", [
-        "Expression : Expr expression",
-        "Print      : Expr expression",
+        "Expression -> expression: Expr",
+        "Print      -> expression: Expr",
+        "Var        -> name: Token, initializer: Expr | null",
     ]);
 }
 
@@ -36,11 +38,13 @@ function defineAst(outputDir: string, baseName: string, types: string[]): void {
 
     const classDefs = types.map(type => parseClassDefinition(baseName, type));
 
+    const globalEnv = new Set(["null", baseName]);
+
     const importedTypes = new Set(
         classDefs
             .flatMap(({fields}) => fields)
-            .map(({type}) => type)
-            .filter(type => type !== baseName),
+            .flatMap(({types}) => types)
+            .filter(type => !globalEnv.has(type)),
     );
 
     const lines = [
@@ -69,11 +73,13 @@ function defineType({baseName, className, fields}: ClassDefinition): string[] {
 
         // Constructor with all fields
         "    constructor(",
-        ...fields.map(({type, name}) => `        readonly ${name}: ${type},`,
+        ...fields.map(({types, name}) =>
+            `        readonly ${name}: ${types.join(" | ")},`,
         ),
         "    ) {",
         "        super();",
-        ...fields.map(({name}) => `        this.${name} = ${name};`,
+        ...fields.map(({name}) =>
+            `        this.${name} = ${name};`,
         ),
         "    }",
         "",
@@ -106,11 +112,11 @@ function parseClassDefinition(
     baseName: string,
     definition: string,
 ): ClassDefinition {
-    const [classPrefix, fieldList] = definition.split(":").map(s => s.trim());
+    const [classPrefix, fieldList] = definition.split("->").map(s => s.trim());
     const className = classPrefix + baseName;
     const fields = fieldList.split(", ").map(field => {
-        const [type, name] = field.split(" ");
-        return {type, name};
+        const [name, typeList] = field.split(":").map(s => s.trim());
+        return {name, types: typeList.split("|").map(s => s.trim())};
     });
 
     return {baseName, className, fields};
