@@ -1,0 +1,4 @@
+var a = 1;
+print a = 2;
+-- OUTPUT --
+2

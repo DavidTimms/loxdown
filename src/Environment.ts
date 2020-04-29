@@ -16,6 +16,15 @@ export default class Environment {
         return value;
     }
 
+    assign(name: Token, value: LoxValue): void {
+        if (this.values.has(name.lexeme)) {
+            this.values.set(name.lexeme, value);
+        } else {
+            throw new RuntimeError(
+                name, `Undefined variable '${name.lexeme}'.`);
+        }
+    }
+
     define(name: string, value: LoxValue): void {
         this.values.set(name, value);
     }

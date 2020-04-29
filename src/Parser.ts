@@ -8,6 +8,7 @@ import {
     LiteralExpr,
     UnaryExpr,
     VariableExpr,
+    AssignExpr,
 } from "./Expr";
 import {
     Stmt,
@@ -115,7 +116,26 @@ export default class Parser {
     }
 
     private expression(): Expr {
-        return this.binary();
+        return this.assignment();
+    }
+
+    private assignment(): Expr {
+        const expr = this.binary();
+
+        if (this.match(TokenType.Equal)) {
+            const equals = this.previous();
+            const value = this.assignment();
+
+            if (expr instanceof VariableExpr) {
+                return new AssignExpr(expr.name, value);
+            }
+
+            // Report a parse error, but don't throw it, as we do not
+            // need to synchronize her
+            this.parseError(equals, "Invalid assignment target.");
+        }
+
+        return expr;
     }
 
     private binary(precedence = 0): Expr {
@@ -182,7 +202,7 @@ export default class Parser {
 
     private parseError(token: Token, message: string): ParseError {
         this.lox.error(token, message);
-        return new ParseError();
+        return new ParseError(message);
     }
 
     private synchronize(): void {

@@ -12,6 +12,7 @@ import {
     UnaryExpr,
     ExprVisitor,
     VariableExpr,
+    AssignExpr,
 } from "./Expr";
 import {
     Stmt,
@@ -62,6 +63,12 @@ implements ExprVisitor<LoxValue>, StmtVisitor<void> {
     visitVarStmt(stmt: VarStmt): void {
         const value = stmt.initializer ? this.evaluate(stmt.initializer) : null;
         this.environment.define(stmt.name.lexeme, value);
+    }
+
+    visitAssignExpr(expr: AssignExpr) {
+        const value = this.evaluate(expr.value);
+        this.environment.assign(expr.name, value);
+        return value;
     }
 
     visitLiteralExpr(expr: LiteralExpr): LoxValue {

@@ -1,0 +1,4 @@
+var name = "Bob";
+(name + "!") = "Robert";
+-- ERROR --
+[line 2] Error at '=': Invalid assignment target.
