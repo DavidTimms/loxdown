@@ -46,7 +46,7 @@ function defineAst(outputDir: string, baseName: string, types: string[]): void {
         classDefs
             .flatMap(({fields}) => fields)
             .flatMap(({types}) => types)
-            .filter(type => !globalEnv.has(type.replace(/[\[\]]/g, ""))),
+            .filter(type => !globalEnv.has(type.replace(/[[\]]/g, ""))),
     );
 
     const lines = [

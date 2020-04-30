@@ -83,7 +83,7 @@ implements ExprVisitor<LoxValue>, StmtVisitor<void> {
         this.environment.define(stmt.name.lexeme, value);
     }
 
-    visitAssignExpr(expr: AssignExpr) {
+    visitAssignExpr(expr: AssignExpr): LoxValue {
         const value = this.evaluate(expr.value);
         this.environment.assign(expr.name, value);
         return value;
