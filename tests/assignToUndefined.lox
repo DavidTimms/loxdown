@@ -1,0 +1,4 @@
+y = 123;
+-- ERROR --
+Undefined variable 'y'.
+[line 1]
