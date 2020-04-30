@@ -20,11 +20,12 @@ import {
     ExpressionStmt,
     PrintStmt,
     VarStmt,
+    BlockStmt,
 } from "./Stmt";
 
 export default class Interpreter
 implements ExprVisitor<LoxValue>, StmtVisitor<void> {
-    private readonly environment = new Environment();
+    private environment = new Environment();
 
     constructor(private readonly lox: Lox) {
         this.lox = lox;
@@ -49,6 +50,23 @@ implements ExprVisitor<LoxValue>, StmtVisitor<void> {
 
     private execute(stmt: Stmt): void {
         stmt.accept(this);
+    }
+
+    executeBlock(statements: Stmt[], environment: Environment): void {
+        const previous = this.environment;
+        try {
+            this.environment = environment;
+
+            for (const statement of statements) {
+                this.execute(statement);
+            }
+        } finally {
+            this.environment = previous;
+        }
+    }
+
+    visitBlockStmt(stmt: BlockStmt): void {
+        this.executeBlock(stmt.statements, new Environment(this.environment));
     }
 
     visitExpressionStmt(stmt: ExpressionStmt): void {

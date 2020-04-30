@@ -5,10 +5,17 @@ import RuntimeError from "./RuntimeError";
 export default class Environment {
     private readonly values = new Map<string, LoxValue>();
 
+    constructor(readonly enclosing: Environment | null = null) {
+        this.enclosing = enclosing;
+    }
+
     get(name: Token): LoxValue {
         const value = this.values.get(name.lexeme);
 
         if (value === undefined) {
+            if (this.enclosing) {
+                return this.enclosing.get(name);
+            }
             throw new RuntimeError(
                 name, `Undefined variable '${name.lexeme}'.`);
         }
@@ -19,6 +26,8 @@ export default class Environment {
     assign(name: Token, value: LoxValue): void {
         if (this.values.has(name.lexeme)) {
             this.values.set(name.lexeme, value);
+        } else if (this.enclosing) {
+            this.enclosing.assign(name, value);
         } else {
             throw new RuntimeError(
                 name, `Undefined variable '${name.lexeme}'.`);

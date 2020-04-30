@@ -1,0 +1,13 @@
+var x = "outer";
+var y = " scope";
+{
+    var x = "inner" + y;
+    print x;
+    y = "reassigned";
+}
+print x;
+print y;
+-- OUTPUT --
+inner scope
+outer
+reassigned

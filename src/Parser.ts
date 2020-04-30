@@ -15,6 +15,7 @@ import {
     PrintStmt,
     ExpressionStmt,
     VarStmt,
+    BlockStmt,
 } from "./Stmt";
 
 type Associativity = "LEFT" | "RIGHT"
@@ -86,6 +87,7 @@ export default class Parser {
 
     private statement(): Stmt {
         if (this.match(TokenType.Print)) return this.printStatement();
+        if (this.match(TokenType.LeftBrace)) return new BlockStmt(this.block());
 
         return this.expressionStatement();
     }
@@ -113,6 +115,18 @@ export default class Parser {
         const expr = this.expression();
         this.consume(TokenType.Semicolon, "Expect ';' after expression.");
         return new ExpressionStmt(expr);
+    }
+
+    private block(): Stmt[] {
+        const statements: Stmt[] = [];
+
+        while (!this.check(TokenType.RightBrace) && !this.isAtEnd()) {
+            const stmt = this.declaration();
+            if (stmt) statements.push(stmt);
+        }
+
+        this.consume(TokenType.RightBrace, "Expect '}' after block.");
+        return statements;
     }
 
     private expression(): Expr {
