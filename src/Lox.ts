@@ -7,6 +7,7 @@ import Scanner from "./Scanner";
 import Parser from "./Parser";
 import Interpreter from "./Interpreter";
 import RuntimeError from "./RuntimeError";
+import { ExpressionStmt, PrintStmt } from "./Stmt";
 
 export default class Lox {
     private hadError = false;
@@ -30,7 +31,7 @@ export default class Lox {
 
         const nextLine = (): void => {
             stdinInterface.question("> ", line => {
-                this.run(line);
+                this.run(line, {printLastExpr: true});
                 this.hadError = false;
                 nextLine();
             });
@@ -39,14 +40,25 @@ export default class Lox {
         nextLine();
     }
 
-    run(source: string): void {
+    run(source: string, {printLastExpr = false} = {}): void {
         const scanner = new Scanner(this, source);
         const tokens = scanner.scanTokens();
 
         const parser = new Parser(this, tokens);
         const statements = parser.parse();
 
-        if (statements) this.interpreter.interpret(statements);
+        if (statements) {
+
+            // Replace final expression statement with print statement
+            // so expressions get printed in the REPL
+            const lastStatement = statements[statements.length - 1];
+            if (printLastExpr && lastStatement instanceof ExpressionStmt) {
+                statements[statements.length - 1] =
+                    new PrintStmt(lastStatement.expression);
+            }
+
+            this.interpreter.interpret(statements);
+        }
     }
 
     error(location: number | Token, message: string): void {
