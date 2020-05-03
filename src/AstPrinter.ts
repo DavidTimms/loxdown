@@ -7,6 +7,7 @@ import {
     ExprVisitor,
     VariableExpr,
     AssignExpr,
+    LogicalExpr,
 } from "./Expr";
 
 // Creates an unambiguous, if ugly, string representation of AST nodes
@@ -30,6 +31,10 @@ export default class AstPrinter implements ExprVisitor<string> {
     visitLiteralExpr(expr: LiteralExpr): string {
         if (expr.value === null) return "nil";
         return `${expr.value}`;
+    }
+
+    visitLogicalExpr(expr: LogicalExpr): string {
+        return this.parenthesize(expr.operator.lexeme, expr.left, expr.right);
     }
 
     visitUnaryExpr(expr: UnaryExpr): string {

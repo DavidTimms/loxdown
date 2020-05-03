@@ -1,0 +1,5 @@
+print nil or "nil is falsey";
+print "hello" or "world";
+-- OUTPUT --
+nil is falsey
+hello

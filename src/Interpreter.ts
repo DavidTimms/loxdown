@@ -13,6 +13,7 @@ import {
     ExprVisitor,
     VariableExpr,
     AssignExpr,
+    LogicalExpr,
 } from "./Expr";
 import {
     Stmt,
@@ -99,6 +100,24 @@ implements ExprVisitor<LoxValue>, StmtVisitor<void> {
 
     visitLiteralExpr(expr: LiteralExpr): LoxValue {
         return expr.value;
+    }
+
+    visitLogicalExpr(expr: LogicalExpr): LoxValue {
+        const left = this.evaluate(expr.left);
+
+        switch (expr.operator.type) {
+            case TokenType.Or:
+                if (this.isTruthy(left)) return left;
+                break;
+            case TokenType.And:
+                if (!this.isTruthy(left)) return left;
+                break;
+            default:
+                // Unreachable
+                throw new Error(
+                    `Unexpected logical operator: ${expr.operator.lexeme}`);
+        }
+        return this.evaluate(expr.right);
     }
 
     visitGroupingExpr(expr: GroupingExpr): LoxValue {

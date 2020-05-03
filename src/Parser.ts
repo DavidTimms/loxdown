@@ -9,6 +9,7 @@ import {
     UnaryExpr,
     VariableExpr,
     AssignExpr,
+    LogicalExpr,
 } from "./Expr";
 import {
     Stmt,
@@ -23,6 +24,7 @@ type Associativity = "LEFT" | "RIGHT"
 
 class OperatorLevel {
     constructor(
+        readonly exprType: typeof LogicalExpr | typeof BinaryExpr,
         readonly associativity: Associativity,
         readonly operators: TokenType[],
     ) {
@@ -32,21 +34,27 @@ class OperatorLevel {
 }
 
 const operatorPrecedence: OperatorLevel[] = [
-    new OperatorLevel("LEFT", [
+    new OperatorLevel(LogicalExpr, "LEFT", [
+        TokenType.Or,
+    ]),
+    new OperatorLevel(LogicalExpr, "LEFT", [
+        TokenType.And,
+    ]),
+    new OperatorLevel(BinaryExpr, "LEFT", [
         TokenType.BangEqual,
         TokenType.EqualEqual,
     ]),
-    new OperatorLevel("LEFT", [
+    new OperatorLevel(BinaryExpr, "LEFT", [
         TokenType.Greater,
         TokenType.GreaterEqual,
         TokenType.Less,
         TokenType.LessEqual,
     ]),
-    new OperatorLevel("LEFT", [
+    new OperatorLevel(BinaryExpr, "LEFT", [
         TokenType.Plus,
         TokenType.Minus,
     ]),
-    new OperatorLevel("LEFT", [
+    new OperatorLevel(BinaryExpr, "LEFT", [
         TokenType.Slash,
         TokenType.Star,
     ]),
@@ -184,7 +192,7 @@ export default class Parser {
 
             const right = this.binary(rightPrecedence);
 
-            expr = new BinaryExpr(expr, operator, right);
+            expr = new operatorLevel.exprType(expr, operator, right);
         }
 
         return expr;
