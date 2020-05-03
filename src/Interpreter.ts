@@ -21,6 +21,7 @@ import {
     PrintStmt,
     VarStmt,
     BlockStmt,
+    IfStmt,
 } from "./Stmt";
 
 export default class Interpreter
@@ -39,8 +40,7 @@ implements ExprVisitor<LoxValue>, StmtVisitor<void> {
         } catch (error) {
             if (error instanceof RuntimeError) {
                 this.lox.runtimeError(error);
-            }
-            else throw error;
+            } else throw error;
         }
     }
 
@@ -71,6 +71,14 @@ implements ExprVisitor<LoxValue>, StmtVisitor<void> {
 
     visitExpressionStmt(stmt: ExpressionStmt): void {
         this.evaluate(stmt.expression);
+    }
+
+    visitIfStmt(stmt: IfStmt): void {
+        if (this.isTruthy(this.evaluate(stmt.condition))) {
+            this.execute(stmt.thenBranch);
+        } else if (stmt.elseBranch) {
+            this.execute(stmt.elseBranch);
+        }
     }
 
     visitPrintStmt(stmt: PrintStmt): void {

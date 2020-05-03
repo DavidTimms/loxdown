@@ -1,0 +1,4 @@
+if (false) print "not printed";
+else print "printed";
+-- OUTPUT --
+printed

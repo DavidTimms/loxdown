@@ -68,8 +68,7 @@ export default class Lox {
             } else {
                 this.report(location.line, ` at '${location.lexeme}'`, message);
             }
-        }
-        else {
+        } else {
             this.report(location, "", message);
         }
     }

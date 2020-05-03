@@ -11,6 +11,9 @@ module.exports = {
     ],
     rules: {
         "@typescript-eslint/no-use-before-define": "off",
+
+        "eqeqeq": ["error", "always"],
+
         "comma-dangle": ["warn", {
             "arrays": "always-multiline",
             "objects": "always-multiline",
@@ -25,6 +28,8 @@ module.exports = {
             "SwitchCase": 1,
         }],
         "curly": ["warn", "multi-line"],
-        "eqeqeq": ["error", "always"],
+        "brace-style": ["warn"],
+        "no-trailing-spaces": ["warn"],
+        "keyword-spacing": ["warn"],
     }
 };

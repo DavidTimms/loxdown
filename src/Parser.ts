@@ -16,6 +16,7 @@ import {
     ExpressionStmt,
     VarStmt,
     BlockStmt,
+    IfStmt,
 } from "./Stmt";
 
 type Associativity = "LEFT" | "RIGHT"
@@ -86,10 +87,22 @@ export default class Parser {
     }
 
     private statement(): Stmt {
+        if (this.match(TokenType.If)) return this.ifStatement();
         if (this.match(TokenType.Print)) return this.printStatement();
         if (this.match(TokenType.LeftBrace)) return new BlockStmt(this.block());
 
         return this.expressionStatement();
+    }
+
+    private ifStatement(): Stmt {
+        this.consume(TokenType.LeftParen, "Expect '(' after 'if'.");
+        const condition = this.expression();
+        this.consume(TokenType.RightParen, "Exepct ')' after if condition.");
+
+        const thenBranch = this.statement();
+        const elseBranch = this.match(TokenType.Else) ? this.statement() : null;
+
+        return new IfStmt(condition, thenBranch, elseBranch);
     }
 
     private printStatement(): Stmt {

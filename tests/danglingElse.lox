@@ -1,0 +1,3 @@
+if (true) if (false) print "hi"; else print "bye";
+-- OUTPUT --
+bye

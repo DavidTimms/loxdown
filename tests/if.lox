@@ -1,0 +1,11 @@
+var x = "original";
+var y = 12;
+if (y > 10) {
+    x = "assigned";
+}
+if (y < 10) {
+    x = "not assigned";
+}
+print x;
+-- OUTPUT --
+assigned
