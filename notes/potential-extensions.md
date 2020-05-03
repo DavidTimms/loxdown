@@ -6,3 +6,6 @@
 - Lazy function parameters
 - Tail-call optimisation
 - For-in loop
+- Pattern matching
+- Gradual type system
+- Fully sound type system

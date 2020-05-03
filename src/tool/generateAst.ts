@@ -34,6 +34,7 @@ function main(args: string[]): void {
         "If         -> condition: Expr, thenBranch: Stmt, elseBranch: Stmt | null",
         "Print      -> expression: Expr",
         "Var        -> name: Token, initializer: Expr | null",
+        "While      -> condtion: Expr, body: Stmt",
     ]);
 }
 

@@ -23,6 +23,7 @@ import {
     VarStmt,
     BlockStmt,
     IfStmt,
+    WhileStmt,
 } from "./Stmt";
 
 export default class Interpreter
@@ -90,6 +91,12 @@ implements ExprVisitor<LoxValue>, StmtVisitor<void> {
     visitVarStmt(stmt: VarStmt): void {
         const value = stmt.initializer ? this.evaluate(stmt.initializer) : null;
         this.environment.define(stmt.name.lexeme, value);
+    }
+
+    visitWhileStmt(stmt: WhileStmt): void {
+        while (this.isTruthy(this.evaluate(stmt.condtion))) {
+            this.execute(stmt.body);
+        }
     }
 
     visitAssignExpr(expr: AssignExpr): LoxValue {
