@@ -47,7 +47,7 @@ export default class Lox {
         const parser = new Parser(this, tokens);
         const statements = parser.parse();
 
-        if (statements) {
+        if (statements && !this.hadError) {
 
             // Replace final expression statement with print statement
             // so expressions get printed in the REPL

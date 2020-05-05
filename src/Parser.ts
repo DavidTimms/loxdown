@@ -10,6 +10,7 @@ import {
     VariableExpr,
     AssignExpr,
     LogicalExpr,
+    CallExpr,
 } from "./Expr";
 import {
     Stmt,
@@ -21,7 +22,7 @@ import {
     WhileStmt,
 } from "./Stmt";
 
-type Associativity = "LEFT" | "RIGHT"
+type Associativity = "LEFT" | "RIGHT";
 
 class OperatorLevel {
     constructor(
@@ -64,7 +65,7 @@ const operatorPrecedence: OperatorLevel[] = [
 class ParseError extends Error {}
 
 export default class Parser {
-    private current = 0
+    private current = 0;
 
     constructor(private readonly lox: Lox, private readonly tokens: Token[]) {
         this.lox = lox;
@@ -258,7 +259,42 @@ export default class Parser {
             const right = this.unary();
             return new UnaryExpr(operator, right);
         }
-        return this.primary();
+        return this.call();
+    }
+
+    private call(): Expr {
+        let expr = this.primary();
+
+        for (;;) {
+            if (this.match(TokenType.LeftParen)) {
+                expr = this.finishCall(expr);
+            } else {
+                break;
+            }
+        }
+
+        return expr;
+    }
+
+    private finishCall(callee: Expr): Expr {
+        const args: Expr[] = [];
+
+        if (!this.check(TokenType.RightParen)) {
+            do {
+                if (args.length >= 255) {
+                    this.lox.error(
+                        this.peek(),
+                        "Cannot have more than 255 arguments.",
+                    );
+                }
+                args.push(this.expression());
+            } while (this.match(TokenType.Comma));
+        }
+
+        const paren =
+            this.consume(TokenType.RightParen, "Expect ')' after arguments.");
+
+        return new CallExpr(callee, paren, args);
     }
 
     private primary(): Expr {

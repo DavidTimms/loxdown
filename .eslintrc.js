@@ -22,7 +22,7 @@ module.exports = {
             "functions": "always-multiline",
         }],
         "quotes": ["warn", "double"],
-        "semi": ["error", "always"],
+        "@typescript-eslint/semi": ["error", "always"],
         "semi-style": ["error", "last"],
         "indent": ["warn", 4, {
             "SwitchCase": 1,

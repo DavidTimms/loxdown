@@ -21,6 +21,7 @@ function main(args: string[]): void {
     defineAst(outputDir, "Expr", [
         "Assign   -> name: Token, value: Expr",
         "Binary   -> left: Expr, operator: Token, right: Expr",
+        "Call     -> callee: Expr, paren: Token, args: Expr[]",
         "Grouping -> expression: Expr",
         "Literal  -> value: LoxValue",
         "Logical  -> left: Expr, operator: Token, right: Expr",

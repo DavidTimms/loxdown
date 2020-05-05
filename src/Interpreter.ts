@@ -14,6 +14,7 @@ import {
     VariableExpr,
     AssignExpr,
     LogicalExpr,
+    CallExpr,
 } from "./Expr";
 import {
     Stmt,
@@ -25,13 +26,20 @@ import {
     IfStmt,
     WhileStmt,
 } from "./Stmt";
+import {isLoxCallable} from "./LoxCallable";
+import NativeFunction from "./NativeFunction";
 
 export default class Interpreter
 implements ExprVisitor<LoxValue>, StmtVisitor<void> {
-    private environment = new Environment();
+    readonly globals: Environment = new Environment();
+    private environment = this.globals;
 
     constructor(private readonly lox: Lox) {
         this.lox = lox;
+
+        // TODO move native functions to a separate module if we define
+        // more of them
+        this.globals.define("clock", new NativeFunction(() => Date.now()));
     }
 
     interpret(statements: Stmt[]): void {
@@ -197,6 +205,27 @@ implements ExprVisitor<LoxValue>, StmtVisitor<void> {
 
         // Unreachable
         throw new Error(`Unexpected binary operator: ${expr.operator.lexeme}`);
+    }
+
+    visitCallExpr(expr: CallExpr): LoxValue {
+        const callee = this.evaluate(expr.callee);
+        const args = expr.args.map(arg => this.evaluate(arg));
+
+        if (!isLoxCallable(callee)) {
+            throw new RuntimeError(
+                expr.paren,
+                "Can only call functions and classes.",
+            );
+        }
+
+        if (args.length !== callee.arity()) {
+            throw new RuntimeError(
+                expr.paren,
+                `Expected ${callee.arity()} arguments but got ${args.length}.`,
+            );
+        }
+
+        return callee.call(this, args);
     }
 
     private isEqual(left: LoxValue, right: LoxValue): boolean {

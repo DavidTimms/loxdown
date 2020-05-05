@@ -8,6 +8,7 @@ import {
     VariableExpr,
     AssignExpr,
     LogicalExpr,
+    CallExpr,
 } from "./Expr";
 
 // Creates an unambiguous, if ugly, string representation of AST nodes
@@ -22,6 +23,10 @@ export default class AstPrinter implements ExprVisitor<string> {
 
     visitBinaryExpr(expr: BinaryExpr): string {
         return this.parenthesize(expr.operator.lexeme, expr.left, expr.right);
+    }
+
+    visitCallExpr(expr: CallExpr): string {
+        return this.parenthesize(expr.callee, ...expr.args);
     }
 
     visitGroupingExpr(expr: GroupingExpr): string {
@@ -45,9 +50,9 @@ export default class AstPrinter implements ExprVisitor<string> {
         return expr.name.lexeme;
     }
 
-    private parenthesize(name: string, ...args: (Expr | string)[]): string {
+    private parenthesize(...args: (Expr | string)[]): string {
         const argStrings = args.map(arg =>
             arg instanceof Expr ? arg.accept(this) : arg);
-        return `(${name} ${argStrings.join(" ")})`;
+        return `(${argStrings.join(" ")})`;
     }
 }
