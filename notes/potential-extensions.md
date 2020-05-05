@@ -1,11 +1,27 @@
 # Potential Extensions to Lox
 
-- Array/List type
-- String escapes
-- Arbitrary-precision integers (or a full numeric tower)
-- Lazy function parameters
-- Tail-call optimisation
-- For-in loop
-- Pattern matching
+- General extensions to make it a more useable language:
+  - String escapes
+  - Array/List type
+  - For-in loop with iterator protocol
+  - Dict/Hash/Map type
+  - Native functions for file IO etc.
+  - Module system
+
+- Functional stuff:
+  - Anonymous functions
+  - Tail-call optimisation
+  - Lazy function parameters
+  - Pattern matching
+
+Object-oriented stuff:
+  - Interfaces
+  - Metaclasses
+  - Access modifiers (private, protected etc.)
+
+- Type systems:
 - Gradual type system
-- Fully sound type system
+- Fully-sound type system (Hindley–Milner?)
+
+- Other:
+  - Arbitrary-precision integers (or a full numeric tower)
