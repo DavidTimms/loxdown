@@ -26,10 +26,12 @@ import {
     IfStmt,
     WhileStmt,
     FunctionStmt,
+    ReturnStmt,
 } from "./Stmt";
 import {isLoxCallable} from "./LoxCallable";
 import NativeFunction from "./NativeFunction";
 import LoxFunction from "./LoxFunction";
+import Return from "./Return";
 
 export default class Interpreter
 implements ExprVisitor<LoxValue>, StmtVisitor<void> {
@@ -100,6 +102,11 @@ implements ExprVisitor<LoxValue>, StmtVisitor<void> {
     visitPrintStmt(stmt: PrintStmt): void {
         const value = this.evaluate(stmt.expression);
         this.lox.print(this.stringify(value));
+    }
+
+    visitReturnStmt(stmt: ReturnStmt): void {
+        const value = stmt.value ? this.evaluate(stmt.value) : null;
+        throw new Return(value);
     }
 
     visitVarStmt(stmt: VarStmt): void {

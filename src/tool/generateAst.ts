@@ -35,6 +35,7 @@ function main(args: string[]): void {
         "Function   -> name: Token, params: Token[], body: Stmt[]",
         "If         -> condition: Expr, thenBranch: Stmt, elseBranch: Stmt | null",
         "Print      -> expression: Expr",
+        "Return     -> keyword: Token, value: Expr | null",
         "Var        -> name: Token, initializer: Expr | null",
         "While      -> condtion: Expr, body: Stmt",
     ]);

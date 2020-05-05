@@ -3,6 +3,7 @@ import LoxCallable from "./LoxCallable";
 import LoxValue from "./LoxValue";
 import {FunctionStmt} from "./Stmt";
 import Environment from "./Environment";
+import Return from "./Return";
 
 export default class LoxFunction implements LoxCallable {
     constructor(private readonly declaration: FunctionStmt) {
@@ -20,7 +21,14 @@ export default class LoxFunction implements LoxCallable {
             environment.define(param.lexeme, args[i]);
         }
 
-        interpreter.executeBlock(this.declaration.body, environment);
+        try {
+            interpreter.executeBlock(this.declaration.body, environment);
+        } catch (exception) {
+            if (exception instanceof Return) {
+                return exception.value;
+            }
+            throw exception;
+        }
         return null;
     }
 

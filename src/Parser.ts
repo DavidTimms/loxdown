@@ -21,6 +21,7 @@ import {
     IfStmt,
     WhileStmt,
     FunctionStmt,
+    ReturnStmt,
 } from "./Stmt";
 
 type Associativity = "LEFT" | "RIGHT";
@@ -102,6 +103,7 @@ export default class Parser {
         if (this.match(TokenType.For)) return this.forStatement();
         if (this.match(TokenType.If)) return this.ifStatement();
         if (this.match(TokenType.Print)) return this.printStatement();
+        if (this.match(TokenType.Return)) return this.returnStatement();
         if (this.match(TokenType.While)) return this.whileStatement();
         if (this.match(TokenType.LeftBrace)) return new BlockStmt(this.block());
 
@@ -165,6 +167,15 @@ export default class Parser {
         const value = this.expression();
         this.consume(TokenType.Semicolon, "Expect ';' after value.");
         return new PrintStmt(value);
+    }
+
+    private returnStatement(): Stmt {
+        const keyword = this.previous();
+        const value =
+            this.check(TokenType.Semicolon) ? null : this.expression();
+
+        this.consume(TokenType.Semicolon, "Expect ';' after value.");
+        return new ReturnStmt(keyword, value);
     }
 
     private varDeclaration(): Stmt {
