@@ -20,8 +20,9 @@ Object-oriented stuff:
   - Access modifiers (private, protected etc.)
 
 - Type systems:
-- Gradual type system
-- Fully-sound type system (Hindley–Milner?)
+  - Gradual type system
+  - Fully-sound type system (Hindley–Milner?)
 
 - Other:
   - Arbitrary-precision integers (or a full numeric tower)
+  - Code formatter/pretty-printer

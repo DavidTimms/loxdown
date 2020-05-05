@@ -20,6 +20,7 @@ import {
     BlockStmt,
     IfStmt,
     WhileStmt,
+    FunctionStmt,
 } from "./Stmt";
 
 type Associativity = "LEFT" | "RIGHT";
@@ -84,6 +85,7 @@ export default class Parser {
 
     private declaration(): Stmt | null {
         try {
+            if (this.match(TokenType.Fun)) return this.func("function");
             if (this.match(TokenType.Var)) return this.varDeclaration();
 
             return this.statement();
@@ -191,6 +193,34 @@ export default class Parser {
         const expr = this.expression();
         this.consume(TokenType.Semicolon, "Expect ';' after expression.");
         return new ExpressionStmt(expr);
+    }
+
+    private func(kind: string): FunctionStmt {
+        const name = this.consume(TokenType.Identifier, `Expect ${kind} name.`);
+        this.consume(TokenType.LeftParen, `Expect '(' after ${kind} name.`);
+
+        const parameters = [];
+
+        if (!this.check(TokenType.RightParen)) {
+            do {
+                if (parameters.length >= 255) {
+                    this.lox.error(
+                        this.peek(),
+                        "Cannot have more than 255 parameters.",
+                    );
+                }
+
+                parameters.push(this.consume(
+                    TokenType.Identifier, "Expect parameter name."));
+            } while (this.match(TokenType.Comma));
+        }
+
+        this.consume(TokenType.RightParen, "Expect ')' after parameters.");
+        this.consume(TokenType.LeftBrace, `Expect '{' before ${kind} body.`);
+
+        const body = this.block();
+
+        return new FunctionStmt(name, parameters, body);
     }
 
     private block(): Stmt[] {

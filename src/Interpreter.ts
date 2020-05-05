@@ -25,9 +25,11 @@ import {
     BlockStmt,
     IfStmt,
     WhileStmt,
+    FunctionStmt,
 } from "./Stmt";
 import {isLoxCallable} from "./LoxCallable";
 import NativeFunction from "./NativeFunction";
+import LoxFunction from "./LoxFunction";
 
 export default class Interpreter
 implements ExprVisitor<LoxValue>, StmtVisitor<void> {
@@ -81,6 +83,10 @@ implements ExprVisitor<LoxValue>, StmtVisitor<void> {
 
     visitExpressionStmt(stmt: ExpressionStmt): void {
         this.evaluate(stmt.expression);
+    }
+
+    visitFunctionStmt(stmt: FunctionStmt): void {
+        this.environment.define(stmt.name.lexeme, new LoxFunction(stmt));
     }
 
     visitIfStmt(stmt: IfStmt): void {

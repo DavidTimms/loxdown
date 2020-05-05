@@ -48,8 +48,8 @@ for (const dirEntry of dirEntries) {
 
             lox.run(spec.source);
 
-            expect(lox.stdout).toBe(spec.stdout);
             expect(lox.stderr).toBe(spec.stderr);
+            expect(lox.stdout).toBe(spec.stdout);
         });
     }
 }

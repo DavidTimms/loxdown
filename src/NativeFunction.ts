@@ -17,4 +17,8 @@ export default class NativeFunction implements LoxCallable {
     call(interpreter: Interpreter, args: LoxValue[]): LoxValue {
         return this.jsFunction(...args);
     }
+
+    toString(): string {
+        return "<native fn>";
+    }
 }

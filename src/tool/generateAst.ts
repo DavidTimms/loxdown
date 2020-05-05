@@ -32,6 +32,7 @@ function main(args: string[]): void {
     defineAst(outputDir, "Stmt", [
         "Block      -> statements: Stmt[]",
         "Expression -> expression: Expr",
+        "Function   -> name: Token, params: Token[], body: Stmt[]",
         "If         -> condition: Expr, thenBranch: Stmt, elseBranch: Stmt | null",
         "Print      -> expression: Expr",
         "Var        -> name: Token, initializer: Expr | null",
@@ -50,7 +51,8 @@ function defineAst(outputDir: string, baseName: string, types: string[]): void {
         classDefs
             .flatMap(({fields}) => fields)
             .flatMap(({types}) => types)
-            .filter(type => !globalEnv.has(type.replace(/[[\]]/g, ""))),
+            .flatMap(type => type.match(/\w+/g) || [])
+            .filter(identifier => !globalEnv.has(identifier)),
     );
 
     const lines = [

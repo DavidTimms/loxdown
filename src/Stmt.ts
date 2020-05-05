@@ -12,6 +12,7 @@ export default Stmt;
 export interface StmtVisitor<R> {
     visitBlockStmt(stmt: BlockStmt): R;
     visitExpressionStmt(stmt: ExpressionStmt): R;
+    visitFunctionStmt(stmt: FunctionStmt): R;
     visitIfStmt(stmt: IfStmt): R;
     visitPrintStmt(stmt: PrintStmt): R;
     visitVarStmt(stmt: VarStmt): R;
@@ -41,6 +42,23 @@ export class ExpressionStmt extends Stmt {
 
     accept<R>(visitor: StmtVisitor<R>): R {
         return visitor.visitExpressionStmt(this);
+    }
+}
+
+export class FunctionStmt extends Stmt {
+    constructor(
+        readonly name: Token,
+        readonly params: Token[],
+        readonly body: Stmt[],
+    ) {
+        super();
+        this.name = name;
+        this.params = params;
+        this.body = body;
+    }
+
+    accept<R>(visitor: StmtVisitor<R>): R {
+        return visitor.visitFunctionStmt(this);
     }
 }
 
