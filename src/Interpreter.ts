@@ -88,7 +88,8 @@ implements ExprVisitor<LoxValue>, StmtVisitor<void> {
     }
 
     visitFunctionStmt(stmt: FunctionStmt): void {
-        this.environment.define(stmt.name.lexeme, new LoxFunction(stmt));
+        const func = new LoxFunction(stmt, this.environment);
+        this.environment.define(stmt.name.lexeme, func);
     }
 
     visitIfStmt(stmt: IfStmt): void {

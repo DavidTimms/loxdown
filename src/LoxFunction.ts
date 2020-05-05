@@ -6,8 +6,12 @@ import Environment from "./Environment";
 import Return from "./Return";
 
 export default class LoxFunction implements LoxCallable {
-    constructor(private readonly declaration: FunctionStmt) {
+    constructor(
+        private readonly declaration: FunctionStmt,
+        private readonly closure: Environment,
+    ) {
         this.declaration = declaration;
+        this.closure = closure;
     }
 
     arity(): number {
@@ -15,7 +19,7 @@ export default class LoxFunction implements LoxCallable {
     }
 
     call(interpreter: Interpreter, args: LoxValue[]): LoxValue {
-        const environment = new Environment(interpreter.globals);
+        const environment = new Environment(this.closure);
 
         for (const [i, param] of this.declaration.params.entries()) {
             environment.define(param.lexeme, args[i]);
