@@ -1,0 +1,6 @@
+fun bad() {
+    var a = "first";
+    var a = "second";
+}
+-- ERROR --
+[line 3] Error at 'a': Variable with this name already declared in this scope.

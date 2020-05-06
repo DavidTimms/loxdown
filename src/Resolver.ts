@@ -47,7 +47,16 @@ export default class Resolver implements ExprVisitor<void>, StmtVisitor<void> {
 
     private declare(name: Token): void {
         if (this.scopes.length === 0) return;
-        this.scopes[0].set(name.lexeme, false);
+        const scope = this.scopes[0];
+
+        if (scope.has(name.lexeme)) {
+            this.lox.error(
+                name,
+                "Variable with this name already declared in this scope.",
+            );
+        }
+
+        scope.set(name.lexeme, false);
     }
 
     private define(name: Token): void {
