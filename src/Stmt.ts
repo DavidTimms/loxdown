@@ -125,11 +125,11 @@ export class VarStmt extends Stmt {
 
 export class WhileStmt extends Stmt {
     constructor(
-        readonly condtion: Expr,
+        readonly condition: Expr,
         readonly body: Stmt,
     ) {
         super();
-        this.condtion = condtion;
+        this.condition = condition;
         this.body = body;
     }
 

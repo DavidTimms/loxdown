@@ -8,6 +8,7 @@ import Parser from "./Parser";
 import Interpreter from "./Interpreter";
 import RuntimeError from "./RuntimeError";
 import { ExpressionStmt, PrintStmt } from "./Stmt";
+import Resolver from "./Resolver";
 
 export default class Lox {
     private hadError = false;
@@ -47,18 +48,22 @@ export default class Lox {
         const parser = new Parser(this, tokens);
         const statements = parser.parse();
 
-        if (statements && !this.hadError) {
+        if (!statements || this.hadError) return;
 
-            // Replace final expression statement with print statement
-            // so expressions get printed in the REPL
-            const lastStatement = statements[statements.length - 1];
-            if (printLastExpr && lastStatement instanceof ExpressionStmt) {
-                statements[statements.length - 1] =
-                    new PrintStmt(lastStatement.expression);
-            }
+        const resolver = new Resolver(this, this.interpreter);
+        resolver.resolveAll(statements);
 
-            this.interpreter.interpret(statements);
+        if (this.hadError) return;
+
+        // Replace final expression statement with print statement
+        // so expressions get printed in the REPL
+        const lastStatement = statements[statements.length - 1];
+        if (printLastExpr && lastStatement instanceof ExpressionStmt) {
+            statements[statements.length - 1] =
+                new PrintStmt(lastStatement.expression);
         }
+
+        this.interpreter.interpret(statements);
     }
 
     error(location: number | Token, message: string): void {

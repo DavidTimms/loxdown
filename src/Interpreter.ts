@@ -37,6 +37,7 @@ export default class Interpreter
 implements ExprVisitor<LoxValue>, StmtVisitor<void> {
     readonly globals: Environment = new Environment();
     private environment = this.globals;
+    private readonly locals: Map<Expr, number> = new Map();
 
     constructor(private readonly lox: Lox) {
         this.lox = lox;
@@ -64,6 +65,10 @@ implements ExprVisitor<LoxValue>, StmtVisitor<void> {
 
     private execute(stmt: Stmt): void {
         stmt.accept(this);
+    }
+
+    resolve(expr: Expr, depth: number): void {
+        this.locals.set(expr, depth);
     }
 
     executeBlock(statements: Stmt[], environment: Environment): void {
@@ -116,14 +121,21 @@ implements ExprVisitor<LoxValue>, StmtVisitor<void> {
     }
 
     visitWhileStmt(stmt: WhileStmt): void {
-        while (this.isTruthy(this.evaluate(stmt.condtion))) {
+        while (this.isTruthy(this.evaluate(stmt.condition))) {
             this.execute(stmt.body);
         }
     }
 
     visitAssignExpr(expr: AssignExpr): LoxValue {
         const value = this.evaluate(expr.value);
-        this.environment.assign(expr.name, value);
+
+        const distance = this.locals.get(expr);
+        if (distance !== undefined) {
+            this.environment.assignAt(distance, expr.name, value);
+        } else {
+            this.globals.assign(expr.name, value);
+        }
+
         return value;
     }
 
@@ -170,7 +182,16 @@ implements ExprVisitor<LoxValue>, StmtVisitor<void> {
     }
 
     visitVariableExpr(expr: VariableExpr): LoxValue {
-        return this.environment.get(expr.name);
+        return this.lookupVariable(expr.name, expr);
+    }
+
+    private lookupVariable(name: Token, expr: Expr): LoxValue {
+        const distance = this.locals.get(expr);
+        if (distance !== undefined) {
+            return this.environment.getAt(distance, name.lexeme);
+        } else {
+            return this.globals.get(name);
+        }
     }
 
     visitBinaryExpr(expr: BinaryExpr): LoxValue {

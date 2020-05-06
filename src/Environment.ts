@@ -37,4 +37,21 @@ export default class Environment {
     define(name: string, value: LoxValue): void {
         this.values.set(name, value);
     }
+
+    ancestor(distance: number): Environment {
+        let environment = this as Environment;
+
+        for (let i = 0; i < distance && environment.enclosing; i++) {
+            environment = environment.enclosing;
+        }
+        return environment;
+    }
+
+    getAt(distance: number, name: string): LoxValue {
+        return this.ancestor(distance).values.get(name) ?? null;
+    }
+
+    assignAt(distance: number, name: Token, value: LoxValue): void {
+        this.ancestor(distance).values.set(name.lexeme, value);
+    }
 }

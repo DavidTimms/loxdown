@@ -37,7 +37,7 @@ function main(args: string[]): void {
         "Print      -> expression: Expr",
         "Return     -> keyword: Token, value: Expr | null",
         "Var        -> name: Token, initializer: Expr | null",
-        "While      -> condtion: Expr, body: Stmt",
+        "While      -> condition: Expr, body: Stmt",
     ]);
 }
 
