@@ -44,7 +44,7 @@ implements ExprVisitor<LoxValue>, StmtVisitor<void> {
 
         // TODO move native functions to a separate module if we define
         // more of them
-        this.globals.define("clock", new NativeFunction(() => Date.now()));
+        this.globals.define("clock", new NativeFunction(() => Date.now() / 1000));
     }
 
     interpret(statements: Stmt[]): void {
