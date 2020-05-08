@@ -6,8 +6,12 @@ import Lox from "./Lox";
 
 type AstNode = Stmt | Expr;
 
+type FunctionType = "NONE" | "FUNCTION";
+
 export default class Resolver implements ExprVisitor<void>, StmtVisitor<void> {
     private readonly scopes: Map<string, boolean>[] = [];
+    private currentFunction: FunctionType = "NONE";
+
     constructor(
         private readonly lox: Lox,
         private readonly interpreter: Interpreter,
@@ -27,7 +31,10 @@ export default class Resolver implements ExprVisitor<void>, StmtVisitor<void> {
         (node as {accept: Function}).accept(this);
     }
 
-    private resolveFunction(func: FunctionStmt): void {
+    private resolveFunction(func: FunctionStmt, type: FunctionType): void {
+        const enclosingFunction = this.currentFunction;
+        this.currentFunction = type;
+
         this.beginScope();
         for (const param of func.params) {
             this.declare(param);
@@ -35,6 +42,7 @@ export default class Resolver implements ExprVisitor<void>, StmtVisitor<void> {
         }
         this.resolveAll(func.body);
         this.endScope();
+        this.currentFunction = enclosingFunction;
     }
 
     private beginScope(): void {
@@ -89,7 +97,7 @@ export default class Resolver implements ExprVisitor<void>, StmtVisitor<void> {
         this.declare(stmt.name);
         this.define(stmt.name);
 
-        this.resolveFunction(stmt);
+        this.resolveFunction(stmt, "FUNCTION");
     }
 
     visitIfStmt(stmt: IfStmt): void {
@@ -103,6 +111,10 @@ export default class Resolver implements ExprVisitor<void>, StmtVisitor<void> {
     }
 
     visitReturnStmt(stmt: ReturnStmt): void {
+        if (this.currentFunction === "NONE") {
+            this.lox.error(stmt.keyword, "Cannot return from top-level code.");
+        }
+
         if (stmt.value) this.resolve(stmt.value);
     }
 

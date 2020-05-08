@@ -1,0 +1,3 @@
+return "at top level";
+-- ERROR --
+[line 1] Error at 'return': Cannot return from top-level code.
