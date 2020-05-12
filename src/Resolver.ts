@@ -1,4 +1,4 @@
-import {Expr, ExprVisitor, VariableExpr, AssignExpr, BinaryExpr, CallExpr, GroupingExpr, LiteralExpr, LogicalExpr, UnaryExpr} from "./Expr";
+import {Expr, ExprVisitor, VariableExpr, AssignExpr, BinaryExpr, CallExpr, GroupingExpr, LiteralExpr, LogicalExpr, UnaryExpr, GetExpr, SetExpr} from "./Expr";
 import {Stmt, StmtVisitor, BlockStmt, VarStmt, FunctionStmt, ExpressionStmt, IfStmt, WhileStmt, ReturnStmt, PrintStmt, ClassStmt} from "./Stmt";
 import Interpreter from "./Interpreter";
 import Token from "./Token";
@@ -151,6 +151,10 @@ export default class Resolver implements ExprVisitor<void>, StmtVisitor<void> {
         this.resolveAll(expr.args);
     }
 
+    visitGetExpr(expr: GetExpr): void {
+        this.resolve(expr.object);
+    }
+
     visitGroupingExpr(expr: GroupingExpr): void {
         this.resolve(expr.expression);
     }
@@ -162,6 +166,11 @@ export default class Resolver implements ExprVisitor<void>, StmtVisitor<void> {
     visitLogicalExpr(expr: LogicalExpr): void {
         this.resolve(expr.left);
         this.resolve(expr.right);
+    }
+
+    visitSetExpr(expr: SetExpr): void {
+        this.resolve(expr.value);
+        this.resolve(expr.object);
     }
 
     visitUnaryExpr(expr: UnaryExpr): void {

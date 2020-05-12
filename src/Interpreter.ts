@@ -15,6 +15,8 @@ import {
     AssignExpr,
     LogicalExpr,
     CallExpr,
+    GetExpr,
+    SetExpr,
 } from "./Expr";
 import {
     Stmt,
@@ -34,6 +36,7 @@ import NativeFunction from "./NativeFunction";
 import LoxFunction from "./LoxFunction";
 import LoxClass from "./LoxClass";
 import Return from "./Return";
+import LoxInstance from "./LoxInstance";
 
 export default class Interpreter
 implements ExprVisitor<LoxValue>, StmtVisitor<void> {
@@ -169,6 +172,18 @@ implements ExprVisitor<LoxValue>, StmtVisitor<void> {
         return this.evaluate(expr.right);
     }
 
+    visitSetExpr(expr: SetExpr): LoxValue {
+        const object = this.evaluate(expr.object);
+
+        if (!(object instanceof LoxInstance)) {
+            throw new RuntimeError(expr.name, "Only instances have fields.");
+        }
+
+        const value = this.evaluate(expr.value);
+        object.set(expr.name, value);
+        return value;
+    }
+
     visitGroupingExpr(expr: GroupingExpr): LoxValue {
         return this.evaluate(expr.expression);
     }
@@ -269,6 +284,15 @@ implements ExprVisitor<LoxValue>, StmtVisitor<void> {
         }
 
         return callee.call(this, args);
+    }
+
+    visitGetExpr(expr: GetExpr): LoxValue {
+        const object = this.evaluate(expr.object);
+        if (object instanceof LoxInstance) {
+            return object.get(expr.name);
+        }
+
+        throw new RuntimeError(expr.name, "Only instances have properties");
     }
 
     private isEqual(left: LoxValue, right: LoxValue): boolean {

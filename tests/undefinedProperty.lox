@@ -1,0 +1,6 @@
+class Person {}
+var jane = Person();
+print jane.name;
+-- ERROR --
+Undefined property 'name'.
+[line 3]

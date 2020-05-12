@@ -11,6 +11,8 @@ import {
     AssignExpr,
     LogicalExpr,
     CallExpr,
+    GetExpr,
+    SetExpr,
 } from "./Expr";
 import {
     Stmt,
@@ -276,6 +278,8 @@ export default class Parser {
 
             if (expr instanceof VariableExpr) {
                 return new AssignExpr(expr.name, value);
+            } else if (expr instanceof GetExpr) {
+                return new SetExpr(expr.object, expr.name, value);
             }
 
             // Report a parse error, but don't throw it, as we do not
@@ -326,6 +330,12 @@ export default class Parser {
         for (;;) {
             if (this.match(TokenType.LeftParen)) {
                 expr = this.finishCall(expr);
+            } else if (this.match(TokenType.Dot)) {
+                const name = this.consume(
+                    TokenType.Identifier,
+                    "Expect property name after '.'.",
+                );
+                expr = new GetExpr(expr, name);
             } else {
                 break;
             }
