@@ -1,5 +1,5 @@
 import {Expr, ExprVisitor, VariableExpr, AssignExpr, BinaryExpr, CallExpr, GroupingExpr, LiteralExpr, LogicalExpr, UnaryExpr} from "./Expr";
-import {Stmt, StmtVisitor, BlockStmt, VarStmt, FunctionStmt, ExpressionStmt, IfStmt, WhileStmt, ReturnStmt, PrintStmt} from "./Stmt";
+import {Stmt, StmtVisitor, BlockStmt, VarStmt, FunctionStmt, ExpressionStmt, IfStmt, WhileStmt, ReturnStmt, PrintStmt, ClassStmt} from "./Stmt";
 import Interpreter from "./Interpreter";
 import Token from "./Token";
 import Lox from "./Lox";
@@ -87,6 +87,11 @@ export default class Resolver implements ExprVisitor<void>, StmtVisitor<void> {
         this.beginScope();
         this.resolveAll(stmt.statements);
         this.endScope();
+    }
+
+    visitClassStmt(stmt: ClassStmt): void {
+        this.declare(stmt.name);
+        this.define(stmt.name);
     }
 
     visitExpressionStmt(stmt: ExpressionStmt): void {

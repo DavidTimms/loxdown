@@ -27,10 +27,12 @@ import {
     WhileStmt,
     FunctionStmt,
     ReturnStmt,
+    ClassStmt,
 } from "./Stmt";
 import {isLoxCallable} from "./LoxCallable";
 import NativeFunction from "./NativeFunction";
 import LoxFunction from "./LoxFunction";
+import LoxClass from "./LoxClass";
 import Return from "./Return";
 
 export default class Interpreter
@@ -86,6 +88,12 @@ implements ExprVisitor<LoxValue>, StmtVisitor<void> {
 
     visitBlockStmt(stmt: BlockStmt): void {
         this.executeBlock(stmt.statements, new Environment(this.environment));
+    }
+
+    visitClassStmt(stmt: ClassStmt): void {
+        this.environment.define(stmt.name.lexeme, null);
+        const loxClass = new LoxClass(stmt.name.lexeme);
+        this.environment.assign(stmt.name, loxClass);
     }
 
     visitExpressionStmt(stmt: ExpressionStmt): void {

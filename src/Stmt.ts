@@ -1,7 +1,7 @@
 // This file is programatically generated. Do not edit it directly.
 
-import Expr from "./Expr";
 import Token from "./Token";
+import Expr from "./Expr";
 
 export abstract class Stmt {
     abstract accept<R>(visitor: StmtVisitor<R>): R;
@@ -11,6 +11,7 @@ export default Stmt;
 
 export interface StmtVisitor<R> {
     visitBlockStmt(stmt: BlockStmt): R;
+    visitClassStmt(stmt: ClassStmt): R;
     visitExpressionStmt(stmt: ExpressionStmt): R;
     visitFunctionStmt(stmt: FunctionStmt): R;
     visitIfStmt(stmt: IfStmt): R;
@@ -30,6 +31,21 @@ export class BlockStmt extends Stmt {
 
     accept<R>(visitor: StmtVisitor<R>): R {
         return visitor.visitBlockStmt(this);
+    }
+}
+
+export class ClassStmt extends Stmt {
+    constructor(
+        readonly name: Token,
+        readonly methods: FunctionStmt[],
+    ) {
+        super();
+        this.name = name;
+        this.methods = methods;
+    }
+
+    accept<R>(visitor: StmtVisitor<R>): R {
+        return visitor.visitClassStmt(this);
     }
 }
 

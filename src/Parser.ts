@@ -22,6 +22,7 @@ import {
     WhileStmt,
     FunctionStmt,
     ReturnStmt,
+    ClassStmt,
 } from "./Stmt";
 
 type Associativity = "LEFT" | "RIGHT";
@@ -86,6 +87,7 @@ export default class Parser {
 
     private declaration(): Stmt | null {
         try {
+            if (this.match(TokenType.Class)) return this.classDeclaration();
             if (this.match(TokenType.Fun)) return this.func("function");
             if (this.match(TokenType.Var)) return this.varDeclaration();
 
@@ -97,6 +99,21 @@ export default class Parser {
             }
             throw error;
         }
+    }
+
+    private classDeclaration(): Stmt {
+        const name = this.consume(TokenType.Identifier, "Expect class name.");
+        this.consume(TokenType.LeftBrace, "expect '{' before class body.");
+
+        const methods: FunctionStmt[] = [];
+
+        while (!this.check(TokenType.RightBrace) && !this.isAtEnd()) {
+            methods.push(this.func("method"));
+        }
+
+        this.consume(TokenType.RightBrace, "Expect '}' after class body.");
+
+        return new ClassStmt(name, methods);
     }
 
     private statement(): Stmt {

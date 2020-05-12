@@ -31,6 +31,7 @@ function main(args: string[]): void {
 
     defineAst(outputDir, "Stmt", [
         "Block      -> statements: Stmt[]",
+        "Class      -> name: Token, methods: FunctionStmt[]",
         "Expression -> expression: Expr",
         "Function   -> name: Token, params: Token[], body: Stmt[]",
         "If         -> condition: Expr, thenBranch: Stmt, elseBranch: Stmt | null",
@@ -46,7 +47,12 @@ function defineAst(outputDir: string, baseName: string, types: string[]): void {
 
     const classDefs = types.map(type => parseClassDefinition(baseName, type));
 
-    const globalEnv = new Set(["null", baseName]);
+
+    const globalEnv = new Set([
+        "null",
+        baseName,
+        ...classDefs.map(({className}) => className),
+    ]);
 
     const importedTypes = new Set(
         classDefs
