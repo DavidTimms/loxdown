@@ -11,11 +11,12 @@ export default class LoxClass implements LoxCallable {
     ) {}
 
     arity(): number {
-        return 0;
+        return this.findMethod("init")?.arity() || 0;
     }
 
     call(interpreter: Interpreter, args: LoxValue[]): LoxValue {
         const instance = new LoxInstance(this);
+        this.findMethod("init")?.bind(instance).call(interpreter, args);
         return instance;
     }
 

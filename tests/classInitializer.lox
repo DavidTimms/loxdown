@@ -1,0 +1,15 @@
+class City {
+    init(name, country) {
+        this.name = name;
+        this.country = country;
+        print("initialized!");
+    }
+    location() {
+        return this.name + ", " + this.country;
+    }
+}
+var ny = City("New York", "USA");
+print ny.location();
+-- OUTPUT --
+initialized!
+New York, USA

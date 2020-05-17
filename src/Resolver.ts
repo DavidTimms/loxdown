@@ -6,7 +6,7 @@ import Lox from "./Lox";
 
 type AstNode = Stmt | Expr;
 
-type FunctionType = "NONE" | "FUNCTION" | "METHOD";
+type FunctionType = "NONE" | "FUNCTION" | "INITIALIZER" | "METHOD";
 
 type ClassType = "NONE" | "CLASS";
 
@@ -103,7 +103,9 @@ export default class Resolver implements ExprVisitor<void>, StmtVisitor<void> {
         this.scopes[0].set("this", true);
 
         for (const method of stmt.methods) {
-            this.resolveFunction(method, "METHOD");
+            const declaration =
+                method.name.lexeme === "init" ? "INITIALIZER" : "METHOD";
+            this.resolveFunction(method, declaration);
         }
 
         this.endScope();
@@ -137,7 +139,13 @@ export default class Resolver implements ExprVisitor<void>, StmtVisitor<void> {
             this.lox.error(stmt.keyword, "Cannot return from top-level code.");
         }
 
-        if (stmt.value) this.resolve(stmt.value);
+        if (stmt.value) {
+            if (this.currentFunction === "INITIALIZER") {
+                this.lox.error(
+                    stmt.keyword, "Cannot return a value from an initializer.");
+            }
+            this.resolve(stmt.value);
+        }
     }
 
     visitVarStmt(stmt: VarStmt): void {

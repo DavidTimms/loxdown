@@ -99,7 +99,9 @@ implements ExprVisitor<LoxValue>, StmtVisitor<void> {
 
         const methods = new Map<string,  LoxFunction>();
         for (const methodStmt of stmt.methods) {
-            const method = new LoxFunction(methodStmt, this.environment);
+            const isInitializer = methodStmt.name.lexeme === "init";
+            const method = new LoxFunction(
+                methodStmt, this.environment, isInitializer);
             methods.set(methodStmt.name.lexeme, method);
         }
 
