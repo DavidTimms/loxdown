@@ -1,0 +1,14 @@
+class Person {
+    sayHello() {
+        print "Hello, my name is " + this.name;
+    }
+}
+var bob = Person();
+bob.name = "Bob";
+bob.sayHello();
+var bobSaysHello = bob.sayHello;
+bob.name = "Robert";
+bobSaysHello();
+-- OUTPUT --
+Hello, my name is Bob
+Hello, my name is Robert

@@ -1,4 +1,4 @@
-import {Expr, ExprVisitor, VariableExpr, AssignExpr, BinaryExpr, CallExpr, GroupingExpr, LiteralExpr, LogicalExpr, UnaryExpr, GetExpr, SetExpr} from "./Expr";
+import {Expr, ExprVisitor, VariableExpr, AssignExpr, BinaryExpr, CallExpr, GroupingExpr, LiteralExpr, LogicalExpr, UnaryExpr, GetExpr, SetExpr, ThisExpr} from "./Expr";
 import {Stmt, StmtVisitor, BlockStmt, VarStmt, FunctionStmt, ExpressionStmt, IfStmt, WhileStmt, ReturnStmt, PrintStmt, ClassStmt} from "./Stmt";
 import Interpreter from "./Interpreter";
 import Token from "./Token";
@@ -8,9 +8,12 @@ type AstNode = Stmt | Expr;
 
 type FunctionType = "NONE" | "FUNCTION" | "METHOD";
 
+type ClassType = "NONE" | "CLASS";
+
 export default class Resolver implements ExprVisitor<void>, StmtVisitor<void> {
     private readonly scopes: Map<string, boolean>[] = [];
     private currentFunction: FunctionType = "NONE";
+    private currentClass: ClassType = "NONE";
 
     constructor(
         private readonly lox: Lox,
@@ -90,12 +93,22 @@ export default class Resolver implements ExprVisitor<void>, StmtVisitor<void> {
     }
 
     visitClassStmt(stmt: ClassStmt): void {
+        const enclosingClass = this.currentClass;
+        this.currentClass = "CLASS";
+
         this.declare(stmt.name);
         this.define(stmt.name);
+
+        this.beginScope();
+        this.scopes[0].set("this", true);
 
         for (const method of stmt.methods) {
             this.resolveFunction(method, "METHOD");
         }
+
+        this.endScope();
+
+        this.currentClass = enclosingClass;
     }
 
     visitExpressionStmt(stmt: ExpressionStmt): void {
@@ -175,6 +188,15 @@ export default class Resolver implements ExprVisitor<void>, StmtVisitor<void> {
     visitSetExpr(expr: SetExpr): void {
         this.resolve(expr.value);
         this.resolve(expr.object);
+    }
+
+    visitThisExpr(expr: ThisExpr): void {
+        if (this.currentClass === "NONE") {
+            this.lox.error(
+                expr.keyword, "Cannot use 'this' outside of a class.");
+        } else {
+            this.resolveLocal(expr, expr.keyword);
+        }
     }
 
     visitUnaryExpr(expr: UnaryExpr): void {

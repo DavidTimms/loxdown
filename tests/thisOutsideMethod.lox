@@ -1,0 +1,3 @@
+print this;
+-- ERROR --
+[line 1] Error at 'this': Cannot use 'this' outside of a class.

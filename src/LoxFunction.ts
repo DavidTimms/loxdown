@@ -4,6 +4,7 @@ import LoxValue from "./LoxValue";
 import {FunctionStmt} from "./Stmt";
 import Environment from "./Environment";
 import Return from "./Return";
+import LoxInstance from "./LoxInstance";
 
 export default class LoxFunction implements LoxCallable {
     constructor(
@@ -16,6 +17,12 @@ export default class LoxFunction implements LoxCallable {
 
     arity(): number {
         return this.declaration.params.length;
+    }
+
+    bind(instance: LoxInstance): LoxFunction {
+        const environment = new Environment(this.closure);
+        environment.define("this", instance);
+        return new LoxFunction(this.declaration, environment);
     }
 
     call(interpreter: Interpreter, args: LoxValue[]): LoxValue {

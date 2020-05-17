@@ -7,11 +7,11 @@
     "build": "tsc",
     "lint": "eslint . --ext .js,.ts",
     "format": "eslint . --ext .js,.ts --fix",
-    "test": "npm run-script build && jest"
+    "test": "npm run-script build && jest",
+    "generate-ast": "./src/tool/generateAst.ts src/"
   },
   "bin": {
-    "tslox": "src/main.ts",
-    "tslox-generate-ast": "src/tool/generateAst.ts"
+    "tslox": "src/main.ts"
   },
   "repository": {
     "type": "git",

@@ -17,6 +17,7 @@ import {
     CallExpr,
     GetExpr,
     SetExpr,
+    ThisExpr,
 } from "./Expr";
 import {
     Stmt,
@@ -189,6 +190,10 @@ implements ExprVisitor<LoxValue>, StmtVisitor<void> {
         const value = this.evaluate(expr.value);
         object.set(expr.name, value);
         return value;
+    }
+
+    visitThisExpr(expr: ThisExpr): LoxValue {
+        return this.lookupVariable(expr.keyword, expr);
     }
 
     visitGroupingExpr(expr: GroupingExpr): LoxValue {

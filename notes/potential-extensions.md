@@ -7,6 +7,7 @@
   - Dict/Hash/Map type
   - Native functions for file IO etc.
   - Module system
+  - Runtime type checking (typeof/instanceof)
 
 - Functional stuff:
   - Anonymous functions
@@ -18,8 +19,10 @@ Object-oriented stuff:
   - Interfaces
   - Metaclasses
   - Access modifiers (private, protected etc.)
+  - Static methods & fields
 
-- Type systems:
+- Type systems / static analysis:
+  - Extend resolver to detect undefined globals
   - Gradual type system
   - Fully-sound type system (Hindley–Milner?)
 
