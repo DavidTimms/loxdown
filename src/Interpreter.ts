@@ -95,7 +95,14 @@ implements ExprVisitor<LoxValue>, StmtVisitor<void> {
 
     visitClassStmt(stmt: ClassStmt): void {
         this.environment.define(stmt.name.lexeme, null);
-        const loxClass = new LoxClass(stmt.name.lexeme);
+
+        const methods = new Map<string,  LoxFunction>();
+        for (const methodStmt of stmt.methods) {
+            const method = new LoxFunction(methodStmt, this.environment);
+            methods.set(methodStmt.name.lexeme, method);
+        }
+
+        const loxClass = new LoxClass(stmt.name.lexeme, methods);
         this.environment.assign(stmt.name, loxClass);
     }
 

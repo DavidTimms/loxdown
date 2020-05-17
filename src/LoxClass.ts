@@ -2,13 +2,13 @@ import Interpreter from "./Interpreter";
 import LoxCallable from "./LoxCallable";
 import LoxValue from "./LoxValue";
 import LoxInstance from "./LoxInstance";
+import LoxFunction from "./LoxFunction";
 
 export default class LoxClass implements LoxCallable {
     constructor(
         readonly name: string,
-    ) {
-        this.name = name;
-    }
+        private readonly methods: Map<string, LoxFunction>,
+    ) {}
 
     arity(): number {
         return 0;
@@ -17,6 +17,10 @@ export default class LoxClass implements LoxCallable {
     call(interpreter: Interpreter, args: LoxValue[]): LoxValue {
         const instance = new LoxInstance(this);
         return instance;
+    }
+
+    findMethod(name: string): LoxFunction | undefined {
+        return this.methods.get(name);
     }
 
     toString(): string {

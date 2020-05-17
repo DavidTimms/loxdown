@@ -6,7 +6,7 @@ import Lox from "./Lox";
 
 type AstNode = Stmt | Expr;
 
-type FunctionType = "NONE" | "FUNCTION";
+type FunctionType = "NONE" | "FUNCTION" | "METHOD";
 
 export default class Resolver implements ExprVisitor<void>, StmtVisitor<void> {
     private readonly scopes: Map<string, boolean>[] = [];
@@ -92,6 +92,10 @@ export default class Resolver implements ExprVisitor<void>, StmtVisitor<void> {
     visitClassStmt(stmt: ClassStmt): void {
         this.declare(stmt.name);
         this.define(stmt.name);
+
+        for (const method of stmt.methods) {
+            this.resolveFunction(method, "METHOD");
+        }
     }
 
     visitExpressionStmt(stmt: ExpressionStmt): void {

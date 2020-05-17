@@ -16,12 +16,13 @@ export default class LoxInstance {
     get(name: Token): LoxValue {
         const value = this.fields.get(name.lexeme);
 
-        if (value === undefined) {
-            throw new RuntimeError(
-                name, `Undefined property '${name.lexeme}'.`);
-        }
+        if (value !== undefined) return value;
 
-        return value;
+        const method = this.loxClass.findMethod(name.lexeme);
+        if (method !== undefined) return method;
+
+        throw new RuntimeError(
+            name, `Undefined property '${name.lexeme}'.`);
     }
 
     set(name: Token, value: LoxValue): void {
