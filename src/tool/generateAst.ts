@@ -34,10 +34,12 @@ function main(args: string[]): void {
 
     defineAst(outputDir, "Stmt", [
         "Block      -> statements: Stmt[]",
-        "Class      -> name: Token, methods: FunctionStmt[]",
+        "Class      -> name: Token, superclass: VariableExpr | null, " +
+        "              methods: FunctionStmt[]",
         "Expression -> expression: Expr",
         "Function   -> name: Token, params: Token[], body: Stmt[]",
-        "If         -> condition: Expr, thenBranch: Stmt, elseBranch: Stmt | null",
+        "If         -> condition: Expr, thenBranch: Stmt, " +
+        "              elseBranch: Stmt | null",
         "Print      -> expression: Expr",
         "Return     -> keyword: Token, value: Expr | null",
         "Var        -> name: Token, initializer: Expr | null",

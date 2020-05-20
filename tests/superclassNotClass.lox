@@ -1,0 +1,5 @@
+var X = 123;
+class Y < X {}
+-- ERROR --
+Superclass must be a class.
+[line 2]

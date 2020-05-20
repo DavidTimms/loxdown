@@ -7,6 +7,7 @@ import LoxFunction from "./LoxFunction";
 export default class LoxClass implements LoxCallable {
     constructor(
         readonly name: string,
+        readonly superclass: LoxClass,
         private readonly methods: Map<string, LoxFunction>,
     ) {}
 

@@ -1,6 +1,7 @@
 // This file is programatically generated. Do not edit it directly.
 
 import Token from "./Token";
+import VariableExpr from "./VariableExpr";
 import Expr from "./Expr";
 
 export abstract class Stmt {
@@ -37,10 +38,12 @@ export class BlockStmt extends Stmt {
 export class ClassStmt extends Stmt {
     constructor(
         readonly name: Token,
+        readonly superclass: VariableExpr | null,
         readonly methods: FunctionStmt[],
     ) {
         super();
         this.name = name;
+        this.superclass = superclass;
         this.methods = methods;
     }
 

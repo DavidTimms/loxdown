@@ -1,0 +1,3 @@
+class TimeTraveller < TimeTraveller {}
+-- ERROR --
+[line 1] Error at 'TimeTraveller': A class cannot inherit from itself.
