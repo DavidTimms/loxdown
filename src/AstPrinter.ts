@@ -12,6 +12,7 @@ import {
     SetExpr,
     GetExpr,
     ThisExpr,
+    SuperExpr,
 } from "./Expr";
 
 // Creates an unambiguous, if ugly, string representation of AST nodes
@@ -52,6 +53,10 @@ export default class AstPrinter implements ExprVisitor<string> {
     visitSetExpr(expr: SetExpr): string {
         return this.parenthesize(
             "=", expr.object, expr.name.lexeme, expr.value);
+    }
+
+    visitSuperExpr(expr: SuperExpr): string {
+        return this.parenthesize(".", expr.keyword.lexeme, expr.method.lexeme);
     }
 
     visitThisExpr(expr: ThisExpr): string {

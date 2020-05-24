@@ -14,6 +14,7 @@ import {
     GetExpr,
     SetExpr,
     ThisExpr,
+    SuperExpr,
 } from "./Expr";
 import {
     Stmt,
@@ -380,6 +381,15 @@ export default class Parser {
 
         if (this.match(TokenType.Number, TokenType.String)) {
             return new LiteralExpr(this.previous().literal);
+        }
+
+        if (this.match(TokenType.Super)) {
+            const keyword = this.previous();
+            this.consume(TokenType.Dot, "Expect '.' after 'super'.");
+            const method = this.consume(
+                TokenType.Identifier, "Expect superclass method name.");
+
+            return new SuperExpr(keyword, method);
         }
 
         if (this.match(TokenType.This)) return new ThisExpr(this.previous());

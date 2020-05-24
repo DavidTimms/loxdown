@@ -18,6 +18,7 @@ import {
     GetExpr,
     SetExpr,
     ThisExpr,
+    SuperExpr,
 } from "./Expr";
 import {
     Stmt,
@@ -109,6 +110,11 @@ implements ExprVisitor<LoxValue>, StmtVisitor<void> {
 
         this.environment.define(stmt.name.lexeme, null);
 
+        if (stmt.superclass) {
+            this.environment = new Environment(this.environment);
+            this.environment.define("super", superclass);
+        }
+
         const methods = new Map<string,  LoxFunction>();
         for (const methodStmt of stmt.methods) {
             const isInitializer = methodStmt.name.lexeme === "init";
@@ -118,6 +124,10 @@ implements ExprVisitor<LoxValue>, StmtVisitor<void> {
         }
 
         const loxClass = new LoxClass(stmt.name.lexeme, superclass, methods);
+
+        if (stmt.superclass) {
+            this.environment = this.environment.enclosing as Environment;
+        }
         this.environment.assign(stmt.name, loxClass);
     }
 
@@ -204,6 +214,28 @@ implements ExprVisitor<LoxValue>, StmtVisitor<void> {
         const value = this.evaluate(expr.value);
         object.set(expr.name, value);
         return value;
+    }
+
+    visitSuperExpr(expr: SuperExpr): LoxValue {
+        const distance = this.locals.get(expr);
+        if (distance === undefined) {
+            throw new RuntimeError(expr.keyword, "Unable to lookup 'super'.");
+        }
+        const superclass =
+            this.environment.getAt(distance, "super") as LoxClass;
+
+        // "this" is always one level nearer than "super"'s environment
+        const thisObject =
+            this.environment.getAt(distance - 1, "this") as LoxInstance;
+
+        const method = superclass.findMethod(expr.method.lexeme);
+
+        if (!method) {
+            throw new RuntimeError(
+                expr.method, `Undefined property '${expr.method.lexeme}'.`);
+        }
+
+        return method.bind(thisObject);
     }
 
     visitThisExpr(expr: ThisExpr): LoxValue {
