@@ -38,6 +38,7 @@ import LoxFunction from "./LoxFunction";
 import LoxClass from "./LoxClass";
 import Return from "./Return";
 import LoxInstance from "./LoxInstance";
+import { nil } from "./LoxNil";
 
 export default class Interpreter
 implements ExprVisitor<LoxValue>, StmtVisitor<void> {
@@ -107,9 +108,9 @@ implements ExprVisitor<LoxValue>, StmtVisitor<void> {
             }
         }
 
-        this.environment.define(stmt.name.lexeme, null);
+        this.environment.define(stmt.name.lexeme, nil);
 
-        if (stmt.superclass) {
+        if (superclass) {
             this.environment = new Environment(this.environment);
             this.environment.define("super", superclass);
         }
@@ -153,12 +154,12 @@ implements ExprVisitor<LoxValue>, StmtVisitor<void> {
     }
 
     visitReturnStmt(stmt: ReturnStmt): void {
-        const value = stmt.value ? this.evaluate(stmt.value) : null;
+        const value = stmt.value ? this.evaluate(stmt.value) : nil;
         throw new Return(value);
     }
 
     visitVarStmt(stmt: VarStmt): void {
-        const value = stmt.initializer ? this.evaluate(stmt.initializer) : null;
+        const value = stmt.initializer ? this.evaluate(stmt.initializer) : nil;
         this.environment.define(stmt.name.lexeme, value);
     }
 
@@ -357,7 +358,7 @@ implements ExprVisitor<LoxValue>, StmtVisitor<void> {
     }
 
     private isTruthy(object: LoxValue): boolean {
-        return object !== null && object !== false;
+        return object !== nil && object !== false;
     }
 
     private checkNumberOperand(
@@ -378,7 +379,6 @@ implements ExprVisitor<LoxValue>, StmtVisitor<void> {
     }
 
     private stringify(object: LoxValue): string {
-        if (object === null) return "nil";
         return String(object);
     }
 }

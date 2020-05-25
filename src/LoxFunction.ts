@@ -5,6 +5,7 @@ import {FunctionStmt} from "./Stmt";
 import Environment from "./Environment";
 import Return from "./Return";
 import LoxInstance from "./LoxInstance";
+import { nil } from "./LoxNil";
 
 export default class LoxFunction implements LoxCallable {
     constructor(
@@ -43,8 +44,9 @@ export default class LoxFunction implements LoxCallable {
             }
             throw exception;
         }
+
         if (this.isInitializer) return this.closure.getAt(0, "this");
-        return null;
+        return nil;
     }
 
     toString(): string {

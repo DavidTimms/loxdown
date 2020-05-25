@@ -1,6 +1,7 @@
 import LoxValue from "./LoxValue";
 import Token from "./Token";
 import RuntimeError from "./RuntimeError";
+import ImplementationError from "./ImplementationError";
 
 export default class Environment {
     private readonly values = new Map<string, LoxValue>();
@@ -48,7 +49,14 @@ export default class Environment {
     }
 
     getAt(distance: number, name: string): LoxValue {
-        return this.ancestor(distance).values.get(name) ?? null;
+        const value = this.ancestor(distance).values.get(name);
+
+        if (value === undefined) {
+            throw new ImplementationError(
+                "Unable to find variable in expected environment.");
+        }
+
+        return value;
     }
 
     assignAt(distance: number, name: Token, value: LoxValue): void {

@@ -2,6 +2,7 @@ import Lox from "./Lox";
 import Token from "./Token";
 import TokenType from "./TokenType";
 import LoxValue from "./LoxValue";
+import { nil } from "./LoxNil";
 
 const keywords = new Map<string, TokenType>([
     ["and", "AND"],
@@ -177,7 +178,13 @@ export default class Scanner {
         while (isAlphaNumeric(this.peek())) this.advance();
 
         const text = this.source.substring(this.start, this.current);
-        this.addToken(keywords.get(text) || "IDENTIFIER");
+
+        if (text === "nil") {
+            this.addToken("NIL", nil);
+        } else {
+            this.addToken(keywords.get(text) || "IDENTIFIER");
+        }
+
     }
 
     advance(): string {
@@ -185,7 +192,7 @@ export default class Scanner {
         return this.source.charAt(this.current - 1);
     }
 
-    addToken(type: TokenType, literal: LoxValue = null): void {
+    addToken(type: TokenType, literal: LoxValue | null = null): void {
         const text = this.source.substring(this.start, this.current);
         this.tokens.push(new Token(type, text, literal, this.line));
     }

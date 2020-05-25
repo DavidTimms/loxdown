@@ -28,6 +28,7 @@ import {
     ReturnStmt,
     ClassStmt,
 } from "./Stmt";
+import LoxValue from "./LoxValue";
 
 type Associativity = "LEFT" | "RIGHT";
 
@@ -371,10 +372,9 @@ export default class Parser {
     private primary(): Expr {
         if (this.match("FALSE")) return new LiteralExpr(false);
         if (this.match("TRUE")) return new LiteralExpr(true);
-        if (this.match("NIL")) return new LiteralExpr(null);
 
-        if (this.match("NUMBER", "STRING")) {
-            return new LiteralExpr(this.previous().literal);
+        if (this.match("NIL", "NUMBER", "STRING")) {
+            return new LiteralExpr(this.previous().literal as LoxValue);
         }
 
         if (this.match("SUPER")) {
