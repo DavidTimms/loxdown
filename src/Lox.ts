@@ -2,7 +2,6 @@ import * as fs from "fs";
 import * as readline from "readline";
 
 import Token from "./Token";
-import TokenType from "./TokenType";
 import Scanner from "./Scanner";
 import Parser from "./Parser";
 import Interpreter from "./Interpreter";
@@ -68,7 +67,7 @@ export default class Lox {
 
     error(location: number | Token, message: string): void {
         if (location instanceof Token) {
-            if (location.type === TokenType.EOF) {
+            if (location.type === "EOF") {
                 this.report(location.line, " at end", message);
             } else {
                 this.report(location.line, ` at '${location.lexeme}'`, message);

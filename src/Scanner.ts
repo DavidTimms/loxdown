@@ -3,23 +3,23 @@ import Token from "./Token";
 import TokenType from "./TokenType";
 import LoxValue from "./LoxValue";
 
-const keywords = new Map([
-    ["and", TokenType.And],
-    ["class", TokenType.Class],
-    ["else", TokenType.Else],
-    ["false", TokenType.False],
-    ["for", TokenType.For],
-    ["fun", TokenType.Fun],
-    ["if", TokenType.If],
-    ["nil", TokenType.Nil],
-    ["or", TokenType.Or],
-    ["print", TokenType.Print],
-    ["return", TokenType.Return],
-    ["super", TokenType.Super],
-    ["this", TokenType.This],
-    ["true", TokenType.True],
-    ["var", TokenType.Var],
-    ["while", TokenType.While],
+const keywords = new Map<string, TokenType>([
+    ["and", "AND"],
+    ["class", "CLASS"],
+    ["else", "ELSE"],
+    ["false", "FALSE"],
+    ["for", "FOR"],
+    ["fun", "FUN"],
+    ["if", "IF"],
+    ["nil", "NIL"],
+    ["or", "OR"],
+    ["print", "PRINT"],
+    ["return", "RETURN"],
+    ["super", "SUPER"],
+    ["this", "THIS"],
+    ["true", "TRUE"],
+    ["var", "VAR"],
+    ["while", "WHILE"],
 ]);
 
 export default class Scanner {
@@ -39,7 +39,7 @@ export default class Scanner {
             this.scanToken();
         }
 
-        this.tokens.push(new Token(TokenType.EOF, "", null, this.line));
+        this.tokens.push(new Token("EOF", "", null, this.line));
         return this.tokens;
     }
 
@@ -51,42 +51,42 @@ export default class Scanner {
         const c = this.advance();
 
         switch (c) {
-            case "(": this.addToken(TokenType.LeftParen); break;
-            case ")": this.addToken(TokenType.RightParen); break;
-            case "{": this.addToken(TokenType.LeftBrace); break;
-            case "}": this.addToken(TokenType.RightBrace); break;
-            case ",": this.addToken(TokenType.Comma); break;
-            case ".": this.addToken(TokenType.Dot); break;
-            case "-": this.addToken(TokenType.Minus); break;
-            case "+": this.addToken(TokenType.Plus); break;
-            case ";": this.addToken(TokenType.Semicolon); break;
-            case "*": this.addToken(TokenType.Star); break;
+            case "(": this.addToken("LEFT_PAREN"); break;
+            case ")": this.addToken("RIGHT_PAREN"); break;
+            case "{": this.addToken("LEFT_BRACE"); break;
+            case "}": this.addToken("RIGHT_BRACE"); break;
+            case ",": this.addToken("COMMA"); break;
+            case ".": this.addToken("DOT"); break;
+            case "-": this.addToken("MINUS"); break;
+            case "+": this.addToken("PLUS"); break;
+            case ";": this.addToken("SEMICOLON"); break;
+            case "*": this.addToken("STAR"); break;
             case "!":
                 this.addToken(
                     this.match("=")
-                        ? TokenType.BangEqual
-                        : TokenType.Bang,
+                        ? "BANG_EQUAL"
+                        : "BANG",
                 );
                 break;
             case "=":
                 this.addToken(
                     this.match("=")
-                        ? TokenType.EqualEqual
-                        : TokenType.Equal,
+                        ? "EQUAL_EQUAL"
+                        : "EQUAL",
                 );
                 break;
             case "<":
                 this.addToken(
                     this.match("=")
-                        ? TokenType.LessEqual
-                        : TokenType.Less,
+                        ? "LESS_EQUAL"
+                        : "LESS",
                 );
                 break;
             case ">":
                 this.addToken(
                     this.match("=")
-                        ? TokenType.GreaterEqual
-                        : TokenType.Greater,
+                        ? "GREATER_EQUAL"
+                        : "GREATER",
                 );
                 break;
             case "/":
@@ -98,7 +98,7 @@ export default class Scanner {
                 } else if (this.match("*")) {
                     this.blockComment();
                 } else {
-                    this.addToken(TokenType.Slash);
+                    this.addToken("SLASH");
                 }
                 break;
             case " ":
@@ -153,7 +153,7 @@ export default class Scanner {
 
         // Trim the surrounding quotes
         const value = this.source.substring(this.start + 1, this.current - 1);
-        this.addToken(TokenType.String, value);
+        this.addToken("STRING", value);
     }
 
     number(): void {
@@ -168,7 +168,7 @@ export default class Scanner {
         }
 
         this.addToken(
-            TokenType.Number,
+            "NUMBER",
             parseFloat(this.source.substring(this.start, this.current)),
         );
     }
@@ -177,7 +177,7 @@ export default class Scanner {
         while (isAlphaNumeric(this.peek())) this.advance();
 
         const text = this.source.substring(this.start, this.current);
-        this.addToken(keywords.get(text) || TokenType.Identifier);
+        this.addToken(keywords.get(text) || "IDENTIFIER");
     }
 
     advance(): string {

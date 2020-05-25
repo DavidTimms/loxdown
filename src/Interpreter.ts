@@ -1,6 +1,5 @@
 import Lox from "./Lox";
 import LoxValue from "./LoxValue";
-import TokenType from "./TokenType";
 import Token from "./Token";
 import Environment from "./Environment";
 import RuntimeError from "./RuntimeError";
@@ -190,10 +189,10 @@ implements ExprVisitor<LoxValue>, StmtVisitor<void> {
         const left = this.evaluate(expr.left);
 
         switch (expr.operator.type) {
-            case TokenType.Or:
+            case "OR":
                 if (this.isTruthy(left)) return left;
                 break;
-            case TokenType.And:
+            case "AND":
                 if (!this.isTruthy(left)) return left;
                 break;
             default:
@@ -251,9 +250,9 @@ implements ExprVisitor<LoxValue>, StmtVisitor<void> {
 
         // TODO add specific UnaryOperator type to detech totality
         switch (expr.operator.type) {
-            case TokenType.Bang:
+            case "BANG":
                 return !this.isTruthy(right);
-            case TokenType.Minus:
+            case "MINUS":
                 this.checkNumberOperand(expr.operator, right);
                 return -(right as number);
         }
@@ -280,7 +279,7 @@ implements ExprVisitor<LoxValue>, StmtVisitor<void> {
         const right = this.evaluate(expr.right);
 
         switch (expr.operator.type) {
-            case TokenType.Plus:
+            case "PLUS":
                 if (typeof left === "number" && typeof right === "number") {
                     return left + right;
                 }
@@ -292,30 +291,30 @@ implements ExprVisitor<LoxValue>, StmtVisitor<void> {
                     expr.operator,
                     "Operands must be two numbers or two strings.",
                 );
-            case TokenType.Minus:
+            case "MINUS":
                 this.checkNumberOperands(expr.operator, left, right);
                 return (left as number) - (right as number);
-            case TokenType.Slash:
+            case "SLASH":
                 this.checkNumberOperands(expr.operator, left, right);
                 return (left as number) / (right as number);
-            case TokenType.Star:
+            case "STAR":
                 this.checkNumberOperands(expr.operator, left, right);
                 return (left as number) * (right as number);
-            case TokenType.Greater:
+            case "GREATER":
                 this.checkNumberOperands(expr.operator, left, right);
                 return (left as number) > (right as number);
-            case TokenType.GreaterEqual:
+            case "GREATER_EQUAL":
                 this.checkNumberOperands(expr.operator, left, right);
                 return (left as number) >= (right as number);
-            case TokenType.Less:
+            case "LESS":
                 this.checkNumberOperands(expr.operator, left, right);
                 return (left as number) < (right as number);
-            case TokenType.LessEqual:
+            case "LESS_EQUAL":
                 this.checkNumberOperands(expr.operator, left, right);
                 return (left as number) <= (right as number);
-            case TokenType.EqualEqual:
+            case "EQUAL_EQUAL":
                 return this.isEqual(left, right);
-            case TokenType.BangEqual:
+            case "BANG_EQUAL":
                 return !this.isEqual(left, right);
         }
 
