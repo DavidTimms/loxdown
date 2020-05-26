@@ -29,6 +29,7 @@ import {
     ClassStmt,
 } from "./Stmt";
 import LoxValue from "./LoxValue";
+import { loxTrue, loxFalse } from "./LoxBool";
 
 type Associativity = "LEFT" | "RIGHT";
 
@@ -169,7 +170,7 @@ export default class Parser {
             ]);
         }
 
-        if (condition === null) condition = new LiteralExpr(true);
+        if (condition === null) condition = new LiteralExpr(loxTrue);
         body = new WhileStmt(condition, body);
 
         if (initializer !== null) {
@@ -370,8 +371,8 @@ export default class Parser {
     }
 
     private primary(): Expr {
-        if (this.match("FALSE")) return new LiteralExpr(false);
-        if (this.match("TRUE")) return new LiteralExpr(true);
+        if (this.match("FALSE")) return new LiteralExpr(loxFalse);
+        if (this.match("TRUE")) return new LiteralExpr(loxTrue);
 
         if (this.match("NIL", "NUMBER", "STRING")) {
             return new LiteralExpr(this.previous().literal as LoxValue);

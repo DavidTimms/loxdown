@@ -39,6 +39,7 @@ import LoxClass from "./LoxClass";
 import Return from "./Return";
 import LoxInstance from "./LoxInstance";
 import { nil } from "./LoxNil";
+import { loxFalse, loxTrue } from "./LoxBool";
 
 export default class Interpreter
 implements ExprVisitor<LoxValue>, StmtVisitor<void> {
@@ -252,7 +253,7 @@ implements ExprVisitor<LoxValue>, StmtVisitor<void> {
         // TODO add specific UnaryOperator type to detech totality
         switch (expr.operator.type) {
             case "BANG":
-                return !this.isTruthy(right);
+                return this.isTruthy(right) ? loxFalse : loxTrue;
             case "MINUS":
                 this.checkNumberOperand(expr.operator, right);
                 return -(right as number);
@@ -303,20 +304,20 @@ implements ExprVisitor<LoxValue>, StmtVisitor<void> {
                 return (left as number) * (right as number);
             case "GREATER":
                 this.checkNumberOperands(expr.operator, left, right);
-                return (left as number) > (right as number);
+                return (left as number) > (right as number) ? loxTrue : loxFalse;
             case "GREATER_EQUAL":
                 this.checkNumberOperands(expr.operator, left, right);
-                return (left as number) >= (right as number);
+                return (left as number) >= (right as number) ? loxTrue : loxFalse;
             case "LESS":
                 this.checkNumberOperands(expr.operator, left, right);
-                return (left as number) < (right as number);
+                return (left as number) < (right as number) ? loxTrue : loxFalse;
             case "LESS_EQUAL":
                 this.checkNumberOperands(expr.operator, left, right);
-                return (left as number) <= (right as number);
+                return (left as number) <= (right as number) ? loxTrue : loxFalse;
             case "EQUAL_EQUAL":
-                return this.isEqual(left, right);
+                return this.isEqual(left, right) ? loxTrue : loxFalse;
             case "BANG_EQUAL":
-                return !this.isEqual(left, right);
+                return this.isEqual(left, right) ? loxFalse : loxTrue;
         }
 
         // Unreachable
@@ -358,7 +359,7 @@ implements ExprVisitor<LoxValue>, StmtVisitor<void> {
     }
 
     private isTruthy(object: LoxValue): boolean {
-        return object !== nil && object !== false;
+        return object !== nil && object !== loxFalse;
     }
 
     private checkNumberOperand(
