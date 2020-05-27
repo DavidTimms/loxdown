@@ -38,7 +38,7 @@ import LoxFunction from "./LoxFunction";
 import LoxClass from "./LoxClass";
 import Return from "./Return";
 import LoxInstance from "./LoxInstance";
-import { nil } from "./LoxNil";
+import { nil, LoxNil } from "./LoxNil";
 import { loxFalse, loxTrue } from "./LoxBool";
 import LoxNumber from "./LoxNumber";
 import LoxString from "./LoxString";
@@ -52,8 +52,31 @@ implements ExprVisitor<LoxValue>, StmtVisitor<void> {
     constructor(private readonly lox: Lox) {
         this.lox = lox;
 
+        for (const baseDataType of [LoxNil]) {
+            this.globals.define(
+                baseDataType.loxClass.name, baseDataType.loxClass);
+        }
+
         // TODO move native functions to a separate module if we define
         // more of them
+
+        this.globals.define(
+            "isInstance",
+            new NativeFunction((value: LoxValue, loxClass: LoxValue) => {
+                if (!(value instanceof LoxInstance)) return loxFalse;
+                if (loxClass.type !== "CLASS") return loxFalse;
+
+                let currentClass: LoxClass | null = value.loxClass;
+
+                while (currentClass) {
+                    if (currentClass === loxClass) return loxTrue;
+                    currentClass = currentClass.superclass;
+                }
+
+                return loxFalse;
+            }),
+        );
+
         this.globals.define(
             "clock",
             new NativeFunction(() => new LoxNumber(Date.now() / 1000)),

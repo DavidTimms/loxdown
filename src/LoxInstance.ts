@@ -3,10 +3,12 @@ import LoxValue from "./LoxValue";
 import Token from "./Token";
 import RuntimeError from "./RuntimeError";
 
+type LoxInstanceType = "INSTANCE" | "NIL";
+
 export default class LoxInstance {
-    readonly type = "INSTANCE";
+    readonly type: LoxInstanceType = "INSTANCE";
     private readonly fields = new Map<string, LoxValue>();
-    constructor(private loxClass: LoxClass) {
+    constructor(readonly loxClass: LoxClass) {
         this.loxClass = loxClass;
     }
 

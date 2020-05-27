@@ -8,8 +8,8 @@ export default class LoxClass implements LoxCallable {
     readonly type = "CLASS";
     constructor(
         readonly name: string,
-        readonly superclass: LoxClass | null,
-        private readonly methods: Map<string, LoxFunction>,
+        readonly superclass: LoxClass | null = null,
+        private readonly methods: Map<string, LoxFunction> = new Map(),
     ) {}
 
     arity(): number {

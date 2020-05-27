@@ -1,0 +1,11 @@
+class BaseClass {}
+class SubClass < BaseClass {}
+print isInstance(BaseClass(), BaseClass);
+print isInstance(SubClass(), BaseClass);
+print isInstance(BaseClass(), SubClass);
+print isInstance(nil, BaseClass);
+-- OUTPUT --
+true
+true
+false
+false
