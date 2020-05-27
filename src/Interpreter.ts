@@ -376,7 +376,12 @@ implements ExprVisitor<LoxValue>, StmtVisitor<void> {
     }
 
     private isEqual(left: LoxValue, right: LoxValue): boolean {
-        // TODO fix for numbers and strings
+        if (left.type === "NUMBER" && right.type === "NUMBER") {
+            return left.value === right.value;
+        }
+        if (left.type === "STRING" && right.type === "STRING") {
+            return left.value === right.value;
+        }
         return left === right;
     }
 
