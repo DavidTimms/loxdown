@@ -8,6 +8,7 @@ import LoxInstance from "./LoxInstance";
 import { nil } from "./LoxNil";
 
 export default class LoxFunction implements LoxCallable {
+    readonly type = "FUNCTION";
     constructor(
         private readonly declaration: FunctionStmt,
         private readonly closure: Environment,

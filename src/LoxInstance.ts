@@ -4,6 +4,7 @@ import Token from "./Token";
 import RuntimeError from "./RuntimeError";
 
 export default class LoxInstance {
+    readonly type = "INSTANCE";
     private readonly fields = new Map<string, LoxValue>();
     constructor(private loxClass: LoxClass) {
         this.loxClass = loxClass;

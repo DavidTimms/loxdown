@@ -5,6 +5,7 @@ import LoxInstance from "./LoxInstance";
 import LoxFunction from "./LoxFunction";
 
 export default class LoxClass implements LoxCallable {
+    readonly type = "CLASS";
     constructor(
         readonly name: string,
         readonly superclass: LoxClass | null,

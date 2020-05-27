@@ -40,6 +40,8 @@ import Return from "./Return";
 import LoxInstance from "./LoxInstance";
 import { nil } from "./LoxNil";
 import { loxFalse, loxTrue } from "./LoxBool";
+import LoxNumber from "./LoxNumber";
+import LoxString from "./LoxString";
 
 export default class Interpreter
 implements ExprVisitor<LoxValue>, StmtVisitor<void> {
@@ -52,7 +54,10 @@ implements ExprVisitor<LoxValue>, StmtVisitor<void> {
 
         // TODO move native functions to a separate module if we define
         // more of them
-        this.globals.define("clock", new NativeFunction(() => Date.now() / 1000));
+        this.globals.define(
+            "clock",
+            new NativeFunction(() => new LoxNumber(Date.now() / 1000)),
+        );
     }
 
     interpret(statements: Stmt[]): void {
@@ -256,7 +261,7 @@ implements ExprVisitor<LoxValue>, StmtVisitor<void> {
                 return this.isTruthy(right) ? loxFalse : loxTrue;
             case "MINUS":
                 this.checkNumberOperand(expr.operator, right);
-                return -(right as number);
+                return new LoxNumber(-(right as LoxNumber).value);
         }
 
         // Unreachable
@@ -282,12 +287,12 @@ implements ExprVisitor<LoxValue>, StmtVisitor<void> {
 
         switch (expr.operator.type) {
             case "PLUS":
-                if (typeof left === "number" && typeof right === "number") {
-                    return left + right;
+                if (left.type === "NUMBER" && right.type === "NUMBER") {
+                    return new LoxNumber(left.value + right.value);
                 }
 
-                if (typeof left === "string" && typeof right === "string") {
-                    return left + right;
+                if (left.type === "STRING" && right.type === "STRING") {
+                    return new LoxString(left.value + right.value);
                 }
                 throw new RuntimeError(
                     expr.operator,
@@ -295,25 +300,41 @@ implements ExprVisitor<LoxValue>, StmtVisitor<void> {
                 );
             case "MINUS":
                 this.checkNumberOperands(expr.operator, left, right);
-                return (left as number) - (right as number);
+                return new LoxNumber((left as LoxNumber).value - (right as LoxNumber).value);
             case "SLASH":
                 this.checkNumberOperands(expr.operator, left, right);
-                return (left as number) / (right as number);
+                return new LoxNumber((left as LoxNumber).value / (right as LoxNumber).value);
             case "STAR":
                 this.checkNumberOperands(expr.operator, left, right);
-                return (left as number) * (right as number);
+                return new LoxNumber((left as LoxNumber).value * (right as LoxNumber).value);
             case "GREATER":
                 this.checkNumberOperands(expr.operator, left, right);
-                return (left as number) > (right as number) ? loxTrue : loxFalse;
+                return (
+                    (left as LoxNumber).value > (right as LoxNumber).value
+                        ? loxTrue
+                        : loxFalse
+                );
             case "GREATER_EQUAL":
                 this.checkNumberOperands(expr.operator, left, right);
-                return (left as number) >= (right as number) ? loxTrue : loxFalse;
+                return (
+                    (left as LoxNumber).value >= (right as LoxNumber).value
+                        ? loxTrue
+                        : loxFalse
+                );
             case "LESS":
                 this.checkNumberOperands(expr.operator, left, right);
-                return (left as number) < (right as number) ? loxTrue : loxFalse;
+                return (
+                    (left as LoxNumber).value < (right as LoxNumber).value
+                        ? loxTrue
+                        : loxFalse
+                );
             case "LESS_EQUAL":
                 this.checkNumberOperands(expr.operator, left, right);
-                return (left as number) <= (right as number) ? loxTrue : loxFalse;
+                return (
+                    (left as LoxNumber).value <= (right as LoxNumber).value
+                        ? loxTrue
+                        : loxFalse
+                );
             case "EQUAL_EQUAL":
                 return this.isEqual(left, right) ? loxTrue : loxFalse;
             case "BANG_EQUAL":
@@ -355,6 +376,7 @@ implements ExprVisitor<LoxValue>, StmtVisitor<void> {
     }
 
     private isEqual(left: LoxValue, right: LoxValue): boolean {
+        // TODO fix for numbers and strings
         return left === right;
     }
 
@@ -365,8 +387,8 @@ implements ExprVisitor<LoxValue>, StmtVisitor<void> {
     private checkNumberOperand(
         operator: Token,
         operand: LoxValue,
-    ): operand is number {
-        if (typeof operand === "number") return true;
+    ): operand is LoxNumber {
+        if (operand.type === "NUMBER") return true;
         throw new RuntimeError(operator, "Operand must be a number.");
     }
 
@@ -375,7 +397,7 @@ implements ExprVisitor<LoxValue>, StmtVisitor<void> {
         left: LoxValue,
         right: LoxValue,
     ): void {
-        if (typeof left === "number" && typeof right === "number") return;
+        if (left.type === "NUMBER" && right.type === "NUMBER") return;
         throw new RuntimeError(operator, "Operands must be numbers.");
     }
 

@@ -4,6 +4,7 @@ import LoxValue from "./LoxValue";
 
 // Wraps a JavaScript/TypeScript function into a Lox callable
 export default class NativeFunction implements LoxCallable {
+    readonly type = "NATIVE_FUNCTION";
     constructor(
         private readonly jsFunction: (...args: LoxValue[]) => LoxValue,
     ) {

@@ -3,6 +3,8 @@ import Token from "./Token";
 import TokenType from "./TokenType";
 import LoxValue from "./LoxValue";
 import { nil } from "./LoxNil";
+import LoxString from "./LoxString";
+import LoxNumber from "./LoxNumber";
 
 const keywords = new Map<string, TokenType>([
     ["and", "AND"],
@@ -154,7 +156,7 @@ export default class Scanner {
 
         // Trim the surrounding quotes
         const value = this.source.substring(this.start + 1, this.current - 1);
-        this.addToken("STRING", value);
+        this.addToken("STRING", new LoxString(value));
     }
 
     number(): void {
@@ -168,10 +170,10 @@ export default class Scanner {
             while (isDigit(this.peek())) this.advance();
         }
 
-        this.addToken(
-            "NUMBER",
-            parseFloat(this.source.substring(this.start, this.current)),
-        );
+        const value =
+            parseFloat(this.source.substring(this.start, this.current));
+
+        this.addToken("NUMBER", new LoxNumber(value));
     }
 
     identifier(): void {
