@@ -2,27 +2,33 @@ import Interpreter from "./Interpreter";
 import LoxCallable from "./LoxCallable";
 import LoxValue from "./LoxValue";
 import LoxInstance from "./LoxInstance";
-import LoxFunction from "./LoxFunction";
 
 export default class LoxClass implements LoxCallable {
     readonly type = "CLASS";
     constructor(
         readonly name: string,
+        private readonly methods:
+            Map<string, LoxCallable & LoxValue> = new Map(),
         readonly superclass: LoxClass | null = null,
-        private readonly methods: Map<string, LoxFunction> = new Map(),
     ) {}
 
     arity(): number {
         return this.findMethod("init")?.arity() || 0;
     }
 
-    call(interpreter: Interpreter, args: LoxValue[]): LoxValue {
-        const instance = new LoxInstance(this);
-        this.findMethod("init")?.bind(instance).call(interpreter, args);
-        return instance;
+    bind(): LoxClass {
+        return this;
     }
 
-    findMethod(name: string): LoxFunction | undefined {
+    call(interpreter: Interpreter, args: LoxValue[]): LoxValue {
+        const instance = new LoxInstance(this);
+        return (
+            this.findMethod("init")?.bind(instance).call(interpreter, args) ??
+            instance
+        );
+    }
+
+    findMethod(name: string): (LoxCallable & LoxValue) | undefined {
         return this.methods.get(name) ?? this.superclass?.findMethod(name);
     }
 

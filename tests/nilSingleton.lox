@@ -1,0 +1,3 @@
+print nil == Nil();
+-- OUTPUT --
+true

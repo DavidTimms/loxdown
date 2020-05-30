@@ -152,7 +152,7 @@ implements ExprVisitor<LoxValue>, StmtVisitor<void> {
             methods.set(methodStmt.name.lexeme, method);
         }
 
-        const loxClass = new LoxClass(stmt.name.lexeme, superclass, methods);
+        const loxClass = new LoxClass(stmt.name.lexeme, methods, superclass);
 
         if (stmt.superclass) {
             this.environment = this.environment.enclosing as Environment;
