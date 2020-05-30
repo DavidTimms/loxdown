@@ -39,9 +39,10 @@ import LoxClass from "./LoxClass";
 import Return from "./Return";
 import LoxInstance from "./LoxInstance";
 import { nil, LoxNil } from "./LoxNil";
-import { loxFalse, loxTrue } from "./LoxBool";
+import { loxFalse, loxTrue, LoxBool } from "./LoxBool";
 import LoxNumber from "./LoxNumber";
 import LoxString from "./LoxString";
+import { isTruthy, isEqual } from "./coreSemantics";
 
 export default class Interpreter
 implements ExprVisitor<LoxValue>, StmtVisitor<void> {
@@ -52,7 +53,7 @@ implements ExprVisitor<LoxValue>, StmtVisitor<void> {
     constructor(private readonly lox: Lox) {
         this.lox = lox;
 
-        for (const baseDataType of [LoxNil]) {
+        for (const baseDataType of [LoxNil, LoxBool]) {
             this.globals.define(
                 baseDataType.loxClass.name, baseDataType.loxClass);
         }
@@ -170,7 +171,7 @@ implements ExprVisitor<LoxValue>, StmtVisitor<void> {
     }
 
     visitIfStmt(stmt: IfStmt): void {
-        if (this.isTruthy(this.evaluate(stmt.condition))) {
+        if (isTruthy(this.evaluate(stmt.condition))) {
             this.execute(stmt.thenBranch);
         } else if (stmt.elseBranch) {
             this.execute(stmt.elseBranch);
@@ -193,7 +194,7 @@ implements ExprVisitor<LoxValue>, StmtVisitor<void> {
     }
 
     visitWhileStmt(stmt: WhileStmt): void {
-        while (this.isTruthy(this.evaluate(stmt.condition))) {
+        while (isTruthy(this.evaluate(stmt.condition))) {
             this.execute(stmt.body);
         }
     }
@@ -220,10 +221,10 @@ implements ExprVisitor<LoxValue>, StmtVisitor<void> {
 
         switch (expr.operator.type) {
             case "OR":
-                if (this.isTruthy(left)) return left;
+                if (isTruthy(left)) return left;
                 break;
             case "AND":
-                if (!this.isTruthy(left)) return left;
+                if (!isTruthy(left)) return left;
                 break;
             default:
                 // Unreachable
@@ -281,7 +282,7 @@ implements ExprVisitor<LoxValue>, StmtVisitor<void> {
         // TODO add specific UnaryOperator type to detech totality
         switch (expr.operator.type) {
             case "BANG":
-                return this.isTruthy(right) ? loxFalse : loxTrue;
+                return isTruthy(right) ? loxFalse : loxTrue;
             case "MINUS":
                 return new LoxNumber(
                     -this.getNumberOperandValue(expr.operator, right));
@@ -350,9 +351,9 @@ implements ExprVisitor<LoxValue>, StmtVisitor<void> {
                     this.getNumberOperandValues(expr.operator, left, right);
                 return leftValue <= rightValue ? loxTrue : loxFalse;
             case "EQUAL_EQUAL":
-                return this.isEqual(left, right) ? loxTrue : loxFalse;
+                return isEqual(left, right) ? loxTrue : loxFalse;
             case "BANG_EQUAL":
-                return this.isEqual(left, right) ? loxFalse : loxTrue;
+                return isEqual(left, right) ? loxFalse : loxTrue;
         }
 
         // Unreachable
@@ -387,20 +388,6 @@ implements ExprVisitor<LoxValue>, StmtVisitor<void> {
         }
 
         throw new RuntimeError(expr.name, "Only instances have properties");
-    }
-
-    private isEqual(left: LoxValue, right: LoxValue): boolean {
-        if (left.type === "NUMBER" && right.type === "NUMBER") {
-            return left.value === right.value;
-        }
-        if (left.type === "STRING" && right.type === "STRING") {
-            return left.value === right.value;
-        }
-        return left === right;
-    }
-
-    private isTruthy(object: LoxValue): boolean {
-        return object !== nil && object !== loxFalse;
     }
 
     private getNumberOperandValue(

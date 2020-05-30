@@ -13,6 +13,7 @@ const nilMethods = {
 };
 
 export class LoxNil extends LoxInstance {
+    readonly type = "NIL";
     static readonly loxClass = new LoxClass(
         "Nil",
         new Map(
@@ -20,7 +21,6 @@ export class LoxNil extends LoxInstance {
                 .map(([name, func]) => [name, new NativeFunction(func)]),
         ),
     );
-    readonly type = "NIL";
 
     constructor(loxClass = LoxNil.loxClass) {
         super(loxClass);

@@ -1,0 +1,11 @@
+print isInstance(true, Boolean);
+print isInstance(false, Boolean);
+print isInstance("true", Boolean) == false;
+print Boolean("") == true;
+print Boolean(nil) == false;
+-- OUTPUT --
+true
+true
+true
+true
+true
