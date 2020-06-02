@@ -156,7 +156,7 @@ export default class Scanner {
 
         // Trim the surrounding quotes
         const value = this.source.substring(this.start + 1, this.current - 1);
-        this.addToken("STRING", new LoxString(value));
+        this.addToken("STRING", new LoxString(LoxString.loxClass, value));
     }
 
     number(): void {

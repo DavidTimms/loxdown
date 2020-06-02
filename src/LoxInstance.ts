@@ -3,7 +3,7 @@ import LoxValue from "./LoxValue";
 import Token from "./Token";
 import RuntimeError from "./RuntimeError";
 
-type LoxInstanceType = "INSTANCE" | "NIL" | "BOOL";
+type LoxInstanceType = "INSTANCE" | "NIL" | "BOOL" | "STRING";
 
 export default class LoxInstance {
     readonly type: LoxInstanceType = "INSTANCE";

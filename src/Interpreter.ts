@@ -53,7 +53,7 @@ implements ExprVisitor<LoxValue>, StmtVisitor<void> {
     constructor(private readonly lox: Lox) {
         this.lox = lox;
 
-        for (const baseDataType of [LoxNil, LoxBool]) {
+        for (const baseDataType of [LoxNil, LoxBool, LoxString]) {
             this.globals.define(
                 baseDataType.loxClass.name, baseDataType.loxClass);
         }
@@ -316,7 +316,9 @@ implements ExprVisitor<LoxValue>, StmtVisitor<void> {
                     return new LoxNumber(left.value + right.value);
                 }
                 if (left.type === "STRING" && right.type === "STRING") {
-                    return new LoxString(left.value + right.value);
+                    const concatenated =
+                        (left as LoxString).value + (right as LoxString).value;
+                    return new LoxString(LoxString.loxClass, concatenated);
                 }
                 throw new RuntimeError(
                     expr.operator,

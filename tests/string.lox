@@ -1,0 +1,11 @@
+print isInstance("", String);
+print isInstance("hello", String);
+print isInstance(true, String) == false;
+print String(nil) == "nil";
+print String(123) == "123";
+-- OUTPUT --
+true
+true
+true
+true
+true
