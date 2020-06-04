@@ -173,7 +173,7 @@ export default class Scanner {
         const value =
             parseFloat(this.source.substring(this.start, this.current));
 
-        this.addToken("NUMBER", new LoxNumber(value));
+        this.addToken("NUMBER", LoxNumber.wrap(value));
     }
 
     identifier(): void {

@@ -1,0 +1,4 @@
+Number(true);
+-- ERROR --
+Cannot convert from type 'Boolean' to a number.
+[line 1]

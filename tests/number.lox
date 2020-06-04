@@ -1,0 +1,13 @@
+print isInstance(0, Number);
+print isInstance(123.4, Number);
+print isInstance("67", Number) == false;
+print isInstance(true, Number) == false;
+print Number("157.246") == 157.246;
+print Number(123) == 123;
+-- OUTPUT --
+true
+true
+true
+true
+true
+true

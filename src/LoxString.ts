@@ -19,7 +19,7 @@ export default class LoxString extends LoxInstance {
         ),
     );
 
-    constructor(loxClass = LoxString.loxClass, readonly value: string) {
+    constructor(loxClass: LoxClass, readonly value: string) {
         super(loxClass);
     }
 

@@ -53,7 +53,7 @@ implements ExprVisitor<LoxValue>, StmtVisitor<void> {
     constructor(private readonly lox: Lox) {
         this.lox = lox;
 
-        for (const baseDataType of [LoxNil, LoxBool, LoxString]) {
+        for (const baseDataType of [LoxNil, LoxBool, LoxString, LoxNumber]) {
             this.globals.define(
                 baseDataType.loxClass.name, baseDataType.loxClass);
         }
@@ -80,7 +80,7 @@ implements ExprVisitor<LoxValue>, StmtVisitor<void> {
 
         this.globals.define(
             "clock",
-            new NativeFunction(() => new LoxNumber(Date.now() / 1000)),
+            new NativeFunction(() => LoxNumber.wrap(Date.now() / 1000)),
         );
     }
 
@@ -284,7 +284,7 @@ implements ExprVisitor<LoxValue>, StmtVisitor<void> {
             case "BANG":
                 return isTruthy(right) ? loxFalse : loxTrue;
             case "MINUS":
-                return new LoxNumber(
+                return LoxNumber.wrap(
                     -this.getNumberOperandValue(expr.operator, right));
         }
 
@@ -313,7 +313,8 @@ implements ExprVisitor<LoxValue>, StmtVisitor<void> {
         switch (expr.operator.type) {
             case "PLUS":
                 if (left.type === "NUMBER" && right.type === "NUMBER") {
-                    return new LoxNumber(left.value + right.value);
+                    return LoxNumber.wrap(
+                        (left as LoxNumber).value + (right as LoxNumber).value);
                 }
                 if (left.type === "STRING" && right.type === "STRING") {
                     const concatenated =
@@ -327,15 +328,15 @@ implements ExprVisitor<LoxValue>, StmtVisitor<void> {
             case "MINUS":
                 [leftValue, rightValue] =
                     this.getNumberOperandValues(expr.operator, left, right);
-                return new LoxNumber(leftValue - rightValue);
+                return LoxNumber.wrap(leftValue - rightValue);
             case "SLASH":
                 [leftValue, rightValue] =
                     this.getNumberOperandValues(expr.operator, left, right);
-                return new LoxNumber(leftValue / rightValue);
+                return LoxNumber.wrap(leftValue / rightValue);
             case "STAR":
                 [leftValue, rightValue] =
                     this.getNumberOperandValues(expr.operator, left, right);
-                return new LoxNumber(leftValue * rightValue);
+                return LoxNumber.wrap(leftValue * rightValue);
             case "GREATER":
                 [leftValue, rightValue] =
                     this.getNumberOperandValues(expr.operator, left, right);
@@ -396,7 +397,7 @@ implements ExprVisitor<LoxValue>, StmtVisitor<void> {
         operator: Token,
         operand: LoxValue,
     ): number {
-        if (operand.type === "NUMBER") return operand.value;
+        if (operand.type === "NUMBER") return (operand as LoxNumber).value;
         throw new RuntimeError(operator, "Operand must be a number.");
     }
 
@@ -406,7 +407,7 @@ implements ExprVisitor<LoxValue>, StmtVisitor<void> {
         right: LoxValue,
     ): [number, number] {
         if (left.type === "NUMBER" && right.type === "NUMBER") {
-            return [left.value, right.value];
+            return [(left as LoxNumber).value, (right as LoxNumber).value];
         }
         throw new RuntimeError(operator, "Operands must be numbers.");
     }
