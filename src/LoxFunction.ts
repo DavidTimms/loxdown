@@ -6,9 +6,12 @@ import Environment from "./Environment";
 import Return from "./Return";
 import LoxInstance from "./LoxInstance";
 import { nil } from "./LoxNil";
+import * as globals from "./globals";
 
 export default class LoxFunction implements LoxCallable {
     readonly type = "FUNCTION";
+    readonly loxClass = globals.Function;
+
     constructor(
         private readonly declaration: FunctionStmt,
         private readonly closure: Environment,

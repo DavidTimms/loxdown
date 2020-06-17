@@ -1,6 +1,7 @@
 {
     "compilerOptions": {
         "outDir": "./built",
+        "sourceMap": true,
         "target": "ES2019",
         "lib": ["ES2019"],
         "module": "CommonJS",

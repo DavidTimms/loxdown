@@ -7,6 +7,7 @@ type LoxInstanceType = "INSTANCE" | "NIL" | "BOOL" | "STRING" | "NUMBER";
 
 export default class LoxInstance {
     readonly type: LoxInstanceType = "INSTANCE";
+    static readonly loxClass: LoxClass | null = null;
     private readonly fields = new Map<string, LoxValue>();
     constructor(readonly loxClass: LoxClass) {
         this.loxClass = loxClass;

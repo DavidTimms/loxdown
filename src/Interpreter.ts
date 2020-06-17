@@ -33,7 +33,6 @@ import {
     ClassStmt,
 } from "./Stmt";
 import {isLoxCallable} from "./LoxCallable";
-import NativeFunction from "./NativeFunction";
 import LoxFunction from "./LoxFunction";
 import LoxClass from "./LoxClass";
 import Return from "./Return";
@@ -43,6 +42,14 @@ import { loxFalse, loxTrue, LoxBool } from "./LoxBool";
 import LoxNumber from "./LoxNumber";
 import LoxString from "./LoxString";
 import { isTruthy, isEqual } from "./coreSemantics";
+import * as globals from "./globals";
+
+const BASE_DATA_TYPES = [
+    LoxNil,
+    LoxBool,
+    LoxString,
+    LoxNumber,
+];
 
 export default class Interpreter
 implements ExprVisitor<LoxValue>, StmtVisitor<void> {
@@ -53,35 +60,14 @@ implements ExprVisitor<LoxValue>, StmtVisitor<void> {
     constructor(private readonly lox: Lox) {
         this.lox = lox;
 
-        for (const baseDataType of [LoxNil, LoxBool, LoxString, LoxNumber]) {
+        for (const baseDataType of BASE_DATA_TYPES) {
             this.globals.define(
                 baseDataType.loxClass.name, baseDataType.loxClass);
         }
 
-        // TODO move native functions to a separate module if we define
-        // more of them
-
-        this.globals.define(
-            "isInstance",
-            new NativeFunction((value: LoxValue, loxClass: LoxValue) => {
-                if (!(value instanceof LoxInstance)) return loxFalse;
-                if (loxClass.type !== "CLASS") return loxFalse;
-
-                let currentClass: LoxClass | null = value.loxClass;
-
-                while (currentClass) {
-                    if (currentClass === loxClass) return loxTrue;
-                    currentClass = currentClass.superclass;
-                }
-
-                return loxFalse;
-            }),
-        );
-
-        this.globals.define(
-            "clock",
-            new NativeFunction(() => LoxNumber.wrap(Date.now() / 1000)),
-        );
+        for (const [name, value] of Object.entries(globals)) {
+            this.globals.define(name, value);
+        }
     }
 
     interpret(statements: Stmt[]): void {

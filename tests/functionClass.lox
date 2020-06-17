@@ -1,0 +1,14 @@
+fun foo() {
+    return "bar";
+}
+// Both user-defined functions and native functions are
+// instances of the Function class.
+print isInstance(foo, Function);
+print isInstance(clock, Function);
+print isInstance(String, Function);
+print isInstance("foo", Function);
+-- OUTPUT --
+true
+true
+false
+false
