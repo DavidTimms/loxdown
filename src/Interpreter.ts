@@ -37,16 +37,14 @@ import LoxFunction from "./LoxFunction";
 import LoxClass from "./LoxClass";
 import Return from "./Return";
 import LoxInstance from "./LoxInstance";
-import { nil, LoxNil } from "./LoxNil";
-import { loxFalse, loxTrue, LoxBool } from "./LoxBool";
+import { nil } from "./LoxNil";
+import { loxFalse, loxTrue } from "./LoxBool";
 import LoxNumber from "./LoxNumber";
 import LoxString from "./LoxString";
 import { isTruthy, isEqual } from "./coreSemantics";
 import * as globals from "./globals";
 
 const BASE_DATA_TYPES = [
-    LoxNil,
-    LoxBool,
     LoxString,
     LoxNumber,
 ];

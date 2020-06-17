@@ -3,6 +3,8 @@ import LoxNumber from "./LoxNumber";
 import LoxValue from "./LoxValue";
 import { loxFalse, loxTrue } from "./LoxBool";
 import LoxClass from "./LoxClass";
+import { nil } from "./LoxNil";
+import { isTruthy } from "./coreSemantics";
 
 export const clock = new NativeFunction(
     () => LoxNumber.wrap(Date.now() / 1000),
@@ -21,6 +23,39 @@ export const isInstance = new NativeFunction(
 
         return loxFalse;
     },
+);
+
+export const type = new NativeFunction(
+    (value: LoxValue) => value.loxClass ?? nil,
+);
+
+const nilMethods = {
+    init(): LoxValue {
+        return nil;
+    },
+};
+
+export const Nil = new LoxClass(
+    "Nil",
+    new Map(
+        Object.entries(nilMethods)
+            .map(([name, func]) => [name, new NativeFunction(func)]),
+    ),
+);
+
+
+const boolMethods = {
+    init(value: LoxValue): LoxValue {
+        return isTruthy(value) ? loxTrue : loxFalse;
+    },
+};
+
+export const Boolean = new LoxClass(
+    "Boolean",
+    new Map(
+        Object.entries(boolMethods)
+            .map(([name, func]) => [name, new NativeFunction(func)]),
+    ),
 );
 
 const functionMethods = {
