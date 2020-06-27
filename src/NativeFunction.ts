@@ -1,12 +1,13 @@
 import Interpreter from "./Interpreter";
 import LoxCallable from "./LoxCallable";
 import LoxValue from "./LoxValue";
-import LoxInstance from "./LoxInstance";
 import LoxClass from "./LoxClass";
+import NativeTypeMixin from "./NativeTypeMixin";
+import { applyMixin } from "./helpers";
 
 
 // Wraps a JavaScript/TypeScript function into a Lox callable
-export default class NativeFunction implements LoxCallable {
+class NativeFunction implements LoxCallable {
     readonly type = "NATIVE_FUNCTION";
 
     constructor(
@@ -29,7 +30,7 @@ export default class NativeFunction implements LoxCallable {
         return this.jsFunction.length;
     }
 
-    bind(instance: LoxInstance): NativeFunction {
+    bind(instance: LoxValue): NativeFunction {
         return new NativeFunction(this.jsFunction.bind(instance));
     }
 
@@ -41,3 +42,8 @@ export default class NativeFunction implements LoxCallable {
         return "<native fn>";
     }
 }
+
+interface NativeFunction extends NativeTypeMixin {}
+applyMixin(NativeFunction, NativeTypeMixin);
+
+export default NativeFunction;

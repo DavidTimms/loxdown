@@ -4,11 +4,12 @@ import LoxValue from "./LoxValue";
 import {FunctionStmt} from "./Stmt";
 import Environment from "./Environment";
 import Return from "./Return";
-import LoxInstance from "./LoxInstance";
 import { nil } from "./LoxNil";
 import * as globals from "./globals";
+import NativeTypeMixin from "./NativeTypeMixin";
+import { applyMixin } from "./helpers";
 
-export default class LoxFunction implements LoxCallable {
+class LoxFunction implements LoxCallable {
     readonly type = "FUNCTION";
     readonly loxClass = globals.Function;
 
@@ -22,7 +23,7 @@ export default class LoxFunction implements LoxCallable {
         return this.declaration.params.length;
     }
 
-    bind(instance: LoxInstance): LoxFunction {
+    bind(instance: LoxValue): LoxFunction {
         const environment = new Environment(this.closure);
         environment.define("this", instance);
         return new LoxFunction(
@@ -57,3 +58,8 @@ export default class LoxFunction implements LoxCallable {
         return `<fn ${this.declaration.name.lexeme}>`;
     }
 }
+
+interface LoxFunction extends NativeTypeMixin {}
+applyMixin(LoxFunction, NativeTypeMixin);
+
+export default LoxFunction;

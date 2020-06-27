@@ -1,11 +1,10 @@
 import Interpreter from "./Interpreter";
 import LoxValue from "./LoxValue";
-import LoxInstance from "./LoxInstance";
 
 export interface LoxCallable {
     type: LoxValue["type"];
     arity(): number;
-    bind(instance: LoxInstance): LoxCallable & LoxValue;
+    bind(instance: LoxValue): LoxCallable & LoxValue;
     call(interpreter: Interpreter, args: LoxValue[]): LoxValue;
 }
 export default LoxCallable;

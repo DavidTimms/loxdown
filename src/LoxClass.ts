@@ -2,10 +2,11 @@ import Interpreter from "./Interpreter";
 import LoxCallable from "./LoxCallable";
 import LoxValue from "./LoxValue";
 import LoxInstance from "./LoxInstance";
+import NativeTypeMixin from "./NativeTypeMixin";
+import { applyMixin } from "./helpers";
 
-export default class LoxClass implements LoxCallable {
+class LoxClass implements LoxCallable {
     readonly type = "CLASS";
-    readonly loxClass = null;
 
     constructor(
         readonly name: string,
@@ -13,6 +14,15 @@ export default class LoxClass implements LoxCallable {
             Map<string, LoxCallable & LoxValue> = new Map(),
         readonly superclass: LoxClass | null = null,
     ) {}
+
+    get loxClass(): LoxClass {
+        // eslint-disable-next-line @typescript-eslint/no-var-requires
+        const globals = require("./globals");
+        Object.defineProperty(LoxClass.prototype, "loxClass", {
+            value: globals.Class,
+        });
+        return globals.Class;
+    }
 
     arity(): number {
         return this.findMethod("init")?.arity() || 0;
@@ -38,3 +48,8 @@ export default class LoxClass implements LoxCallable {
         return this.name;
     }
 }
+
+interface LoxClass extends NativeTypeMixin {}
+applyMixin(LoxClass, NativeTypeMixin);
+
+export default LoxClass;

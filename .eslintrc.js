@@ -11,6 +11,9 @@ module.exports = {
     ],
     rules: {
         "@typescript-eslint/no-use-before-define": "off",
+        "@typescript-eslint/no-empty-interface": ["warn", {
+            "allowSingleExtends": true
+        }],
         "@typescript-eslint/no-unused-vars": ["warn", {
             "vars": "all",
             "args": "none",

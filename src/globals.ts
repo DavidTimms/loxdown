@@ -3,7 +3,7 @@ import LoxNumber from "./LoxNumber";
 import LoxValue from "./LoxValue";
 import { loxFalse, loxTrue } from "./LoxBool";
 import LoxClass from "./LoxClass";
-import { nil } from "./LoxNil";
+import { nil, LoxNil } from "./LoxNil";
 import { isTruthy } from "./coreSemantics";
 
 export const clock = new NativeFunction(
@@ -69,6 +69,24 @@ export const Function = new LoxClass(
     "Function",
     new Map(
         Object.entries(functionMethods)
+            .map(([name, func]) => [name, new NativeFunction(func)]),
+    ),
+);
+
+const classMethods = {
+    init(): LoxValue {
+        // TODO improve error
+        throw Error("Cannot instantiate the Class class.");
+    },
+    getSuperclass(this: LoxClass): LoxClass | LoxNil {
+        return this.superclass ?? nil;
+    },
+};
+
+export const Class = new LoxClass(
+    "Class",
+    new Map(
+        Object.entries(classMethods)
             .map(([name, func]) => [name, new NativeFunction(func)]),
     ),
 );

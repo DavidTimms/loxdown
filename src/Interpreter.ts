@@ -370,11 +370,7 @@ implements ExprVisitor<LoxValue>, StmtVisitor<void> {
 
     visitGetExpr(expr: GetExpr): LoxValue {
         const object = this.evaluate(expr.object);
-        if (object instanceof LoxInstance) {
-            return object.get(expr.name);
-        }
-
-        throw new RuntimeError(expr.name, "Only instances have properties");
+        return object.get(expr.name);
     }
 
     private getNumberOperandValue(
