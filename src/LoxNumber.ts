@@ -9,8 +9,7 @@ const numberMethods = {
         if (value.type === "NUMBER") return value;
 
         if (value.type !== "STRING") {
-            // TODO use runtime Lox class name instead of internal type
-            const className = value.type;
+            const className = value.loxClass.name;
             throw Error(`Unable to convert type '${className}' to a number.`);
         }
 
