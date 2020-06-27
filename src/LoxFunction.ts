@@ -61,5 +61,4 @@ class LoxFunction implements LoxCallable {
 
 interface LoxFunction extends NativeTypeMixin {}
 applyMixin(LoxFunction, NativeTypeMixin);
-
 export default LoxFunction;

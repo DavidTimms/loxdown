@@ -1,16 +1,25 @@
-import LoxInstance from "./LoxInstance";
-import * as globals from "./globals";
+import NativeTypeMixin from "./NativeTypeMixin";
+import { applyMixin } from "./helpers";
+import LoxClass from "./LoxClass";
 
 
-export class LoxBool extends LoxInstance {
+class LoxBool {
     readonly type = "BOOL";
     private static readonly instances = new Map<boolean, LoxBool>();
 
-    constructor(loxClass = globals.Boolean, readonly isTrue: boolean = true) {
-        super(loxClass);
+    constructor(readonly isTrue: boolean = true) {
         const instance = LoxBool.instances.get(isTrue);
         if (instance) return instance;
         LoxBool.instances.set(isTrue, this);
+    }
+
+    get loxClass(): LoxClass {
+        // eslint-disable-next-line @typescript-eslint/no-var-requires
+        const globals = require("./globals");
+        Object.defineProperty(LoxBool.prototype, "loxClass", {
+            value: globals.Boolean,
+        });
+        return globals.Boolean;
     }
 
     toString(): string {
@@ -18,5 +27,9 @@ export class LoxBool extends LoxInstance {
     }
 }
 
-export const loxTrue = new LoxBool(globals.Boolean, true);
-export const loxFalse = new LoxBool(globals.Boolean, false);
+interface LoxBool extends NativeTypeMixin {}
+applyMixin(LoxBool, NativeTypeMixin);
+export { LoxBool };
+
+export const loxTrue = new LoxBool(true);
+export const loxFalse = new LoxBool(false);
