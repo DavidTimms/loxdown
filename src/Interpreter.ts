@@ -44,28 +44,13 @@ import LoxString from "./LoxString";
 import { isTruthy, isEqual } from "./coreSemantics";
 import * as globals from "./globals";
 
-const BASE_DATA_TYPES = [
-    LoxString,
-];
-
 export default class Interpreter
 implements ExprVisitor<LoxValue>, StmtVisitor<void> {
-    readonly globals: Environment = new Environment();
+    readonly globals: Environment = Environment.fromObject(globals);
     private environment = this.globals;
     private readonly locals: Map<Expr, number> = new Map();
 
-    constructor(private readonly lox: Lox) {
-        this.lox = lox;
-
-        for (const baseDataType of BASE_DATA_TYPES) {
-            this.globals.define(
-                baseDataType.loxClass.name, baseDataType.loxClass);
-        }
-
-        for (const [name, value] of Object.entries(globals)) {
-            this.globals.define(name, value);
-        }
-    }
+    constructor(private readonly lox: Lox) {}
 
     interpret(statements: Stmt[]): void {
         try {
@@ -78,7 +63,7 @@ implements ExprVisitor<LoxValue>, StmtVisitor<void> {
             } else throw error;
         }
     }
-
+#
     private evaluate(expr: Expr): LoxValue {
         return expr.accept(this);
     }
@@ -267,7 +252,7 @@ implements ExprVisitor<LoxValue>, StmtVisitor<void> {
             case "BANG":
                 return isTruthy(right) ? loxFalse : loxTrue;
             case "MINUS":
-                return LoxNumber.wrap(
+                return new LoxNumber(
                     -this.getNumberOperandValue(expr.operator, right));
         }
 
@@ -296,13 +281,13 @@ implements ExprVisitor<LoxValue>, StmtVisitor<void> {
         switch (expr.operator.type) {
             case "PLUS":
                 if (left.type === "NUMBER" && right.type === "NUMBER") {
-                    return LoxNumber.wrap(
+                    return new LoxNumber(
                         (left as LoxNumber).value + (right as LoxNumber).value);
                 }
                 if (left.type === "STRING" && right.type === "STRING") {
                     const concatenated =
                         (left as LoxString).value + (right as LoxString).value;
-                    return new LoxString(LoxString.loxClass, concatenated);
+                    return new LoxString(concatenated);
                 }
                 throw new RuntimeError(
                     expr.operator,
@@ -311,15 +296,15 @@ implements ExprVisitor<LoxValue>, StmtVisitor<void> {
             case "MINUS":
                 [leftValue, rightValue] =
                     this.getNumberOperandValues(expr.operator, left, right);
-                return LoxNumber.wrap(leftValue - rightValue);
+                return new LoxNumber(leftValue - rightValue);
             case "SLASH":
                 [leftValue, rightValue] =
                     this.getNumberOperandValues(expr.operator, left, right);
-                return LoxNumber.wrap(leftValue / rightValue);
+                return new LoxNumber(leftValue / rightValue);
             case "STAR":
                 [leftValue, rightValue] =
                     this.getNumberOperandValues(expr.operator, left, right);
-                return LoxNumber.wrap(leftValue * rightValue);
+                return new LoxNumber(leftValue * rightValue);
             case "GREATER":
                 [leftValue, rightValue] =
                     this.getNumberOperandValues(expr.operator, left, right);

@@ -10,6 +10,14 @@ export default class Environment {
         this.enclosing = enclosing;
     }
 
+    static fromObject(obj: {[name: string]: LoxValue}): Environment {
+        const environment = new Environment();
+        for (const [name, value] of Object.entries(obj)) {
+            environment.define(name, value);
+        }
+        return environment;
+    }
+
     get(name: Token): LoxValue {
         const value = this.values.get(name.lexeme);
 

@@ -8,7 +8,7 @@ import { isTruthy } from "./coreSemantics";
 import LoxString from "./LoxString";
 
 export const clock = new NativeFunction(
-    () => LoxNumber.wrap(Date.now() / 1000),
+    () => new LoxNumber(Date.now() / 1000),
 );
 
 export const isInstance = new NativeFunction(
@@ -74,7 +74,7 @@ const numberMethods = {
             throw Error("Invalid number.");
         }
 
-        return LoxNumber.wrap(parsedValue);
+        return new LoxNumber(parsedValue);
     },
 };
 
@@ -82,6 +82,20 @@ export const Number = new LoxClass(
     "Number",
     new Map(
         Object.entries(numberMethods)
+            .map(([name, func]) => [name, new NativeFunction(func)]),
+    ),
+);
+
+const stringMethods = {
+    init(value: LoxValue): LoxValue {
+        return new LoxString(value.toString());
+    },
+};
+
+export const String = new LoxClass(
+    "String",
+    new Map(
+        Object.entries(stringMethods)
             .map(([name, func]) => [name, new NativeFunction(func)]),
     ),
 );

@@ -18,11 +18,6 @@ class LoxNumber {
     toString(): string {
         return String(this.value);
     }
-
-    // TODO get rid of this method and just use constructor
-    static wrap(value: number): LoxNumber {
-        return new LoxNumber(value);
-    }
 }
 
 interface LoxNumber extends NativeTypeMixin {}

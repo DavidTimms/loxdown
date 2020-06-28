@@ -1,29 +1,26 @@
 import LoxClass from "./LoxClass";
-import LoxInstance from "./LoxInstance";
-import NativeFunction from "./NativeFunction";
-import LoxValue from "./LoxValue";
+import NativeTypeMixin from "./NativeTypeMixin";
+import { applyMixin } from "./helpers";
 
-const stringMethods = {
-    init(value: LoxValue): LoxValue {
-        return new LoxString(LoxString.loxClass, value.toString());
-    },
-};
-
-export default class LoxString extends LoxInstance {
+class LoxString {
     readonly type = "STRING";
-    static readonly loxClass = new LoxClass(
-        "String",
-        new Map(
-            Object.entries(stringMethods)
-                .map(([name, func]) => [name, new NativeFunction(func)]),
-        ),
-    );
 
-    constructor(loxClass: LoxClass, readonly value: string) {
-        super(loxClass);
+    constructor(readonly value: string) {}
+
+    get loxClass(): LoxClass {
+        // eslint-disable-next-line @typescript-eslint/no-var-requires
+        const globals = require("./globals");
+        Object.defineProperty(LoxString.prototype, "loxClass", {
+            value: globals.String,
+        });
+        return globals.String;
     }
 
     toString(): string {
         return this.value;
     }
 }
+
+interface LoxString extends NativeTypeMixin {}
+applyMixin(LoxString, NativeTypeMixin);
+export default LoxString;
