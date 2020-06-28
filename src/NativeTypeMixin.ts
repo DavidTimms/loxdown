@@ -4,8 +4,22 @@ import RuntimeError from "./RuntimeError";
 import LoxClass from "./LoxClass";
 
 export default class NativeTypeMixin {
-    constructor(readonly loxClass: LoxClass) {
-        throw Error("NativeTypeMixin should not be instantiated directly");
+    static readonly loxClassName: string;
+
+    get loxClass(): LoxClass {
+        // eslint-disable-next-line @typescript-eslint/no-var-requires
+        const globals = require("./globals");
+        const thisClass = this.constructor as typeof NativeTypeMixin;
+        const loxClassName = thisClass.loxClassName;
+        const loxClass = globals[loxClassName];
+        if (loxClass === undefined) {
+            throw new Error(
+                `Unable to find runtime class for '${loxClassName}'.`);
+        }
+        Object.defineProperty(thisClass.prototype, "loxClass", {
+            value: loxClass,
+        });
+        return loxClass;
     }
 
     get(this: LoxValue, name: Token): LoxValue {

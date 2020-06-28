@@ -7,6 +7,7 @@ import { applyMixin } from "./helpers";
 
 class LoxClass implements LoxCallable {
     readonly type = "CLASS";
+    static readonly loxClassName = "Class";
 
     constructor(
         readonly name: string,
@@ -14,15 +15,6 @@ class LoxClass implements LoxCallable {
             Map<string, LoxCallable & LoxValue> = new Map(),
         readonly superclass: LoxClass | null = null,
     ) {}
-
-    get loxClass(): LoxClass {
-        // eslint-disable-next-line @typescript-eslint/no-var-requires
-        const globals = require("./globals");
-        Object.defineProperty(LoxClass.prototype, "loxClass", {
-            value: globals.Class,
-        });
-        return globals.Class;
-    }
 
     arity(): number {
         return this.findMethod("init")?.arity() || 0;

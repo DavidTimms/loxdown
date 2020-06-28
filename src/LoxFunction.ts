@@ -5,13 +5,12 @@ import {FunctionStmt} from "./Stmt";
 import Environment from "./Environment";
 import Return from "./Return";
 import { nil } from "./LoxNil";
-import * as globals from "./globals";
 import NativeTypeMixin from "./NativeTypeMixin";
 import { applyMixin } from "./helpers";
 
 class LoxFunction implements LoxCallable {
     readonly type = "FUNCTION";
-    readonly loxClass = globals.Function;
+    static readonly loxClassName = "Function";
 
     constructor(
         private readonly declaration: FunctionStmt,
