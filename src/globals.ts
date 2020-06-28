@@ -5,6 +5,7 @@ import { loxFalse, loxTrue } from "./LoxBool";
 import LoxClass from "./LoxClass";
 import { nil, LoxNil } from "./LoxNil";
 import { isTruthy } from "./coreSemantics";
+import LoxString from "./LoxString";
 
 export const clock = new NativeFunction(
     () => LoxNumber.wrap(Date.now() / 1000),
@@ -54,6 +55,33 @@ export const Boolean = new LoxClass(
     "Boolean",
     new Map(
         Object.entries(boolMethods)
+            .map(([name, func]) => [name, new NativeFunction(func)]),
+    ),
+);
+
+const numberMethods = {
+    init(value: LoxValue): LoxValue {
+        if (value.type === "NUMBER") return value;
+
+        if (value.type !== "STRING") {
+            const className = value.loxClass.name;
+            throw Error(`Unable to convert type '${className}' to a number.`);
+        }
+
+        const parsedValue = +(value as LoxString).value;
+
+        if (isNaN(parsedValue)) {
+            throw Error("Invalid number.");
+        }
+
+        return LoxNumber.wrap(parsedValue);
+    },
+};
+
+export const Number = new LoxClass(
+    "Number",
+    new Map(
+        Object.entries(numberMethods)
             .map(([name, func]) => [name, new NativeFunction(func)]),
     ),
 );

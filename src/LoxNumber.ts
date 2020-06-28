@@ -1,48 +1,30 @@
 import LoxClass from "./LoxClass";
-import LoxInstance from "./LoxInstance";
-import NativeFunction from "./NativeFunction";
-import LoxValue from "./LoxValue";
-import LoxString from "./LoxString";
+import NativeTypeMixin from "./NativeTypeMixin";
+import { applyMixin } from "./helpers";
 
-const numberMethods = {
-    init(value: LoxValue): LoxValue {
-        if (value.type === "NUMBER") return value;
-
-        if (value.type !== "STRING") {
-            const className = value.loxClass.name;
-            throw Error(`Unable to convert type '${className}' to a number.`);
-        }
-
-        const parsedValue = Number((value as LoxString).value);
-
-        if (isNaN(parsedValue)) {
-            throw Error("Invalid number.");
-        }
-
-        return LoxNumber.wrap(parsedValue);
-    },
-};
-
-export default class LoxNumber extends LoxInstance {
+class LoxNumber {
     readonly type = "NUMBER";
-    static readonly loxClass = new LoxClass(
-        "Number",
-        new Map(
-            Object.entries(numberMethods)
-                .map(([name, func]) => [name, new NativeFunction(func)]),
-        ),
-    );
+    constructor(readonly value: number) {}
 
-    constructor(loxClass: LoxClass, readonly value: number) {
-        super(loxClass);
+    get loxClass(): LoxClass {
+        // eslint-disable-next-line @typescript-eslint/no-var-requires
+        const globals = require("./globals");
+        Object.defineProperty(LoxNumber.prototype, "loxClass", {
+            value: globals.Number,
+        });
+        return globals.Number;
     }
 
     toString(): string {
         return String(this.value);
     }
 
+    // TODO get rid of this method and just use constructor
     static wrap(value: number): LoxNumber {
-        return new LoxNumber(LoxNumber.loxClass, value);
+        return new LoxNumber(value);
     }
 }
 
+interface LoxNumber extends NativeTypeMixin {}
+applyMixin(LoxNumber, NativeTypeMixin);
+export default LoxNumber;

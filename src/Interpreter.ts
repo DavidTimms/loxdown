@@ -46,7 +46,6 @@ import * as globals from "./globals";
 
 const BASE_DATA_TYPES = [
     LoxString,
-    LoxNumber,
 ];
 
 export default class Interpreter
