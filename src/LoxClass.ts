@@ -4,6 +4,11 @@ import LoxValue from "./LoxValue";
 import LoxInstance from "./LoxInstance";
 import NativeTypeMixin from "./NativeTypeMixin";
 import { applyMixin } from "./helpers";
+import NativeFunction from "./NativeFunction";
+
+type NativeCompatibleMethods = {
+    [name: string]: NativeFunction["jsFunction"];
+};
 
 class LoxClass implements LoxCallable {
     readonly type = "CLASS";
@@ -15,6 +20,13 @@ class LoxClass implements LoxCallable {
             Map<string, LoxCallable & LoxValue> = new Map(),
         readonly superclass: LoxClass | null = null,
     ) {}
+
+    withNativeMethods(methods: NativeCompatibleMethods): LoxClass {
+        for (const [name, func] of Object.entries(methods)) {
+            this.methods.set(name, new NativeFunction(func));
+        }
+        return this;
+    }
 
     arity(): number {
         return this.findMethod("init")?.arity() || 0;
@@ -43,5 +55,4 @@ class LoxClass implements LoxCallable {
 
 interface LoxClass extends NativeTypeMixin {}
 applyMixin(LoxClass, NativeTypeMixin);
-
 export default LoxClass;

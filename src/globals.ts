@@ -30,36 +30,19 @@ export const type = new NativeFunction(
     (value: LoxValue) => value.loxClass ?? nil,
 );
 
-const nilMethods = {
+export const Nil = new LoxClass("Nil").withNativeMethods({
     init(): LoxValue {
         return nil;
     },
-};
+});
 
-export const Nil = new LoxClass(
-    "Nil",
-    new Map(
-        Object.entries(nilMethods)
-            .map(([name, func]) => [name, new NativeFunction(func)]),
-    ),
-);
-
-
-const boolMethods = {
+export const Boolean = new LoxClass("Boolean").withNativeMethods({
     init(value: LoxValue): LoxValue {
         return isTruthy(value) ? loxTrue : loxFalse;
     },
-};
+});
 
-export const Boolean = new LoxClass(
-    "Boolean",
-    new Map(
-        Object.entries(boolMethods)
-            .map(([name, func]) => [name, new NativeFunction(func)]),
-    ),
-);
-
-const numberMethods = {
+export const Number = new LoxClass("Number").withNativeMethods({
     init(value: LoxValue): LoxValue {
         if (value.type === "NUMBER") return value;
 
@@ -76,46 +59,22 @@ const numberMethods = {
 
         return new LoxNumber(parsedValue);
     },
-};
+});
 
-export const Number = new LoxClass(
-    "Number",
-    new Map(
-        Object.entries(numberMethods)
-            .map(([name, func]) => [name, new NativeFunction(func)]),
-    ),
-);
-
-const stringMethods = {
+export const String = new LoxClass("String").withNativeMethods({
     init(value: LoxValue): LoxValue {
         return new LoxString(value.toString());
     },
-};
+});
 
-export const String = new LoxClass(
-    "String",
-    new Map(
-        Object.entries(stringMethods)
-            .map(([name, func]) => [name, new NativeFunction(func)]),
-    ),
-);
-
-const functionMethods = {
+export const Function = new LoxClass("Function").withNativeMethods({
     init(): LoxValue {
         // TODO improve error
         throw Error("Cannot instantiate the Function class.");
     },
-};
+});
 
-export const Function = new LoxClass(
-    "Function",
-    new Map(
-        Object.entries(functionMethods)
-            .map(([name, func]) => [name, new NativeFunction(func)]),
-    ),
-);
-
-const classMethods = {
+export const Class = new LoxClass("Class").withNativeMethods({
     init(): LoxValue {
         // TODO improve error
         throw Error("Cannot instantiate the Class class.");
@@ -123,12 +82,4 @@ const classMethods = {
     getSuperclass(this: LoxClass): LoxClass | LoxNil {
         return this.superclass ?? nil;
     },
-};
-
-export const Class = new LoxClass(
-    "Class",
-    new Map(
-        Object.entries(classMethods)
-            .map(([name, func]) => [name, new NativeFunction(func)]),
-    ),
-);
+});
