@@ -63,7 +63,7 @@ implements ExprVisitor<LoxValue>, StmtVisitor<void> {
             } else throw error;
         }
     }
-#
+
     private evaluate(expr: Expr): LoxValue {
         return expr.accept(this);
     }
@@ -282,12 +282,10 @@ implements ExprVisitor<LoxValue>, StmtVisitor<void> {
             case "PLUS":
                 if (left.type === "NUMBER" && right.type === "NUMBER") {
                     return new LoxNumber(
-                        (left as LoxNumber).value + (right as LoxNumber).value);
+                        left.value + right.value);
                 }
                 if (left.type === "STRING" && right.type === "STRING") {
-                    const concatenated =
-                        (left as LoxString).value + (right as LoxString).value;
-                    return new LoxString(concatenated);
+                    return new LoxString(left.value + right.value);
                 }
                 throw new RuntimeError(
                     expr.operator,
@@ -361,7 +359,7 @@ implements ExprVisitor<LoxValue>, StmtVisitor<void> {
         operator: Token,
         operand: LoxValue,
     ): number {
-        if (operand.type === "NUMBER") return (operand as LoxNumber).value;
+        if (operand.type === "NUMBER") return operand.value;
         throw new RuntimeError(operator, "Operand must be a number.");
     }
 
@@ -371,7 +369,7 @@ implements ExprVisitor<LoxValue>, StmtVisitor<void> {
         right: LoxValue,
     ): [number, number] {
         if (left.type === "NUMBER" && right.type === "NUMBER") {
-            return [(left as LoxNumber).value, (right as LoxNumber).value];
+            return [left.value, right.value];
         }
         throw new RuntimeError(operator, "Operands must be numbers.");
     }

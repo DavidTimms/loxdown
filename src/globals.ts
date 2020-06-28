@@ -68,7 +68,7 @@ const numberMethods = {
             throw Error(`Unable to convert type '${className}' to a number.`);
         }
 
-        const parsedValue = +(value as LoxString).value;
+        const parsedValue = +value.value;
 
         if (isNaN(parsedValue)) {
             throw Error("Invalid number.");
