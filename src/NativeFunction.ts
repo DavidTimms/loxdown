@@ -3,6 +3,7 @@ import LoxCallable from "./LoxCallable";
 import LoxValue from "./LoxValue";
 import NativeTypeMixin from "./NativeTypeMixin";
 import { applyMixin } from "./helpers";
+import RuntimeError from "./RuntimeError";
 
 
 // Wraps a JavaScript/TypeScript function into a Lox callable

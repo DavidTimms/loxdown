@@ -13,4 +13,4 @@
   - [ ] Organise main code into directories.
   - [ ] Use index files to reduce number of imports.
 - Error handling:
-  - [ ] Improve runtime errors from native functions. They currently crash the whole interpreter.
+  - [X] Improve runtime errors from native functions. They currently crash the whole interpreter.

@@ -1,0 +1,4 @@
+Function();
+-- ERROR --
+It is not possible to create a function by calling the constructor.
+[line 1]

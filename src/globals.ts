@@ -6,6 +6,7 @@ import LoxClass from "./LoxClass";
 import { nil, LoxNil } from "./LoxNil";
 import { isTruthy } from "./coreSemantics";
 import LoxString from "./LoxString";
+import RuntimeError from "./RuntimeError";
 
 export const clock = new NativeFunction(
     () => new LoxNumber(Date.now() / 1000),
@@ -48,13 +49,14 @@ export const Number = new LoxClass("Number").withNativeMethods({
 
         if (value.type !== "STRING") {
             const className = value.loxClass.name;
-            throw Error(`Unable to convert type '${className}' to a number.`);
+            throw new RuntimeError(
+                `Unable to convert type '${className}' to a number.`);
         }
 
         const parsedValue = +value.value;
 
         if (isNaN(parsedValue)) {
-            throw Error("Invalid number.");
+            throw new RuntimeError("Invalid number.");
         }
 
         return new LoxNumber(parsedValue);
@@ -69,15 +71,18 @@ export const String = new LoxClass("String").withNativeMethods({
 
 export const Function = new LoxClass("Function").withNativeMethods({
     init(): LoxValue {
-        // TODO improve error
-        throw Error("Cannot instantiate the Function class.");
+        throw new RuntimeError(
+            "It is not possible to create a function " +
+            "by calling the constructor.",
+        );
     },
 });
 
 export const Class = new LoxClass("Class").withNativeMethods({
     init(): LoxValue {
-        // TODO improve error
-        throw Error("Cannot instantiate the Class class.");
+        throw new RuntimeError(
+            "It is not possible to create a class by calling the constructor.",
+        );
     },
     getSuperclass(this: LoxClass): LoxClass | LoxNil {
         return this.superclass ?? nil;

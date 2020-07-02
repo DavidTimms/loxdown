@@ -78,7 +78,11 @@ export default class Lox {
     }
 
     runtimeError(error: RuntimeError): void {
-        this.printError(`${error.message}\n[line ${error.token.line}]`);
+        let errorMessage = error.message;
+        if (error.token) {
+            errorMessage += `\n[line ${error.token.line}]`;
+        }
+        this.printError(errorMessage);
         this.hadRuntimeError = true;
     }
 

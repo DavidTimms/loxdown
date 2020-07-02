@@ -22,7 +22,7 @@ export default class LoxInstance {
         if (method !== undefined) return method.bind(this);
 
         throw new RuntimeError(
-            name, `Undefined property '${name.lexeme}'.`);
+            `Undefined property '${name.lexeme}'.`, name);
     }
 
     set(name: Token, value: LoxValue): void {

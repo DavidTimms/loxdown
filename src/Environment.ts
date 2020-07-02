@@ -26,7 +26,7 @@ export default class Environment {
                 return this.enclosing.get(name);
             }
             throw new RuntimeError(
-                name, `Undefined variable '${name.lexeme}'.`);
+                `Undefined variable '${name.lexeme}'.`, name);
         }
 
         return value;
@@ -39,7 +39,7 @@ export default class Environment {
             this.enclosing.assign(name, value);
         } else {
             throw new RuntimeError(
-                name, `Undefined variable '${name.lexeme}'.`);
+                `Undefined variable '${name.lexeme}'.`, name);
         }
     }
 

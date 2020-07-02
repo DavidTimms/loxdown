@@ -100,8 +100,8 @@ implements ExprVisitor<LoxValue>, StmtVisitor<void> {
             superclass = this.evaluate(stmt.superclass);
             if (!(superclass instanceof LoxClass)) {
                 throw new RuntimeError(
-                    stmt.superclass.name,
                     "Superclass must be a class.",
+                    stmt.superclass.name,
                 );
             }
         }
@@ -206,7 +206,7 @@ implements ExprVisitor<LoxValue>, StmtVisitor<void> {
         const object = this.evaluate(expr.object);
 
         if (!(object instanceof LoxInstance)) {
-            throw new RuntimeError(expr.name, "Only instances have fields.");
+            throw new RuntimeError("Only instances have fields.", expr.name);
         }
 
         const value = this.evaluate(expr.value);
@@ -217,7 +217,7 @@ implements ExprVisitor<LoxValue>, StmtVisitor<void> {
     visitSuperExpr(expr: SuperExpr): LoxValue {
         const distance = this.locals.get(expr);
         if (distance === undefined) {
-            throw new RuntimeError(expr.keyword, "Unable to lookup 'super'.");
+            throw new RuntimeError("Unable to lookup 'super'.", expr.keyword);
         }
         const superclass =
             this.environment.getAt(distance, "super") as LoxClass;
@@ -230,7 +230,7 @@ implements ExprVisitor<LoxValue>, StmtVisitor<void> {
 
         if (!method) {
             throw new RuntimeError(
-                expr.method, `Undefined property '${expr.method.lexeme}'.`);
+                `Undefined property '${expr.method.lexeme}'.`, expr.method);
         }
 
         return method.bind(thisObject);
@@ -288,8 +288,8 @@ implements ExprVisitor<LoxValue>, StmtVisitor<void> {
                     return new LoxString(left.value + right.value);
                 }
                 throw new RuntimeError(
-                    expr.operator,
                     "Operands must be two numbers or two strings.",
+                    expr.operator,
                 );
             case "MINUS":
                 [leftValue, rightValue] =
@@ -335,19 +335,28 @@ implements ExprVisitor<LoxValue>, StmtVisitor<void> {
 
         if (!isLoxCallable(callee)) {
             throw new RuntimeError(
-                expr.paren,
                 "Can only call functions and classes.",
+                expr.paren,
             );
         }
 
         if (args.length !== callee.arity()) {
             throw new RuntimeError(
-                expr.paren,
                 `Expected ${callee.arity()} arguments but got ${args.length}.`,
+                expr.paren,
             );
         }
 
-        return callee.call(this, args);
+        try {
+            return callee.call(this, args);
+        } catch (error) {
+            // Add the missing location token to runtime errors raised by
+            // native functions.
+            if (error instanceof RuntimeError && error.token === null) {
+                error.token = expr.paren;
+            }
+            throw error;
+        }
     }
 
     visitGetExpr(expr: GetExpr): LoxValue {
@@ -360,7 +369,7 @@ implements ExprVisitor<LoxValue>, StmtVisitor<void> {
         operand: LoxValue,
     ): number {
         if (operand.type === "NUMBER") return operand.value;
-        throw new RuntimeError(operator, "Operand must be a number.");
+        throw new RuntimeError("Operand must be a number.", operator);
     }
 
     private getNumberOperandValues(
@@ -371,6 +380,6 @@ implements ExprVisitor<LoxValue>, StmtVisitor<void> {
         if (left.type === "NUMBER" && right.type === "NUMBER") {
             return [left.value, right.value];
         }
-        throw new RuntimeError(operator, "Operands must be numbers.");
+        throw new RuntimeError("Operands must be numbers.", operator);
     }
 }

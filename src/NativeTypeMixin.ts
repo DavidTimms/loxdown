@@ -29,11 +29,11 @@ export default class NativeTypeMixin {
         }
 
         throw new RuntimeError(
-            name, `Undefined property '${name.lexeme}'.`);
+            `Undefined property '${name.lexeme}'.`, name);
     }
 
     set(this: LoxValue, name: Token, value: LoxValue): void {
         throw new RuntimeError(
-            name, `Unable to assign properties to a ${this.loxClass.name}`);
+            `Unable to assign properties to a ${this.loxClass.name}`, name);
     }
 }
