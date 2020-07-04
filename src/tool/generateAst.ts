@@ -74,15 +74,13 @@ function defineAst(outputDir: string, baseName: string, types: string[]): void {
         ...Array.from(importedTypes)
             .map(type => `import ${type} from "./${type}";`),
         "",
-        `export abstract class ${baseName} {`,
-        `    abstract accept<R>(visitor: ${baseName}Visitor<R>): R;`,
-        "}",
+        ...classDefs.flatMap(defineType),
+        `export type ${baseName} =`,
+        classDefs.map(({className}) => "    " + className).join(" |\n") + ";",
         "",
         `export default ${baseName};`,
         "",
         ...defineVisitor(baseName, classDefs),
-        "",
-        ...classDefs.flatMap(defineType),
     ];
 
     fs.writeFileSync(path, lines.join("\n"));
@@ -90,19 +88,14 @@ function defineAst(outputDir: string, baseName: string, types: string[]): void {
 
 function defineType({baseName, className, fields}: ClassDefinition): string[] {
     return [
-        `export class ${className} extends ${baseName} {`,
+        `export class ${className} {`,
 
         // Constructor with all fields
         "    constructor(",
         ...fields.map(({types, name}) =>
             `        readonly ${name}: ${types.join(" | ")},`,
         ),
-        "    ) {",
-        "        super();",
-        ...fields.map(({name}) =>
-            `        this.${name} = ${name};`,
-        ),
-        "    }",
+        "    ) {}",
         "",
 
         // Visitor pattern

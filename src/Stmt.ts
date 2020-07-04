@@ -4,9 +4,115 @@ import Token from "./Token";
 import VariableExpr from "./VariableExpr";
 import Expr from "./Expr";
 
-export abstract class Stmt {
-    abstract accept<R>(visitor: StmtVisitor<R>): R;
+export class BlockStmt {
+    constructor(
+        readonly statements: Stmt[],
+    ) {}
+
+    accept<R>(visitor: StmtVisitor<R>): R {
+        return visitor.visitBlockStmt(this);
+    }
 }
+
+export class ClassStmt {
+    constructor(
+        readonly name: Token,
+        readonly superclass: VariableExpr | null,
+        readonly methods: FunctionStmt[],
+    ) {}
+
+    accept<R>(visitor: StmtVisitor<R>): R {
+        return visitor.visitClassStmt(this);
+    }
+}
+
+export class ExpressionStmt {
+    constructor(
+        readonly expression: Expr,
+    ) {}
+
+    accept<R>(visitor: StmtVisitor<R>): R {
+        return visitor.visitExpressionStmt(this);
+    }
+}
+
+export class FunctionStmt {
+    constructor(
+        readonly name: Token,
+        readonly params: Token[],
+        readonly body: Stmt[],
+    ) {}
+
+    accept<R>(visitor: StmtVisitor<R>): R {
+        return visitor.visitFunctionStmt(this);
+    }
+}
+
+export class IfStmt {
+    constructor(
+        readonly condition: Expr,
+        readonly thenBranch: Stmt,
+        readonly elseBranch: Stmt | null,
+    ) {}
+
+    accept<R>(visitor: StmtVisitor<R>): R {
+        return visitor.visitIfStmt(this);
+    }
+}
+
+export class PrintStmt {
+    constructor(
+        readonly expression: Expr,
+    ) {}
+
+    accept<R>(visitor: StmtVisitor<R>): R {
+        return visitor.visitPrintStmt(this);
+    }
+}
+
+export class ReturnStmt {
+    constructor(
+        readonly keyword: Token,
+        readonly value: Expr | null,
+    ) {}
+
+    accept<R>(visitor: StmtVisitor<R>): R {
+        return visitor.visitReturnStmt(this);
+    }
+}
+
+export class VarStmt {
+    constructor(
+        readonly name: Token,
+        readonly initializer: Expr | null,
+    ) {}
+
+    accept<R>(visitor: StmtVisitor<R>): R {
+        return visitor.visitVarStmt(this);
+    }
+}
+
+export class WhileStmt {
+    constructor(
+        readonly condition: Expr,
+        readonly body: Stmt,
+    ) {}
+
+    accept<R>(visitor: StmtVisitor<R>): R {
+        return visitor.visitWhileStmt(this);
+    }
+}
+
+export type Stmt =
+    BlockStmt |
+    ClassStmt |
+    ExpressionStmt |
+    FunctionStmt |
+    IfStmt |
+    PrintStmt |
+    ReturnStmt |
+    VarStmt |
+    WhileStmt;
 
 export default Stmt;
 
@@ -20,139 +126,4 @@ export interface StmtVisitor<R> {
     visitReturnStmt(stmt: ReturnStmt): R;
     visitVarStmt(stmt: VarStmt): R;
     visitWhileStmt(stmt: WhileStmt): R;
-}
-
-export class BlockStmt extends Stmt {
-    constructor(
-        readonly statements: Stmt[],
-    ) {
-        super();
-        this.statements = statements;
-    }
-
-    accept<R>(visitor: StmtVisitor<R>): R {
-        return visitor.visitBlockStmt(this);
-    }
-}
-
-export class ClassStmt extends Stmt {
-    constructor(
-        readonly name: Token,
-        readonly superclass: VariableExpr | null,
-        readonly methods: FunctionStmt[],
-    ) {
-        super();
-        this.name = name;
-        this.superclass = superclass;
-        this.methods = methods;
-    }
-
-    accept<R>(visitor: StmtVisitor<R>): R {
-        return visitor.visitClassStmt(this);
-    }
-}
-
-export class ExpressionStmt extends Stmt {
-    constructor(
-        readonly expression: Expr,
-    ) {
-        super();
-        this.expression = expression;
-    }
-
-    accept<R>(visitor: StmtVisitor<R>): R {
-        return visitor.visitExpressionStmt(this);
-    }
-}
-
-export class FunctionStmt extends Stmt {
-    constructor(
-        readonly name: Token,
-        readonly params: Token[],
-        readonly body: Stmt[],
-    ) {
-        super();
-        this.name = name;
-        this.params = params;
-        this.body = body;
-    }
-
-    accept<R>(visitor: StmtVisitor<R>): R {
-        return visitor.visitFunctionStmt(this);
-    }
-}
-
-export class IfStmt extends Stmt {
-    constructor(
-        readonly condition: Expr,
-        readonly thenBranch: Stmt,
-        readonly elseBranch: Stmt | null,
-    ) {
-        super();
-        this.condition = condition;
-        this.thenBranch = thenBranch;
-        this.elseBranch = elseBranch;
-    }
-
-    accept<R>(visitor: StmtVisitor<R>): R {
-        return visitor.visitIfStmt(this);
-    }
-}
-
-export class PrintStmt extends Stmt {
-    constructor(
-        readonly expression: Expr,
-    ) {
-        super();
-        this.expression = expression;
-    }
-
-    accept<R>(visitor: StmtVisitor<R>): R {
-        return visitor.visitPrintStmt(this);
-    }
-}
-
-export class ReturnStmt extends Stmt {
-    constructor(
-        readonly keyword: Token,
-        readonly value: Expr | null,
-    ) {
-        super();
-        this.keyword = keyword;
-        this.value = value;
-    }
-
-    accept<R>(visitor: StmtVisitor<R>): R {
-        return visitor.visitReturnStmt(this);
-    }
-}
-
-export class VarStmt extends Stmt {
-    constructor(
-        readonly name: Token,
-        readonly initializer: Expr | null,
-    ) {
-        super();
-        this.name = name;
-        this.initializer = initializer;
-    }
-
-    accept<R>(visitor: StmtVisitor<R>): R {
-        return visitor.visitVarStmt(this);
-    }
-}
-
-export class WhileStmt extends Stmt {
-    constructor(
-        readonly condition: Expr,
-        readonly body: Stmt,
-    ) {
-        super();
-        this.condition = condition;
-        this.body = body;
-    }
-
-    accept<R>(visitor: StmtVisitor<R>): R {
-        return visitor.visitWhileStmt(this);
-    }
 }

@@ -3,9 +3,151 @@
 import Token from "./Token";
 import LoxValue from "./LoxValue";
 
-export abstract class Expr {
-    abstract accept<R>(visitor: ExprVisitor<R>): R;
+export class AssignExpr {
+    constructor(
+        readonly name: Token,
+        readonly value: Expr,
+    ) {}
+
+    accept<R>(visitor: ExprVisitor<R>): R {
+        return visitor.visitAssignExpr(this);
+    }
 }
+
+export class BinaryExpr {
+    constructor(
+        readonly left: Expr,
+        readonly operator: Token,
+        readonly right: Expr,
+    ) {}
+
+    accept<R>(visitor: ExprVisitor<R>): R {
+        return visitor.visitBinaryExpr(this);
+    }
+}
+
+export class CallExpr {
+    constructor(
+        readonly callee: Expr,
+        readonly paren: Token,
+        readonly args: Expr[],
+    ) {}
+
+    accept<R>(visitor: ExprVisitor<R>): R {
+        return visitor.visitCallExpr(this);
+    }
+}
+
+export class GetExpr {
+    constructor(
+        readonly object: Expr,
+        readonly name: Token,
+    ) {}
+
+    accept<R>(visitor: ExprVisitor<R>): R {
+        return visitor.visitGetExpr(this);
+    }
+}
+
+export class GroupingExpr {
+    constructor(
+        readonly expression: Expr,
+    ) {}
+
+    accept<R>(visitor: ExprVisitor<R>): R {
+        return visitor.visitGroupingExpr(this);
+    }
+}
+
+export class LiteralExpr {
+    constructor(
+        readonly value: LoxValue,
+    ) {}
+
+    accept<R>(visitor: ExprVisitor<R>): R {
+        return visitor.visitLiteralExpr(this);
+    }
+}
+
+export class LogicalExpr {
+    constructor(
+        readonly left: Expr,
+        readonly operator: Token,
+        readonly right: Expr,
+    ) {}
+
+    accept<R>(visitor: ExprVisitor<R>): R {
+        return visitor.visitLogicalExpr(this);
+    }
+}
+
+export class SetExpr {
+    constructor(
+        readonly object: Expr,
+        readonly name: Token,
+        readonly value: Expr,
+    ) {}
+
+    accept<R>(visitor: ExprVisitor<R>): R {
+        return visitor.visitSetExpr(this);
+    }
+}
+
+export class SuperExpr {
+    constructor(
+        readonly keyword: Token,
+        readonly method: Token,
+    ) {}
+
+    accept<R>(visitor: ExprVisitor<R>): R {
+        return visitor.visitSuperExpr(this);
+    }
+}
+
+export class ThisExpr {
+    constructor(
+        readonly keyword: Token,
+    ) {}
+
+    accept<R>(visitor: ExprVisitor<R>): R {
+        return visitor.visitThisExpr(this);
+    }
+}
+
+export class UnaryExpr {
+    constructor(
+        readonly operator: Token,
+        readonly right: Expr,
+    ) {}
+
+    accept<R>(visitor: ExprVisitor<R>): R {
+        return visitor.visitUnaryExpr(this);
+    }
+}
+
+export class VariableExpr {
+    constructor(
+        readonly name: Token,
+    ) {}
+
+    accept<R>(visitor: ExprVisitor<R>): R {
+        return visitor.visitVariableExpr(this);
+    }
+}
+
+export type Expr =
+    AssignExpr |
+    BinaryExpr |
+    CallExpr |
+    GetExpr |
+    GroupingExpr |
+    LiteralExpr |
+    LogicalExpr |
+    SetExpr |
+    SuperExpr |
+    ThisExpr |
+    UnaryExpr |
+    VariableExpr;
 
 export default Expr;
 
@@ -22,184 +164,4 @@ export interface ExprVisitor<R> {
     visitThisExpr(expr: ThisExpr): R;
     visitUnaryExpr(expr: UnaryExpr): R;
     visitVariableExpr(expr: VariableExpr): R;
-}
-
-export class AssignExpr extends Expr {
-    constructor(
-        readonly name: Token,
-        readonly value: Expr,
-    ) {
-        super();
-        this.name = name;
-        this.value = value;
-    }
-
-    accept<R>(visitor: ExprVisitor<R>): R {
-        return visitor.visitAssignExpr(this);
-    }
-}
-
-export class BinaryExpr extends Expr {
-    constructor(
-        readonly left: Expr,
-        readonly operator: Token,
-        readonly right: Expr,
-    ) {
-        super();
-        this.left = left;
-        this.operator = operator;
-        this.right = right;
-    }
-
-    accept<R>(visitor: ExprVisitor<R>): R {
-        return visitor.visitBinaryExpr(this);
-    }
-}
-
-export class CallExpr extends Expr {
-    constructor(
-        readonly callee: Expr,
-        readonly paren: Token,
-        readonly args: Expr[],
-    ) {
-        super();
-        this.callee = callee;
-        this.paren = paren;
-        this.args = args;
-    }
-
-    accept<R>(visitor: ExprVisitor<R>): R {
-        return visitor.visitCallExpr(this);
-    }
-}
-
-export class GetExpr extends Expr {
-    constructor(
-        readonly object: Expr,
-        readonly name: Token,
-    ) {
-        super();
-        this.object = object;
-        this.name = name;
-    }
-
-    accept<R>(visitor: ExprVisitor<R>): R {
-        return visitor.visitGetExpr(this);
-    }
-}
-
-export class GroupingExpr extends Expr {
-    constructor(
-        readonly expression: Expr,
-    ) {
-        super();
-        this.expression = expression;
-    }
-
-    accept<R>(visitor: ExprVisitor<R>): R {
-        return visitor.visitGroupingExpr(this);
-    }
-}
-
-export class LiteralExpr extends Expr {
-    constructor(
-        readonly value: LoxValue,
-    ) {
-        super();
-        this.value = value;
-    }
-
-    accept<R>(visitor: ExprVisitor<R>): R {
-        return visitor.visitLiteralExpr(this);
-    }
-}
-
-export class LogicalExpr extends Expr {
-    constructor(
-        readonly left: Expr,
-        readonly operator: Token,
-        readonly right: Expr,
-    ) {
-        super();
-        this.left = left;
-        this.operator = operator;
-        this.right = right;
-    }
-
-    accept<R>(visitor: ExprVisitor<R>): R {
-        return visitor.visitLogicalExpr(this);
-    }
-}
-
-export class SetExpr extends Expr {
-    constructor(
-        readonly object: Expr,
-        readonly name: Token,
-        readonly value: Expr,
-    ) {
-        super();
-        this.object = object;
-        this.name = name;
-        this.value = value;
-    }
-
-    accept<R>(visitor: ExprVisitor<R>): R {
-        return visitor.visitSetExpr(this);
-    }
-}
-
-export class SuperExpr extends Expr {
-    constructor(
-        readonly keyword: Token,
-        readonly method: Token,
-    ) {
-        super();
-        this.keyword = keyword;
-        this.method = method;
-    }
-
-    accept<R>(visitor: ExprVisitor<R>): R {
-        return visitor.visitSuperExpr(this);
-    }
-}
-
-export class ThisExpr extends Expr {
-    constructor(
-        readonly keyword: Token,
-    ) {
-        super();
-        this.keyword = keyword;
-    }
-
-    accept<R>(visitor: ExprVisitor<R>): R {
-        return visitor.visitThisExpr(this);
-    }
-}
-
-export class UnaryExpr extends Expr {
-    constructor(
-        readonly operator: Token,
-        readonly right: Expr,
-    ) {
-        super();
-        this.operator = operator;
-        this.right = right;
-    }
-
-    accept<R>(visitor: ExprVisitor<R>): R {
-        return visitor.visitUnaryExpr(this);
-    }
-}
-
-export class VariableExpr extends Expr {
-    constructor(
-        readonly name: Token,
-    ) {
-        super();
-        this.name = name;
-    }
-
-    accept<R>(visitor: ExprVisitor<R>): R {
-        return visitor.visitVariableExpr(this);
-    }
 }

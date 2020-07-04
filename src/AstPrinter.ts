@@ -73,7 +73,7 @@ export default class AstPrinter implements ExprVisitor<string> {
 
     private parenthesize(...args: (Expr | string)[]): string {
         const argStrings = args.map(arg =>
-            arg instanceof Expr ? arg.accept(this) : arg);
+            typeof arg === "string" ? arg : arg.accept(this));
         return `(${argStrings.join(" ")})`;
     }
 }
