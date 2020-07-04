@@ -9,7 +9,7 @@
   - [X] Avoid repetition when defining runtime classes for native types.
   - [ ] Avoid creating a `LoxInstance` when a native type constructor is called from user code.
 - Organisation:
-  - [ ] Organise test files into directories.
+  - [X] Organise test files into directories.
   - [ ] Organise main code into directories.
   - [ ] Use index files to reduce number of imports.
 - Error handling:

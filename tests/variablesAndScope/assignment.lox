@@ -1,0 +1,3 @@
+var a = 1;
+assert((a = 2) == 2, "Assignment returns the assigned value");
+assert (a == 2, "Afterwards the variable has the assigned value");

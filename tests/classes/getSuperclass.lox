@@ -1,0 +1,10 @@
+class Foo {}
+class Bar < Foo {}
+
+assert(
+    Foo.getSuperclass() == nil,
+    "Returns nil when called on base class");
+
+assert(
+    Bar.getSuperclass() == Foo,
+    "Returns superclass when called on subclass");

@@ -1,0 +1,15 @@
+assert(
+    (false and "hello") == false,
+    "First operand is returned if false");
+
+assert(
+    (nil and "test") == nil,
+    "First operand is returned if nil");
+
+assert(
+    ("hello" and "world") == "world",
+    "Second operand is returned if first is truthy");
+
+assert(
+    (0 and 456) == 456,
+    "zero is truthy");

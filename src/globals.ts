@@ -12,6 +12,13 @@ export const clock = new NativeFunction(
     () => new LoxNumber(Date.now() / 1000),
 );
 
+export const assert = new NativeFunction((assertion, description) => {
+    if (!isTruthy(assertion)) {
+        throw new RuntimeError(`Assertion Failed: ${description}`);
+    }
+    return nil;
+});
+
 export const isInstance = new NativeFunction(
     (value: LoxValue, loxClass: LoxValue) => {
         if (loxClass.type !== "CLASS") return loxFalse;

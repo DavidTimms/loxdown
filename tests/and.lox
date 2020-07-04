@@ -1,7 +1,0 @@
-print false and "not printed";
-print 0 and "zero is truthy";
-print "hello" and "world";
--- OUTPUT --
-false
-zero is truthy
-world
