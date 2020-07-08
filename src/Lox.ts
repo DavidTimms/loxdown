@@ -14,6 +14,10 @@ export default class Lox {
     private hadRuntimeError = false;
     private readonly interpreter = new Interpreter(this);
 
+    constructor() {
+        this.runFile(`${__dirname}/standardLibrary/result.lox`);
+    }
+
     runFile(path: string): void {
         this.run(fs.readFileSync(path, {encoding: "utf8"}));
 

@@ -4,7 +4,7 @@
   "description": "Lox interpreter written in TypeScript",
   "main": "built/main.js",
   "scripts": {
-    "build": "tsc",
+    "build": "tsc && cp -r src/standardLibrary/ built/standardLibrary/",
     "lint": "eslint . --ext .js,.ts",
     "format": "eslint . --ext .js,.ts --fix",
     "test": "npm run-script build && jest",

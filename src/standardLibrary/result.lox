@@ -1,0 +1,20 @@
+
+class Result {}
+
+class Success < Result {
+    init(value) {
+        this.value = value;
+    }
+    succeeded() {
+        return true;
+    }
+}
+
+class Error < Result {
+    init(error) {
+        this.error = error;
+    }
+    succeeded() {
+        return false;
+    }
+}

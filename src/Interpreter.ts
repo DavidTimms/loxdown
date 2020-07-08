@@ -43,6 +43,7 @@ import LoxNumber from "./LoxNumber";
 import LoxString from "./LoxString";
 import { isTruthy, isEqual } from "./coreSemantics";
 import * as globals from "./globals";
+import NativeFunction from "./NativeFunction";
 
 export default class Interpreter
 implements ExprVisitor<LoxValue>, StmtVisitor<void> {
@@ -50,7 +51,24 @@ implements ExprVisitor<LoxValue>, StmtVisitor<void> {
     private environment = this.globals;
     private readonly locals: Map<Expr, number> = new Map();
 
-    constructor(private readonly lox: Lox) {}
+    constructor(private readonly lox: Lox) {
+        this.globals.define("try", new NativeFunction((callable) => {
+            if (!isLoxCallable(callable)) {
+                throw new RuntimeError("'try' must be passed a callable.");
+            }
+            try {
+                const value = callable.call(this, []);
+                const Success = this.globals.getAt(0, "Success") as LoxClass;
+                return Success.call(this, [value]);
+            } catch (error) {
+                if (error instanceof RuntimeError) {
+                    const Error = this.globals.getAt(0, "Error") as LoxClass;
+                    return Error.call(this, [new LoxString(error.message)]);
+                }
+                throw error;
+            }
+        }));
+    }
 
     interpret(statements: Stmt[]): void {
         try {

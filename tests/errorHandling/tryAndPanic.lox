@@ -1,0 +1,27 @@
+fun thisWillSucceed() {
+    return "something";
+}
+
+var success = try(thisWillSucceed);
+
+assert(
+    success.succeeded(),
+    "try returns a Success if the function does not panic");
+
+assert(
+    success.value == "something",
+    "the Success contains the value returned");
+
+fun thisWillPanic() {
+    panic("Oh no!");
+}
+
+var failure = try(thisWillPanic);
+
+assert(
+    !failure.succeeded(),
+    "try returns an Error if the function does panics");
+
+assert(
+    failure.error == "Oh no!",
+    "the Error contains the panic message");

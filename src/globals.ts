@@ -95,3 +95,11 @@ export const Class = new LoxClass("Class").withNativeMethods({
         return this.superclass ?? nil;
     },
 });
+
+export const panic = new NativeFunction((message: LoxValue) => {
+    if (message.type === "STRING") {
+        throw new RuntimeError(message.value);
+    } else {
+        throw new RuntimeError("'panic' must be called with a string.");
+    }
+});
