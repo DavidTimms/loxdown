@@ -87,6 +87,7 @@ export class ReturnStmt {
 export class VarStmt {
     constructor(
         readonly name: Token,
+        readonly type: TypeExpr | null,
         readonly initializer: Expr | null,
     ) {}
 

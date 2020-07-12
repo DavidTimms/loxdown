@@ -210,11 +210,13 @@ export default class Parser {
     private varDeclaration(): Stmt {
         const name = this.consume("IDENTIFIER", "Expect variable name.");
 
+        const type = this.match("COLON") ? this.typeExpr() : null;
+
         const initializer = this.match("EQUAL") ? this.expression() : null;
 
         this.consume("SEMICOLON", "Expect ';' after variable declaration");
 
-        return new VarStmt(name, initializer);
+        return new VarStmt(name, type, initializer);
     }
 
     private whileStatement(): Stmt {

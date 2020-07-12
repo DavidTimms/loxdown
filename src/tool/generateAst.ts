@@ -35,17 +35,25 @@ function main(args: string[]): void {
 
     defineAst(outputDir, "Stmt", [
         "Block      -> statements: Stmt[]",
-        "Class      -> name: Token, superclass: VariableExpr | null, " +
-        "              methods: FunctionStmt[]",
+        `Class      -> name: Token,
+                       superclass: VariableExpr | null,
+                       methods: FunctionStmt[]`,
         "Expression -> expression: Expr",
-        "Function   -> name: Token, params: Parameter[], " +
-        "              returnType: TypeExpr | null, body: Stmt[]",
-        "If         -> condition: Expr, thenBranch: Stmt, " +
-        "              elseBranch: Stmt | null",
+        `Function   -> name: Token,
+                       params: Parameter[],
+                       returnType: TypeExpr | null,
+                       body: Stmt[]`,
+        `If         -> condition: Expr,
+                       thenBranch: Stmt,
+                       elseBranch: Stmt | null`,
         "Print      -> expression: Expr",
-        "Return     -> keyword: Token, value: Expr | null",
-        "Var        -> name: Token, initializer: Expr | null",
-        "While      -> condition: Expr, body: Stmt",
+        `Return     -> keyword: Token,
+                       value: Expr | null`,
+        `Var        -> name: Token,
+                       type: TypeExpr | null,
+                       initializer: Expr | null`,
+        `While      -> condition: Expr,
+                       body: Stmt`,
     ]);
 
     defineAst(outputDir, "TypeExpr", [
@@ -134,7 +142,7 @@ function parseClassDefinition(
 ): ClassDefinition {
     const [classPrefix, fieldList] = definition.split("->").map(s => s.trim());
     const className = classPrefix + baseName;
-    const fields = fieldList.split(", ").map(field => {
+    const fields = fieldList.split(",").map(field => {
         const [name, typeList] = field.split(":").map(s => s.trim());
         return {name, types: typeList.split("|").map(s => s.trim())};
     });
