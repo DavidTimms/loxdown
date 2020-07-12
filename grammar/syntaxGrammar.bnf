@@ -9,7 +9,7 @@ declaration    → classDecl
 classDecl      → "class" IDENTIFIER ( "<" IDENTIFIER )?
                  "{" function* "}" ;
 funDecl        → "fun" function ;
-varDecl        → "var" IDENTIFIER ( "=" expression )? ";" ;
+varDecl        → "var" IDENTIFIER ":" type ( "=" expression )? ";" ;
 
 
 statement      → exprStmt
@@ -34,10 +34,10 @@ block          → "{" declaration* "}" ;
 expression     → assignment ;
 
 assignment     → ( call "." )? IDENTIFIER "=" assignment
-               | logic_or;
+               | logicOr;
 
-logic_or       → logic_and ( "or" logic_and )* ;
-logic_and      → equality ( "and" equality )* ;
+logicOr       → logicAnd ( "or" logicAnd )* ;
+logicAnd      → equality ( "and" equality )* ;
 equality       → comparison ( ( "!=" | "==" ) comparison )* ;
 comparison     → addition ( ( ">" | ">=" | "<" | "<=" ) addition )* ;
 addition       → multiplication ( ( "-" | "+" ) multiplication )* ;
@@ -50,6 +50,10 @@ primary        → "true" | "false" | "nil" | "this"
                | "super" "." IDENTIFIER ;
 
 
-function       → IDENTIFIER "(" parameters? ")" block ;
-parameters     → IDENTIFIER ( "," IDENTIFIER )* ;
+type           → IDENTIFIER ;
+
+
+function       → IDENTIFIER "(" parameters? ")" ":" type block ;
+parameters     → parameter ( "," parameter )* ;
+parameter      → IDENTIFIER ":" type ;
 arguments      → expression ( "," expression )* ;
