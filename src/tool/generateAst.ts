@@ -38,13 +38,18 @@ function main(args: string[]): void {
         "Class      -> name: Token, superclass: VariableExpr | null, " +
         "              methods: FunctionStmt[]",
         "Expression -> expression: Expr",
-        "Function   -> name: Token, params: Token[], body: Stmt[]",
+        "Function   -> name: Token, params: Parameter[], " +
+        "              returnType: TypeExpr | null, body: Stmt[]",
         "If         -> condition: Expr, thenBranch: Stmt, " +
         "              elseBranch: Stmt | null",
         "Print      -> expression: Expr",
         "Return     -> keyword: Token, value: Expr | null",
         "Var        -> name: Token, initializer: Expr | null",
         "While      -> condition: Expr, body: Stmt",
+    ]);
+
+    defineAst(outputDir, "TypeExpr", [
+        "Variable   -> name: Token",
     ]);
 }
 
@@ -81,6 +86,7 @@ function defineAst(outputDir: string, baseName: string, types: string[]): void {
         `export default ${baseName};`,
         "",
         ...defineVisitor(baseName, classDefs),
+        "",
     ];
 
     fs.writeFileSync(path, lines.join("\n"));

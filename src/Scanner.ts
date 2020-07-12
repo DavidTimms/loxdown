@@ -62,6 +62,7 @@ export default class Scanner {
             case ".": this.addToken("DOT"); break;
             case "-": this.addToken("MINUS"); break;
             case "+": this.addToken("PLUS"); break;
+            case ":": this.addToken("COLON"); break;
             case ";": this.addToken("SEMICOLON"); break;
             case "*": this.addToken("STAR"); break;
             case "!":

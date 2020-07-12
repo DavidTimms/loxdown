@@ -1,4 +1,4 @@
-fun sayHi(first, last) {
+fun sayHi(first: String, last: String) {
   print "Hi, " + first + " " + last + "!";
 }
 

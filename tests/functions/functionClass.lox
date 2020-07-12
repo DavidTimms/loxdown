@@ -1,4 +1,4 @@
-fun foo() {
+fun foo(): String {
     return "bar";
 }
 // Both user-defined functions and native functions are

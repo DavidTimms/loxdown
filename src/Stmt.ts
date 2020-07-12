@@ -3,6 +3,8 @@
 import Token from "./Token";
 import VariableExpr from "./VariableExpr";
 import Expr from "./Expr";
+import Parameter from "./Parameter";
+import TypeExpr from "./TypeExpr";
 
 export class BlockStmt {
     constructor(
@@ -39,7 +41,8 @@ export class ExpressionStmt {
 export class FunctionStmt {
     constructor(
         readonly name: Token,
-        readonly params: Token[],
+        readonly params: Parameter[],
+        readonly returnType: TypeExpr | null,
         readonly body: Stmt[],
     ) {}
 

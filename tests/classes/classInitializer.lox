@@ -1,5 +1,5 @@
 class City {
-    init(name, country) {
+    init(name: String, country: String) {
         this.name = name;
         this.country = country;
         print("initialized!");

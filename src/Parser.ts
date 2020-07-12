@@ -30,6 +30,8 @@ import {
 } from "./Stmt";
 import LoxValue from "./LoxValue";
 import { loxTrue, loxFalse } from "./LoxBool";
+import Parameter from "./Parameter";
+import { TypeExpr, VariableTypeExpr } from "./TypeExpr";
 
 type Associativity = "LEFT" | "RIGHT";
 
@@ -234,7 +236,7 @@ export default class Parser {
         const name = this.consume("IDENTIFIER", `Expect ${kind} name.`);
         this.consume("LEFT_PAREN", `Expect '(' after ${kind} name.`);
 
-        const parameters = [];
+        const parameters: Parameter[] = [];
 
         if (!this.check("RIGHT_PAREN")) {
             do {
@@ -245,17 +247,31 @@ export default class Parser {
                     );
                 }
 
-                parameters.push(this.consume(
-                    "IDENTIFIER", "Expect parameter name."));
+                parameters.push(this.parameter());
             } while (this.match("COMMA"));
         }
 
         this.consume("RIGHT_PAREN", "Expect ')' after parameters.");
+
+        const returnType = this.match("COLON") ? this.typeExpr() : null;
+
         this.consume("LEFT_BRACE", `Expect '{' before ${kind} body.`);
 
         const body = this.block();
 
-        return new FunctionStmt(name, parameters, body);
+        return new FunctionStmt(name, parameters, returnType, body);
+    }
+
+    private parameter(): Parameter {
+        const name = this.consume("IDENTIFIER", "Expect parameter name.");
+        this.consume("COLON", "Expect ':' after parameter name.");
+        const type = this.typeExpr();
+        return new Parameter(name, type);
+    }
+
+    private typeExpr(): TypeExpr {
+        const name = this.consume("IDENTIFIER", "Expect parameter name.");
+        return new VariableTypeExpr(name);
     }
 
     private block(): Stmt[] {

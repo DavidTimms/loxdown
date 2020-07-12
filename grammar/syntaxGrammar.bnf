@@ -9,7 +9,7 @@ declaration    → classDecl
 classDecl      → "class" IDENTIFIER ( "<" IDENTIFIER )?
                  "{" function* "}" ;
 funDecl        → "fun" function ;
-varDecl        → "var" IDENTIFIER ":" type ( "=" expression )? ";" ;
+varDecl        → "var" IDENTIFIER (":" typeExpr)? ( "=" expression )? ";" ;
 
 
 statement      → exprStmt
@@ -50,10 +50,10 @@ primary        → "true" | "false" | "nil" | "this"
                | "super" "." IDENTIFIER ;
 
 
-type           → IDENTIFIER ;
+typeExpr       → IDENTIFIER ;
 
 
-function       → IDENTIFIER "(" parameters? ")" ":" type block ;
+function       → IDENTIFIER "(" parameters? ")" (":" typeExpr)? block ;
 parameters     → parameter ( "," parameter )* ;
-parameter      → IDENTIFIER ":" type ;
+parameter      → IDENTIFIER ":" typeExpr ;
 arguments      → expression ( "," expression )* ;

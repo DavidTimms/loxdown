@@ -67,8 +67,8 @@ export default class Resolver implements ExprVisitor<void>, StmtVisitor<void> {
 
         this.beginScope();
         for (const param of func.params) {
-            this.declare(param);
-            this.define(param);
+            this.declare(param.name);
+            this.define(param.name);
         }
         this.resolveAll(func.body);
         this.endScope();

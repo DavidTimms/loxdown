@@ -36,7 +36,7 @@ class LoxFunction implements LoxCallable {
         const environment = new Environment(this.closure);
 
         for (const [i, param] of this.declaration.params.entries()) {
-            environment.define(param.lexeme, args[i]);
+            environment.define(param.name.lexeme, args[i]);
         }
 
         try {
