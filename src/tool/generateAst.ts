@@ -130,7 +130,8 @@ function defineVisitor(
         `export interface ${baseName}Visitor<R> {`,
         ...classDefs.map(({className}) => {
             const method = `visit${className}`;
-            return `    ${method}(${baseName.toLowerCase()}: ${className}): R;`;
+            const parameter = baseName[0].toLowerCase() + baseName.slice(1);
+            return `    ${method}(${parameter}: ${className}): R;`;
         }),
         "}",
     ];

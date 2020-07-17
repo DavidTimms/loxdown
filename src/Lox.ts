@@ -7,12 +7,13 @@ import Parser from "./Parser";
 import Interpreter from "./Interpreter";
 import RuntimeError from "./RuntimeError";
 import { ExpressionStmt, PrintStmt } from "./Stmt";
-import Resolver from "./Resolver";
+import TypeChecker from "./typechecker/TypeChecker";
 
 export default class Lox {
     private hadError = false;
     private hadRuntimeError = false;
     private readonly interpreter = new Interpreter(this);
+    private readonly typechecker = new TypeChecker(this, this.interpreter);
 
     runFile(path: string): void {
         this.run(fs.readFileSync(path, {encoding: "utf8"}));
@@ -49,10 +50,14 @@ export default class Lox {
 
         if (!statements || this.hadError) return;
 
-        const resolver = new Resolver(this, this.interpreter);
-        resolver.resolveAll(statements);
+        const staticErrors = this.typechecker.checkProgram(statements);
 
-        if (this.hadError) return;
+        if (staticErrors.length > 0) {
+            for (const error of staticErrors) {
+                this.error(error.token ?? 0, error.message);
+            }
+            return;
+        }
 
         // Replace final expression statement with print statement
         // so expressions get printed in the REPL

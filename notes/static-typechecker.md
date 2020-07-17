@@ -11,12 +11,13 @@
 
 - Roadmap:
   - [X] Add syntax support for type declarations for parameters, return types and variable declarations.
-  - [ ] Add classes for representing types within the typechecker.
+  - [X] Add classes for representing types within the typechecker.
   - [ ] Extend `NativeFunction` to store the type signature of the function.
   - [ ] Find a way to generate types for the initial globals.
   - [ ] Adapt the resolver to perform basic typechecking.
   - [ ] Add support for subtyping.
   - [ ] Allow classes to declare the types of their fields.
+  - [ ] Adapt AST to allow accessing the source location of any expression for type errors.
   - [ ] Add support for union types.
   - [ ] Add type aliases.
   - [ ] Add generics.

@@ -1,14 +1,22 @@
 import Type from "./Type";
+import InstanceType from "./InstanceType";
 
 export default class ClassType {
+    readonly tag = "CLASS";
     constructor(
         readonly name: string,
-        private readonly members:
+        private readonly fields:
+            Map<string, Type> = new Map(),
+        private readonly methods:
             Map<string, Type> = new Map(),
         readonly superclass: ClassType | null = null,
     ) {}
 
     toString(): string {
-        return this.name;
+        return `class ${this.name}`;
+    }
+
+    instance(): InstanceType {
+        return new InstanceType(this);
     }
 }

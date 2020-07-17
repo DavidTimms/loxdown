@@ -18,5 +18,5 @@ export type TypeExpr =
 export default TypeExpr;
 
 export interface TypeExprVisitor<R> {
-    visitVariableTypeExpr(typeexpr: VariableTypeExpr): R;
+    visitVariableTypeExpr(typeExpr: VariableTypeExpr): R;
 }
