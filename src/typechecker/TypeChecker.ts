@@ -34,7 +34,6 @@ import Type from "./Type";
 import ClassType from "./ClassType";
 import AnyType from "./AnyType";
 import TypeExpr, { TypeExprVisitor, VariableTypeExpr } from "../TypeExpr";
-import { type } from "os";
 
 class LoxError {
     constructor(
@@ -45,6 +44,7 @@ class LoxError {
 
 const types = {
     Any: new AnyType(),
+    PreviousTypeError: new AnyType(),
     Nil: new ClassType("Nil").instance(),
     Boolean: new ClassType("Boolean").instance(),
     Number: new ClassType("Number").instance(),
@@ -98,7 +98,14 @@ implements ExprVisitor<Type>, StmtVisitor<void>, TypeExprVisitor<Type> {
     }
 
     private isTypeCompatible(candidate: Type, target: Type): boolean {
-        // An instance is compatible with its superclass
+        // Anything can be assigned to an 'Any' type.
+        if (target.tag === "ANY") return true;
+
+        // 'PreviousTypeError' is used to avoid cascading type errors
+        // so it can be assigned to anything.
+        if (candidate === types.PreviousTypeError) return true;
+
+        // An instance is compatible with its superclass.
         if (candidate.tag === "INSTANCE" && target.tag === "INSTANCE") {
             let currentClassType: ClassType | null = candidate.classType;
             while (currentClassType) {
@@ -165,7 +172,7 @@ implements ExprVisitor<Type>, StmtVisitor<void>, TypeExprVisitor<Type> {
         // TODO handle global scope
 
         this.error(`The name '${name.lexeme}' is not defined.`, name);
-        return types.Any;
+        return types.PreviousTypeError;
     }
 
     private evaluateTypeExpr(typeExpr: TypeExpr): Type {

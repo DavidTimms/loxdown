@@ -1,4 +1,3 @@
 2 * "12";
 -- ERROR --
-Operands must be numbers.
-[line 1]
+[line 0] Error: Incorrect type. Expected 'Number', but found 'String'.

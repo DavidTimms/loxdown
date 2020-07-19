@@ -1,4 +1,3 @@
 y = 123;
 -- ERROR --
-Undefined variable 'y'.
-[line 1]
+[line 1] Error at 'y': The name 'y' is not defined.

@@ -1,4 +1,3 @@
 var y = x + 2;
 -- ERROR --
-Undefined variable 'x'.
-[line 1]
+[line 1] Error at 'x': The name 'x' is not defined.
