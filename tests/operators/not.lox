@@ -1,0 +1,4 @@
+var inverted: Boolean = !"test";
+print inverted;
+-- OUTPUT --
+false

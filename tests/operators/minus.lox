@@ -1,0 +1,5 @@
+var x = 123;
+var minusX = -x;
+print minusX;
+-- OUTPUT --
+-123
