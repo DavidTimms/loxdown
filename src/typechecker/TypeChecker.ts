@@ -34,6 +34,7 @@ import Type from "./Type";
 import ClassType from "./ClassType";
 import AnyType from "./AnyType";
 import TypeExpr, { TypeExprVisitor, VariableTypeExpr } from "../TypeExpr";
+import { zip } from "../helpers";
 
 class LoxError {
     constructor(
@@ -115,6 +116,29 @@ implements ExprVisitor<Type>, StmtVisitor<void>, TypeExprVisitor<Type> {
             return false;
         }
         return candidate === target;
+    }
+
+    private attemptTypeUnion(left: Type, right: Type): Type | null {
+        if (left === right) return left;
+        if (left === types.PreviousTypeError) return right;
+        if (right === types.PreviousTypeError) return left;
+
+        // Find a common ancestor in the inheritance chains of two instances
+        if (left.tag === "INSTANCE" && right.tag === "INSTANCE") {
+            const latestCommonAncestorPair =
+                zip(left.inheritanceChain(), right.inheritanceChain())
+                    .reverse()
+                    .find(
+                        ([leftAncestor, rightAncestor]) =>
+                            leftAncestor === rightAncestor,
+                    );
+
+            return latestCommonAncestorPair ?
+                latestCommonAncestorPair[0] : null;
+        }
+
+        // Unable to find a type that contains both types
+        return null;
     }
 
     private checkFunction(func: FunctionStmt, context: FunctionContext): void {
@@ -370,9 +394,19 @@ implements ExprVisitor<Type>, StmtVisitor<void>, TypeExprVisitor<Type> {
     }
 
     visitLogicalExpr(expr: LogicalExpr): Type {
-        throw "Not Implemented Yet";
-        // this.resolve(expr.left);
-        // this.resolve(expr.right);
+        const left = this.checkExpr(expr.left);
+        const right = this.checkExpr(expr.right);
+        const type = this.attemptTypeUnion(left, right);
+        if (type === null) {
+            this.error(
+                `The operand types for '${expr.operator.lexeme}' are not ` +
+                "compatible. They must have a shared superclass. Found " +
+                `'${left}' and '${right}'.`,
+                expr.operator,
+            );
+            return types.PreviousTypeError;
+        }
+        return type;
     }
 
     visitSetExpr(expr: SetExpr): Type {

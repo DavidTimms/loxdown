@@ -9,4 +9,17 @@ export default class InstanceType {
     toString(): string {
         return this.classType.name;
     }
+
+    inheritanceChain(): ClassType[] {
+        const chain = [];
+
+        for (
+            let current: ClassType | null = this.classType;
+            current;
+            current = current.superclass
+        ) {
+            chain.unshift(current);
+        }
+        return chain;
+    }
 }

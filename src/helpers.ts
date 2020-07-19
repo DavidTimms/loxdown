@@ -10,3 +10,13 @@ export function applyMixin(targetClass: Class, mixinClass: Class): void {
         }
     });
 }
+
+export function zip<L, R>(left: L[], right: R[]): [L, R][] {
+    const length = Math.min(left.length, right.length);
+    const zipped = [];
+    for (let i = 0; i < length; i++) {
+        const pair: [L, R] = [left[i], right[i]];
+        zipped.push(pair);
+    }
+    return zipped;
+}

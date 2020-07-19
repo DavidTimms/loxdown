@@ -1,0 +1,3 @@
+true or "hello";
+-- ERROR --
+[line 1] Error at 'or': The operand types for 'or' are not compatible. They must have a shared superclass. Found 'Boolean' and 'String'.
