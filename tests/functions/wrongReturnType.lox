@@ -1,0 +1,5 @@
+fun foo(): Number {
+    return "456";
+}
+-- ERROR --
+[line 0] Error: Incorrect type. Expected 'Number', but found 'String'.

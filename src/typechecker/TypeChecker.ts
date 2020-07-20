@@ -35,6 +35,7 @@ import ClassType from "./ClassType";
 import AnyType from "./AnyType";
 import TypeExpr, { TypeExprVisitor, VariableTypeExpr } from "../TypeExpr";
 import { zip } from "../helpers";
+import CallableType from "./CallableType";
 
 class LoxError {
     constructor(
@@ -52,7 +53,10 @@ const types = {
     String: new ClassType("String").instance(),
 };
 
-type FunctionContext = "NONE" | "FUNCTION" | "INITIALIZER" | "METHOD";
+interface FunctionContext {
+    tag: "FUNCTION" | "INITIALIZER" | "METHOD";
+    type: CallableType;
+}
 
 type ClassContext = "NONE" | "CLASS" | "SUBCLASS";
 
@@ -61,7 +65,7 @@ implements ExprVisitor<Type>, StmtVisitor<void>, TypeExprVisitor<Type> {
     private readonly scopes: Map<string, Type | null>[] = [
         new Map(Object.entries(types)),
     ];
-    private currentFunction: FunctionContext = "NONE";
+    private currentFunction: FunctionContext | null = null;
     private currentClass: ClassContext = "NONE";
     private errors: LoxError[] = [];
 
@@ -141,20 +145,31 @@ implements ExprVisitor<Type>, StmtVisitor<void>, TypeExprVisitor<Type> {
         return null;
     }
 
-    private checkFunction(func: FunctionStmt, context: FunctionContext): void {
-        // TODO
-        throw "Not Implemented Yet";
-        // const enclosingFunction = this.currentFunction;
-        // this.currentFunction = context;
+    private getFunctionType(func: FunctionStmt): CallableType {
+        const paramTypes =
+            func.params.map(param => this.evaluateTypeExpr(param.type));
 
-        // this.beginScope();
-        // for (const param of func.params) {
-        //     this.declare(param.name);
-        //     this.define(param.name);
-        // }
-        // this.checkStmts(func.body);
-        // this.endScope();
-        // this.currentFunction = enclosingFunction;
+        const returnType =
+            func.returnType ? this.evaluateTypeExpr(func.returnType) : null;
+
+        return new CallableType(paramTypes, returnType);
+    }
+
+    private checkFunctionBody(
+        func: FunctionStmt,
+        context: FunctionContext,
+    ): void {
+        const enclosingFunction = this.currentFunction;
+        this.currentFunction = context;
+
+        this.beginScope();
+        for (const [param, type] of zip(func.params, context.type.params)) {
+            this.declare(param.name);
+            this.define(param.name, type);
+        }
+        this.checkStmts(func.body);
+        this.endScope();
+        this.currentFunction = enclosingFunction;
     }
 
     private beginScope(): void {
@@ -271,7 +286,7 @@ implements ExprVisitor<Type>, StmtVisitor<void>, TypeExprVisitor<Type> {
         for (const method of stmt.methods) {
             const declaration =
                 method.name.lexeme === "init" ? "INITIALIZER" : "METHOD";
-            this.checkFunction(method, declaration);
+            // const methodType = this.getFunctionType(method, declaration);
         }
 
         this.endScope();
@@ -286,12 +301,11 @@ implements ExprVisitor<Type>, StmtVisitor<void>, TypeExprVisitor<Type> {
     }
 
     visitFunctionStmt(stmt: FunctionStmt): void {
-        // TODO
-        throw "Not Implemented Yet";
-        // this.declare(stmt.name);
-        // this.define(stmt.name);
+        const type = this.getFunctionType(stmt);
+        this.declare(stmt.name);
+        this.define(stmt.name, type);
 
-        // this.checkFunction(stmt, "FUNCTION");
+        this.checkFunctionBody(stmt, {tag: "FUNCTION", type});
     }
 
     visitIfStmt(stmt: IfStmt): void {
@@ -305,17 +319,24 @@ implements ExprVisitor<Type>, StmtVisitor<void>, TypeExprVisitor<Type> {
     }
 
     visitReturnStmt(stmt: ReturnStmt): void {
-        if (this.currentFunction === "NONE") {
+        if (this.currentFunction === null) {
             this.error("Cannot return from top-level code.", stmt.keyword);
+            return;
         }
 
         if (stmt.value) {
-            if (this.currentFunction === "INITIALIZER") {
+            if (this.currentFunction.tag === "INITIALIZER") {
                 this.error(
                     "Cannot return a value from an initializer.", stmt.keyword);
             }
-            // TODO check type of return value is correct for function
-            this.checkExpr(stmt.value);
+            if (this.currentFunction.type.returns === null) {
+                this.error(
+                    "Cannot return a value from this function because there " +
+                    "is no declared return type.",
+                    stmt.keyword,
+                );
+            }
+            this.checkExpr(stmt.value, this.currentFunction.type.returns);
         }
     }
 
