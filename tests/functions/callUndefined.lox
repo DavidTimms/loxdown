@@ -1,0 +1,6 @@
+// The typechecker should only complain about foo being undefined, and
+// not further complain that it isn't callable or that the parameter types
+// are incorrect.
+foo(1, 2, 3);
+-- ERROR --
+[line 4] Error at 'foo': The name 'foo' is not defined.

@@ -36,6 +36,8 @@ import AnyType from "./AnyType";
 import TypeExpr, { TypeExprVisitor, VariableTypeExpr } from "../TypeExpr";
 import { zip } from "../helpers";
 import CallableType from "./CallableType";
+import { type } from "os";
+import { cachedDataVersionTag } from "v8";
 
 class LoxError {
     constructor(
@@ -390,9 +392,23 @@ implements ExprVisitor<Type>, StmtVisitor<void>, TypeExprVisitor<Type> {
     }
 
     visitCallExpr(expr: CallExpr): Type {
-        throw "Not Implemented Yet";
-        // this.resolve(expr.callee);
-        // this.resolveAll(expr.args);
+        const calleeType = this.checkExpr(expr.callee);
+
+        if (calleeType.tag !== "CALLABLE") {
+            if (calleeType !== types.PreviousTypeError) {
+                this.error(`Type '${calleeType}' is not callable.`);
+            }
+            for (const arg of expr.args) {
+                this.checkExpr(arg);
+            }
+            return types.PreviousTypeError;
+        }
+
+        // TODO check arity
+        // TODO check params
+
+        return calleeType.returns ?? types.Nil;
+
     }
 
     visitGetExpr(expr: GetExpr): Type {

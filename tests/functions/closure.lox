@@ -1,6 +1,6 @@
-fun makeCounter(): Number {
+fun makeCounter(): fun(): Number {
   var i = 0;
-  fun count() {
+  fun count(): Number {
     i = i + 1;
     return i;
   }

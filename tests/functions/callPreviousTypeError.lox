@@ -1,0 +1,7 @@
+// Because the callee is not defined, we cannot infer the type of
+// func. This means the subsequent call cannot be meaningfully checked,
+// so it should not show any errors.
+var func = notDefined();
+func(1, 2, 3);
+-- ERROR --
+[line 4] Error at 'notDefined': The name 'notDefined' is not defined.
