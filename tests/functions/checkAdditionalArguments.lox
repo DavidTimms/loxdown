@@ -1,0 +1,10 @@
+fun add(a: Number, b: Number): Number {
+    return a + b;
+}
+
+// The third argument should still be checked for other errors,
+// even if the function only expects two arguments.
+add(1, 2, x);
+-- ERROR --
+[line 7] Error at ')': Too many arguments for function call. Expected 2 arguments, but found 3.
+[line 7] Error at 'x': The name 'x' is not defined.

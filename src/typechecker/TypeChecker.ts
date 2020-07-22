@@ -36,8 +36,6 @@ import AnyType from "./AnyType";
 import TypeExpr, { TypeExprVisitor, VariableTypeExpr } from "../TypeExpr";
 import { zip } from "../helpers";
 import CallableType from "./CallableType";
-import { type } from "os";
-import { cachedDataVersionTag } from "v8";
 
 class LoxError {
     constructor(
@@ -307,6 +305,8 @@ implements ExprVisitor<Type>, StmtVisitor<void>, TypeExprVisitor<Type> {
         this.declare(stmt.name);
         this.define(stmt.name, type);
 
+        // TODO defer checking function body until end of the scope
+        //      to allow mutual recursion.
         this.checkFunctionBody(stmt, {tag: "FUNCTION", type});
     }
 
@@ -404,8 +404,32 @@ implements ExprVisitor<Type>, StmtVisitor<void>, TypeExprVisitor<Type> {
             return types.PreviousTypeError;
         }
 
-        // TODO check arity
-        // TODO check params
+        const args = expr.args;
+        let params = calleeType.params;
+
+        if (args.length > params.length) {
+            this.error(
+                "Too many arguments for function call. Expected " +
+                `${params.length} arguments, but found ${args.length}.`,
+                expr.paren,
+            );
+
+            // Pad the params array with nulls to ensure the additional
+            // arguments still get checked.
+            params =
+                params.concat(Array(args.length - params.length).fill(null));
+
+        } else if (args.length < params.length) {
+            this.error(
+                "Too few arguments for function call. Expected " +
+                `${params.length} arguments, but only found ${args.length}.`,
+                expr.paren,
+            );
+        }
+
+        for (const [arg, paramType] of zip(args, params)) {
+            this.checkExpr(arg, paramType);
+        }
 
         return calleeType.returns ?? types.Nil;
 

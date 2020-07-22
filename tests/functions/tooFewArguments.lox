@@ -1,0 +1,7 @@
+fun add(a: Number, b: Number): Number {
+    return a + b;
+}
+
+add(1);
+-- ERROR --
+[line 5] Error at ')': Too few arguments for function call. Expected 2 arguments, but only found 1.
