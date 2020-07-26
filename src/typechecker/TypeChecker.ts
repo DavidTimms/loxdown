@@ -32,10 +32,11 @@ import Token from "../Token";
 import Lox from "../Lox";
 import Type from "./Type";
 import ClassType from "./ClassType";
-import AnyType from "./AnyType";
 import TypeExpr, { TypeExprVisitor, VariableTypeExpr } from "../TypeExpr";
 import { zip } from "../helpers";
 import CallableType from "./CallableType";
+import { default as types } from "./builtinTypes";
+import globalsTypes from "./globalsTypes";
 
 class LoxError {
     constructor(
@@ -43,15 +44,6 @@ class LoxError {
         readonly token: Token | null,
     ) {}
 }
-
-const types = {
-    Any: new AnyType(),
-    PreviousTypeError: new AnyType(),
-    Nil: new ClassType("Nil").instance(),
-    Boolean: new ClassType("Boolean").instance(),
-    Number: new ClassType("Number").instance(),
-    String: new ClassType("String").instance(),
-};
 
 interface FunctionContext {
     tag: "FUNCTION" | "INITIALIZER" | "METHOD";
@@ -62,8 +54,9 @@ type ClassContext = "NONE" | "CLASS" | "SUBCLASS";
 
 export default class TypeChecker
 implements ExprVisitor<Type>, StmtVisitor<void>, TypeExprVisitor<Type> {
+    // TODO separate type namespace from value namespace
     private readonly scopes: Map<string, Type | null>[] = [
-        new Map(Object.entries(types)),
+        new Map(Object.entries(globalsTypes)),
     ];
     private currentFunction: FunctionContext | null = null;
     private currentClass: ClassContext = "NONE";
