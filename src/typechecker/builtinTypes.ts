@@ -8,4 +8,6 @@ export default {
     Boolean: new ClassType("Boolean").instance(),
     Number: new ClassType("Number").instance(),
     String: new ClassType("String").instance(),
+    Function: new ClassType("Function").instance(),
+    Class: ClassType.metaClass.instance(),
 };

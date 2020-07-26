@@ -104,14 +104,16 @@ implements ExprVisitor<Type>, StmtVisitor<void>, TypeExprVisitor<Type> {
         if (candidate === types.PreviousTypeError) return true;
 
         // An instance is compatible with its superclass.
-        if (candidate.tag === "INSTANCE" && target.tag === "INSTANCE") {
+        if (target.tag === "INSTANCE") {
             let currentClassType: ClassType | null = candidate.classType;
             while (currentClassType) {
                 if (currentClassType === target.classType) return true;
                 currentClassType = currentClassType.superclass;
             }
-            return false;
         }
+
+        // TODO compatibility for callable types
+
         return candidate === target;
     }
 
@@ -224,7 +226,8 @@ implements ExprVisitor<Type>, StmtVisitor<void>, TypeExprVisitor<Type> {
             if (type) return type;
         }
 
-        // TODO handle global scope
+        // TODO change logic to look for class type in lexical scopes and create
+        // instance type, or fallback to builtin types namespace if not found.
 
         throw new LoxError(`The name '${name.lexeme}' is not defined.`, name);
     }
@@ -241,7 +244,7 @@ implements ExprVisitor<Type>, StmtVisitor<void>, TypeExprVisitor<Type> {
 
         this.declare(stmt.name);
 
-        let superType = null;
+        let superType: ClassType | null = null;
 
         if (stmt.superclass) {
             if (stmt.name.lexeme === stmt.superclass.name.lexeme) {
@@ -251,20 +254,18 @@ implements ExprVisitor<Type>, StmtVisitor<void>, TypeExprVisitor<Type> {
                 );
             }
             this.currentClass = "SUBCLASS";
-            superType = this.checkExpr(stmt.superclass);
+            const potentialSuperType = this.checkExpr(stmt.superclass);
 
-            if (superType instanceof ClassType) {
-                this.beginScope();
-                this.scopes[0].set("super", superType.instance());
+
+            if (potentialSuperType instanceof ClassType) {
+                superType = potentialSuperType;
             } else {
                 this.error(
-                    `Cannot inherit from '${stmt.superclass.name.lexeme}' ` +
+                    `Cannot inherit from '${stmt.superclass?.name.lexeme}' ` +
                     "because it is not a class.",
-                    stmt.superclass.name,
+                    stmt.superclass?.name,
                 );
-                superType = null;
             }
-
         }
         // TODO populate class member types
         const fields: Map<string, Type> = new Map();
@@ -272,6 +273,12 @@ implements ExprVisitor<Type>, StmtVisitor<void>, TypeExprVisitor<Type> {
         const classType = new ClassType(
             stmt.name.lexeme, fields, methods, superType);
         this.define(stmt.name, classType);
+
+
+        if (superType) {
+            this.beginScope();
+            this.scopes[0].set("super", superType.instance());
+        }
 
         this.beginScope();
         this.scopes[0].set("this", classType.instance());
@@ -387,7 +394,9 @@ implements ExprVisitor<Type>, StmtVisitor<void>, TypeExprVisitor<Type> {
     visitCallExpr(expr: CallExpr): Type {
         const calleeType = this.checkExpr(expr.callee);
 
-        if (calleeType.tag !== "CALLABLE") {
+        const callable = calleeType.callable;
+
+        if (callable === null) {
             if (calleeType !== types.PreviousTypeError) {
                 this.error(`Type '${calleeType}' is not callable.`);
             }
@@ -398,7 +407,7 @@ implements ExprVisitor<Type>, StmtVisitor<void>, TypeExprVisitor<Type> {
         }
 
         const args = expr.args;
-        let params = calleeType.params;
+        let params = callable.params;
 
         if (args.length > params.length) {
             this.error(
@@ -424,7 +433,7 @@ implements ExprVisitor<Type>, StmtVisitor<void>, TypeExprVisitor<Type> {
             this.checkExpr(arg, paramType);
         }
 
-        return calleeType.returns ?? types.Nil;
+        return callable.returns ?? types.Nil;
 
     }
 
