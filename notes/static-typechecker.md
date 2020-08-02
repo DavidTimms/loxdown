@@ -19,6 +19,7 @@
   - [ ] Add support for string concatenation (currently '+' only works on numbers).
   - [ ] Add support for classes and subtyping.
   - [ ] Allow classes to declare the types of their fields.
+  - [ ] Add syntax for declaring callable types.
   - [ ] Adapt AST to allow accessing the source location of any expression for type errors.
   - [ ] Add support for union types.
   - [ ] Add type aliases.
