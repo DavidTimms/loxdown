@@ -1,0 +1,24 @@
+// This currently fails because 'b' is not lexically visible in the body
+// of 'a', even though they will both be defined by the time 'a' is called.
+// Options:
+// - Hoist functions to the top of the scope, as JS does.
+//   - runtime changes required.
+// - Defer checking of function bodies until end of scope.
+//   - What if 'a' is called before 'b' is defined?
+{
+  fun a(i: Number): Number {
+    if (i < 1) {
+      return 42;
+    } else {
+      return b(i);
+    }
+  }
+
+  fun b(i: Number): Number {
+    return a(i - 1);
+  }
+
+  print a(5);
+}
+-- OUTPUT --
+42

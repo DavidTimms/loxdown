@@ -85,6 +85,7 @@ implements ExprVisitor<Type>, StmtVisitor<void>, TypeExprVisitor<Type> {
     checkProgram(stmts: Stmt[]): LoxError[] {
         this.errors = [];
         this.checkStmts(stmts);
+        this.checkDeferredFunctionBodies();
         return this.errors;
     }
 
@@ -182,11 +183,36 @@ implements ExprVisitor<Type>, StmtVisitor<void>, TypeExprVisitor<Type> {
         this.currentFunction = enclosingFunction;
     }
 
+    // Adds a function to a list to be checked at the end of the scope.
+    // Checking function bodies is deferred to allow mutual recursion.
+    deferCheckingFunctionBody(functionStmt: FunctionStmt): void {
+        this.scopes[0].functions.push(functionStmt);
+    }
+
+    private checkDeferredFunctionBodies(): void {
+        const scope = this.scopes[0];
+
+        while (scope.functions.length > 0) {
+            const func = scope.functions.shift() as FunctionStmt;
+            const name = func.name.lexeme;
+            const type = scope.valueNamespace.get(name);
+            if (!(type instanceof CallableType)) {
+                throw Error(
+                    `Unable to find callable type for function '${name}' ` +
+                    "in scope. This is a typechecker bug.",
+                );
+            }
+            // TODO handle deferred checking of methods
+            this.checkFunctionBody(func, {tag: "FUNCTION", type});
+        }
+    }
+
     private beginScope(): void {
         this.scopes.unshift(new Scope());
     }
 
     private endScope(): void {
+        this.checkDeferredFunctionBodies();
         this.scopes.shift();
     }
 
@@ -312,10 +338,7 @@ implements ExprVisitor<Type>, StmtVisitor<void>, TypeExprVisitor<Type> {
         const type = this.getFunctionType(stmt);
         this.declareValue(stmt.name);
         this.defineValue(stmt.name, type);
-
-        // TODO defer checking function body until end of the scope
-        //      to allow mutual recursion.
-        this.checkFunctionBody(stmt, {tag: "FUNCTION", type});
+        this.deferCheckingFunctionBody(stmt);
     }
 
     visitIfStmt(stmt: IfStmt): void {

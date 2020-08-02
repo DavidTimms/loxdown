@@ -15,7 +15,8 @@
   - [X] Find a way to define types for the initial globals.
   - [X] Adapt the resolver to perform basic typechecking for functions, variables and operators.
   - [X] Introduce separate namespaces for types and values.
-  - [ ] Modify scoping rules and typechecking order to allow mutual recursion.
+  - [X] Modify scoping rules and typechecking order to allow mutual recursion.
+  - [ ] Add support for string concatenation (currently '+' only works on numbers).
   - [ ] Add support for classes and subtyping.
   - [ ] Allow classes to declare the types of their fields.
   - [ ] Adapt AST to allow accessing the source location of any expression for type errors.
