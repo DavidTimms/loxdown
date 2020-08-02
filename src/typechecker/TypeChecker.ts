@@ -45,6 +45,17 @@ class LoxError {
     ) {}
 }
 
+class Scope {
+    readonly typeNamespace: Map<string, Type>;
+    readonly valueNamespace: Map<string, Type | null>;
+    readonly functions: FunctionStmt[];
+    constructor(initialProps: Partial<Scope> = {}) {
+        this.typeNamespace = initialProps.typeNamespace ?? new Map();
+        this.valueNamespace = initialProps.valueNamespace ?? new Map();
+        this.functions = initialProps.functions ?? [];
+    }
+}
+
 interface FunctionContext {
     tag: "FUNCTION" | "INITIALIZER" | "METHOD";
     type: CallableType;
@@ -54,10 +65,7 @@ type ClassContext = "NONE" | "CLASS" | "SUBCLASS";
 
 export default class TypeChecker
 implements ExprVisitor<Type>, StmtVisitor<void>, TypeExprVisitor<Type> {
-    // TODO separate type namespace from value namespace
-    private readonly scopes: Map<string, Type | null>[] = [
-        new Map(Object.entries(globalsTypes)),
-    ];
+    private readonly scopes: Scope[] = [this.globalScope()];
     private currentFunction: FunctionContext | null = null;
     private currentClass: ClassContext = "NONE";
     private errors: LoxError[] = [];
@@ -66,6 +74,13 @@ implements ExprVisitor<Type>, StmtVisitor<void>, TypeExprVisitor<Type> {
         private readonly lox: Lox,
         private readonly interpreter: Interpreter,
     ) {}
+
+    globalScope(): Scope {
+        return new Scope({
+            typeNamespace: new Map(Object.entries(types)),
+            valueNamespace: new Map(Object.entries(globalsTypes)),
+        });
+    }
 
     checkProgram(stmts: Stmt[]): LoxError[] {
         this.errors = [];
@@ -159,8 +174,8 @@ implements ExprVisitor<Type>, StmtVisitor<void>, TypeExprVisitor<Type> {
 
         this.beginScope();
         for (const [param, type] of zip(func.params, context.type.params)) {
-            this.declare(param.name);
-            this.define(param.name, type);
+            this.declareValue(param.name);
+            this.defineValue(param.name, type);
         }
         this.checkStmts(func.body);
         this.endScope();
@@ -168,42 +183,42 @@ implements ExprVisitor<Type>, StmtVisitor<void>, TypeExprVisitor<Type> {
     }
 
     private beginScope(): void {
-        this.scopes.unshift(new Map());
+        this.scopes.unshift(new Scope());
     }
 
     private endScope(): void {
         this.scopes.shift();
     }
 
-    private declare(name: Token): void {
-        if (this.scopes.length === 0) return;
-        const scope = this.scopes[0];
+    private declareValue(name: Token): void {
+        const {valueNamespace} = this.scopes[0];
 
-        if (scope.has(name.lexeme)) {
+        if (valueNamespace.has(name.lexeme)) {
             this.error(
                 "Variable with this name already declared in this scope.",
                 name,
             );
         }
 
-        scope.set(name.lexeme, null);
+        valueNamespace.set(name.lexeme, null);
     }
 
-    private define(name: Token, type: Type): void {
-        if (this.scopes.length === 0) return;
-        this.scopes[0].set(name.lexeme, type);
+    private defineValue(name: Token, type: Type): void {
+        this.scopes[0].valueNamespace.set(name.lexeme, type);
+    }
+
+    private defineType(name: Token, type: Type): void {
+        this.scopes[0].typeNamespace.set(name.lexeme, type);
     }
 
     private resolveName(expr: Expr, name: Token): Type {
         for (const [i, scope] of this.scopes.entries()) {
-            const type = scope.get(name.lexeme);
+            const type = scope.valueNamespace.get(name.lexeme);
             if (type) {
                 this.interpreter.resolve(expr, i);
                 return type;
             }
         }
-
-        // TODO handle global scope
 
         this.error(`The name '${name.lexeme}' is not defined.`, name);
         return types.PreviousTypeError;
@@ -213,23 +228,15 @@ implements ExprVisitor<Type>, StmtVisitor<void>, TypeExprVisitor<Type> {
         return typeExpr.accept(this);
     }
 
-    // Records an error when it is possible to continue typechecking
-    private error(message: string, token: Token | null = null): void {
-        this.errors.push(new LoxError(message, token));
-    }
-
     visitVariableTypeExpr(typeExpr: VariableTypeExpr): Type {
         const name = typeExpr.name;
 
         for (const scope of this.scopes) {
-            const type = scope.get(name.lexeme);
+            const type = scope.typeNamespace.get(name.lexeme);
             if (type) return type;
         }
 
-        // TODO change logic to look for class type in lexical scopes and create
-        // instance type, or fallback to builtin types namespace if not found.
-
-        throw new LoxError(`The name '${name.lexeme}' is not defined.`, name);
+        throw new LoxError(`The type '${name.lexeme}' is not defined.`, name);
     }
 
     visitBlockStmt(stmt: BlockStmt): void {
@@ -242,7 +249,7 @@ implements ExprVisitor<Type>, StmtVisitor<void>, TypeExprVisitor<Type> {
         const enclosingClass = this.currentClass;
         this.currentClass = "CLASS";
 
-        this.declare(stmt.name);
+        this.declareValue(stmt.name);
 
         let superType: ClassType | null = null;
 
@@ -272,16 +279,17 @@ implements ExprVisitor<Type>, StmtVisitor<void>, TypeExprVisitor<Type> {
         const methods: Map<string, Type> = new Map();
         const classType = new ClassType(
             stmt.name.lexeme, fields, methods, superType);
-        this.define(stmt.name, classType);
+        this.defineValue(stmt.name, classType);
+        this.defineType(stmt.name, classType.instance());
 
 
         if (superType) {
             this.beginScope();
-            this.scopes[0].set("super", superType.instance());
+            this.scopes[0].valueNamespace.set("super", superType.instance());
         }
 
         this.beginScope();
-        this.scopes[0].set("this", classType.instance());
+        this.scopes[0].valueNamespace.set("this", classType.instance());
 
         for (const method of stmt.methods) {
             const declaration =
@@ -302,8 +310,8 @@ implements ExprVisitor<Type>, StmtVisitor<void>, TypeExprVisitor<Type> {
 
     visitFunctionStmt(stmt: FunctionStmt): void {
         const type = this.getFunctionType(stmt);
-        this.declare(stmt.name);
-        this.define(stmt.name, type);
+        this.declareValue(stmt.name);
+        this.defineValue(stmt.name, type);
 
         // TODO defer checking function body until end of the scope
         //      to allow mutual recursion.
@@ -343,7 +351,7 @@ implements ExprVisitor<Type>, StmtVisitor<void>, TypeExprVisitor<Type> {
     }
 
     visitVarStmt(stmt: VarStmt): void {
-        this.declare(stmt.name);
+        this.declareValue(stmt.name);
 
         const declaredType =
             stmt.type ? this.evaluateTypeExpr(stmt.type) : null;
@@ -352,7 +360,7 @@ implements ExprVisitor<Type>, StmtVisitor<void>, TypeExprVisitor<Type> {
             stmt.initializer ?
                 this.checkExpr(stmt.initializer, declaredType) : null;
 
-        this.define(stmt.name, declaredType ?? initializerType ?? types.Any);
+        this.defineValue(stmt.name, declaredType ?? initializerType ?? types.Any);
     }
 
     visitWhileStmt(stmt: WhileStmt): void {
@@ -519,15 +527,17 @@ implements ExprVisitor<Type>, StmtVisitor<void>, TypeExprVisitor<Type> {
     }
 
     visitVariableExpr(expr: VariableExpr): Type {
-        if (
-            this.scopes.length > 0 &&
-            this.scopes[0].get(expr.name.lexeme) === null
-        ) {
+        if (this.scopes[0].valueNamespace.get(expr.name.lexeme) === null) {
             this.error(
                 "Cannot read local variable in its own initializer.",
                 expr.name,
             );
         }
         return this.resolveName(expr, expr.name);
+    }
+
+    // Records an error when it is possible to continue typechecking
+    private error(message: string, token: Token | null = null): void {
+        this.errors.push(new LoxError(message, token));
     }
 }
