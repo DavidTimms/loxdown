@@ -61,7 +61,8 @@ export default class Environment {
 
         if (value === undefined) {
             throw new ImplementationError(
-                "Unable to find variable in expected environment.");
+                `Unable to find variable '${name}' in expected environment ` +
+                `at distance ${distance}.`);
         }
 
         return value;
