@@ -1,0 +1,7 @@
+2 + "2";
+"2" + 2;
+true + 2;
+-- ERROR --
+[line 0] Error: Incorrect type. Expected 'Number', but found 'String'.
+[line 0] Error: Incorrect type. Expected 'String', but found 'Number'.
+[line 0] Error: Incorrect type for the left operand of '+'. Expected 'String' or 'Number', but found 'Boolean'.

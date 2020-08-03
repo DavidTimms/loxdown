@@ -37,6 +37,7 @@ import { zip } from "../helpers";
 import CallableType from "./CallableType";
 import { default as types } from "./builtinTypes";
 import globalsTypes from "./globalsTypes";
+import ImplementationError from "../ImplementationError";
 
 class LoxError {
     constructor(
@@ -197,9 +198,9 @@ implements ExprVisitor<Type>, StmtVisitor<void>, TypeExprVisitor<Type> {
             const name = func.name.lexeme;
             const type = scope.valueNamespace.get(name);
             if (!(type instanceof CallableType)) {
-                throw Error(
+                throw new ImplementationError(
                     `Unable to find callable type for function '${name}' ` +
-                    "in scope. This is a typechecker bug.",
+                    "in scope.",
                 );
             }
             // TODO handle deferred checking of methods
@@ -399,7 +400,22 @@ implements ExprVisitor<Type>, StmtVisitor<void>, TypeExprVisitor<Type> {
 
     visitBinaryExpr(expr: BinaryExpr): Type {
         switch (expr.operator.type) {
-            case "PLUS":
+            case "PLUS": {
+                const leftType = this.checkExpr(expr.left);
+
+                for (const candidate of [types.Number, types.String]) {
+                    if (this.isTypeCompatible(leftType, candidate)) {
+                        this.checkExpr(expr.right, candidate);
+                        return candidate;
+                    }
+                }
+
+                this.error(
+                    "Incorrect type for the left operand of '+'. " +
+                    `Expected '${types.String}' or '${types.Number}',` +
+                    ` but found '${leftType}'.`);
+                return types.PreviousTypeError;
+            }
             case "MINUS":
             case "SLASH":
             case "STAR":
@@ -407,11 +423,10 @@ implements ExprVisitor<Type>, StmtVisitor<void>, TypeExprVisitor<Type> {
             case "GREATER_EQUAL":
             case "LESS":
             case "LESS_EQUAL":
-                // TODO allow two strings for plus
-
                 this.checkExpr(expr.left, types.Number);
                 this.checkExpr(expr.right, types.Number);
                 return types.Number;
+
             case "EQUAL_EQUAL":
             case "BANG_EQUAL":
                 // TODO detect disjoint types and warn of constant result
