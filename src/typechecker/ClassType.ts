@@ -28,6 +28,15 @@ export default class ClassType {
         return new CallableType(initializer?.params ?? [], this.instance());
     }
 
+    findMember(name: string): Type | null {
+        return (
+            this.fields.get(name) ??
+            this.methods.get(name) ??
+            this.superclass?.findMember(name) ??
+            null
+        );
+    }
+
     toString(): string {
         return `class ${this.name}`;
     }

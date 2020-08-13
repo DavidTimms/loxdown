@@ -38,6 +38,7 @@ import CallableType from "./CallableType";
 import { default as types } from "./builtinTypes";
 import globalsTypes from "./globalsTypes";
 import ImplementationError from "../ImplementationError";
+import Parser from "../Parser";
 
 class LoxError {
     constructor(
@@ -203,7 +204,6 @@ implements ExprVisitor<Type>, StmtVisitor<void>, TypeExprVisitor<Type> {
                     "in scope.",
                 );
             }
-            // TODO handle deferred checking of methods
             this.checkFunctionBody(func, {tag: "FUNCTION", type});
         }
     }
@@ -301,9 +301,10 @@ implements ExprVisitor<Type>, StmtVisitor<void>, TypeExprVisitor<Type> {
                 );
             }
         }
-        // TODO populate class member types
+        // TODO populate class field types
         const fields: Map<string, Type> = new Map();
-        const methods: Map<string, Type> = new Map();
+        const methods = this.getMethodTypes(stmt.methods);
+
         const classType = new ClassType(
             stmt.name.lexeme, fields, methods, superType);
         this.defineValue(stmt.name, classType);
@@ -318,17 +319,43 @@ implements ExprVisitor<Type>, StmtVisitor<void>, TypeExprVisitor<Type> {
         this.beginScope();
         this.scopes[0].valueNamespace.set("this", classType.instance());
 
-        for (const method of stmt.methods) {
-            const declaration =
-                method.name.lexeme === "init" ? "INITIALIZER" : "METHOD";
-            // const methodType = this.getFunctionType(method, declaration);
-        }
+        // TODO check method bodies
+        this.checkMethods(stmt.methods, classType);
 
         this.endScope();
 
         if (superType) this.endScope();
 
         this.currentClass = enclosingClass;
+    }
+
+    private getMethodTypes(methods: FunctionStmt[]): Map<string, Type> {
+        const methodTypes = new Map<string, Type>();
+
+        for (const method of methods) {
+            methodTypes.set(method.name.lexeme, this.getFunctionType(method));
+        }
+
+        return methodTypes;
+    }
+
+    private checkMethods(methods: FunctionStmt[], classType: ClassType): void {
+        for (const method of methods) {
+            const name = method.name.lexeme;
+
+            const type = classType.findMember(name);
+
+            if (!(type instanceof CallableType)) {
+                throw new ImplementationError(
+                    `Unable to find callable type for method '${name}' ` +
+                    "in class.",
+                );
+            }
+
+            const contextTag = name === "init" ? "INITIALIZER" : "METHOD";
+
+            this.checkFunctionBody(method, {tag: contextTag, type});
+        }
     }
 
     visitExpressionStmt(stmt: ExpressionStmt): void {
@@ -362,8 +389,7 @@ implements ExprVisitor<Type>, StmtVisitor<void>, TypeExprVisitor<Type> {
             if (this.currentFunction.tag === "INITIALIZER") {
                 this.error(
                     "Cannot return a value from an initializer.", stmt.keyword);
-            }
-            if (this.currentFunction.type.returns === null) {
+            } else if (this.currentFunction.type.returns === null) {
                 this.error(
                     "Cannot return a value from this function because there " +
                     "is no declared return type.",
@@ -484,8 +510,14 @@ implements ExprVisitor<Type>, StmtVisitor<void>, TypeExprVisitor<Type> {
     }
 
     visitGetExpr(expr: GetExpr): Type {
-        throw "Not Implemented Yet";
-        // this.resolve(expr.object);
+        const memberType =
+            this.checkExpr(expr.object).classType?.findMember(expr.name.lexeme);
+
+        if (memberType === null) {
+            this.error("TODO");
+        }
+
+        return memberType ?? types.PreviousTypeError;
     }
 
     visitGroupingExpr(expr: GroupingExpr): Type {
@@ -541,13 +573,13 @@ implements ExprVisitor<Type>, StmtVisitor<void>, TypeExprVisitor<Type> {
     }
 
     visitThisExpr(expr: ThisExpr): Type {
-        throw "Not Implemented Yet";
-        // if (this.currentClass === "NONE") {
-        //     this.error(
-        //         "Cannot use 'this' outside of a class.", expr.keyword);
-        // } else {
-        //     this.resolveName(expr, expr.keyword);
-        // }
+        if (this.currentClass === "NONE") {
+            this.error(
+                "Cannot use 'this' outside of a class.", expr.keyword);
+            return types.PreviousTypeError;
+        } else {
+            return this.resolveName(expr, expr.keyword);
+        }
     }
 
     visitUnaryExpr(expr: UnaryExpr): Type {

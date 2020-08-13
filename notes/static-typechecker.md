@@ -16,11 +16,13 @@
   - [X] Adapt the resolver to perform basic typechecking for functions, variables and operators.
   - [X] Introduce separate namespaces for types and values.
   - [X] Modify scoping rules and typechecking order to allow mutual recursion.
-  - [ ] Add support for string concatenation (currently '+' only works on numbers).
+  - [X] Add support for string concatenation (currently '+' only works on numbers).
   - [ ] Add support for classes and subtyping.
   - [ ] Allow classes to declare the types of their fields.
   - [ ] Add syntax for declaring callable types.
+  - [ ] Change scoping rules so variable initialisations are hoisted.
   - [ ] Adapt AST to allow accessing the source location of any expression for type errors.
+  - [ ] Sort errors by location in the source code, so the order is not affected by deferred checking.
   - [ ] Add support for union types.
   - [ ] Add type aliases.
   - [ ] Add generics.

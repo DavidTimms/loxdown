@@ -5,7 +5,7 @@ export default class InstanceType {
     constructor(
         readonly classType: ClassType,
     ) {}
-    
+
     get callable(): null {
         return null;
     }
