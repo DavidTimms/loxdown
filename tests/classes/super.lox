@@ -10,7 +10,8 @@ class B < A {
   }
 
   test() {
-    super.method();
+    var meth = super.method;
+    meth();
   }
 }
 

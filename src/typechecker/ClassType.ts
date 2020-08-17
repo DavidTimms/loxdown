@@ -37,6 +37,14 @@ export default class ClassType {
         );
     }
 
+    findMethod(name: string): Type | null {
+        return (
+            this.methods.get(name) ??
+            this.superclass?.findMember(name) ??
+            null
+        );
+    }
+
     toString(): string {
         return `class ${this.name}`;
     }

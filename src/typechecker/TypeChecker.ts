@@ -38,7 +38,6 @@ import CallableType from "./CallableType";
 import { default as types } from "./builtinTypes";
 import globalsTypes from "./globalsTypes";
 import ImplementationError from "../ImplementationError";
-import Parser from "../Parser";
 
 class LoxError {
     constructor(
@@ -214,7 +213,15 @@ implements ExprVisitor<Type>, StmtVisitor<void>, TypeExprVisitor<Type> {
 
     private endScope(): void {
         this.checkDeferredFunctionBodies();
-        this.scopes.shift();
+        const scope = this.scopes.shift();
+
+        // // Print the types of variables in this scope
+        // if (scope) {
+        //     const indent = Array(this.scopes.length).fill("  ").join("");
+        //     for (const [name, type] of scope.valueNamespace.entries()) {
+        //         console.log(`${indent}${name}: ${type}`);
+        //     }
+        // }
     }
 
     private declareValue(name: Token): void {
@@ -560,19 +567,31 @@ implements ExprVisitor<Type>, StmtVisitor<void>, TypeExprVisitor<Type> {
     }
 
     visitSuperExpr(expr: SuperExpr): Type {
-        throw "Not Implemented Yet";
-        // if (this.currentClass === "NONE") {
-        //     this.error(
-        //         "Cannot use 'super' outside of a class.",
-        //         expr.keyword,
-        //     );
-        // } else if (this.currentClass !== "SUBCLASS") {
-        //     this.error(
-        //         "Cannot use 'super' in a class with no superclass.",
-        //         expr.keyword,
-        //     );
-        // }
-        // this.resolveName(expr, expr.keyword);
+        if (this.currentClass === "NONE") {
+            this.error(
+                "Cannot use 'super' outside of a class.",
+                expr.keyword,
+            );
+            return types.PreviousTypeError;
+        } else if (this.currentClass !== "SUBCLASS") {
+            this.error(
+                "Cannot use 'super' in a class with no superclass.",
+                expr.keyword,
+            );
+            return types.PreviousTypeError;
+        }
+
+        const superType = this.resolveName(expr, expr.keyword);
+        const methodType = superType.classType?.findMethod(expr.method.lexeme);
+
+        if (!methodType) {
+            this.error(
+                `Superclass type '${superType}' has no method ` +
+                `'${expr.method.lexeme}'.`,
+                expr.method,
+            );
+        }
+        return methodType ?? types.PreviousTypeError;
     }
 
     visitThisExpr(expr: ThisExpr): Type {
