@@ -510,11 +510,14 @@ implements ExprVisitor<Type>, StmtVisitor<void>, TypeExprVisitor<Type> {
     }
 
     visitGetExpr(expr: GetExpr): Type {
-        const memberType =
-            this.checkExpr(expr.object).classType?.findMember(expr.name.lexeme);
+        const objectType = this.checkExpr(expr.object);
+        const memberType = objectType.classType?.findMember(expr.name.lexeme);
 
-        if (memberType === null) {
-            this.error("TODO");
+        if (memberType === null && objectType !== types.PreviousTypeError) {
+            this.error(
+                `Type '${objectType}' has no property '${expr.name.lexeme}'.`,
+                expr.name,
+            );
         }
 
         return memberType ?? types.PreviousTypeError;
