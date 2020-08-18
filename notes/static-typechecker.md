@@ -21,6 +21,7 @@
   - [X] Allow classes to declare the types of their fields.
   - [ ] Add syntax for declaring callable types.
   - [ ] Change scoping rules so variable initialisations are hoisted.
+  - [ ] Resolve unsoundness of fields when accessed before they are assigned.
   - [ ] Adapt AST to allow accessing the source location of any expression for type errors.
   - [ ] Sort errors by location in the source code, so the order is not affected by deferred checking.
   - [ ] Add support for union types.
