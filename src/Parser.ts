@@ -32,6 +32,7 @@ import LoxValue from "./LoxValue";
 import { loxTrue, loxFalse } from "./LoxBool";
 import Parameter from "./Parameter";
 import { TypeExpr, VariableTypeExpr } from "./TypeExpr";
+import Field from "./Field";
 
 type Associativity = "LEFT" | "RIGHT";
 
@@ -96,7 +97,11 @@ export default class Parser {
     private declaration(): Stmt | null {
         try {
             if (this.match("CLASS")) return this.classDeclaration();
-            if (this.match("FUN")) return this.func("function");
+            if (this.match("FUN")) {
+                const name =
+                    this.consume("IDENTIFIER", "Expect function name.");
+                return this.func("function", name);
+            }
             if (this.match("VAR")) return this.varDeclaration();
 
             return this.statement();
@@ -120,15 +125,30 @@ export default class Parser {
 
         this.consume("LEFT_BRACE", "expect '{' before class body.");
 
+        const fields: Field[] = [];
         const methods: FunctionStmt[] = [];
 
         while (!this.check("RIGHT_BRACE") && !this.isAtEnd()) {
-            methods.push(this.func("method"));
+            const name =
+                this.consume("IDENTIFIER", "Expect field or method name.");
+
+            if (this.check("COLON")) {
+                fields.push(this.field(name));
+            } else {
+                methods.push(this.func("method", name));
+            }
         }
 
         this.consume("RIGHT_BRACE", "Expect '}' after class body.");
 
-        return new ClassStmt(name, superclass, methods);
+        return new ClassStmt(name, superclass, fields, methods);
+    }
+
+    private field(name: Token): Parameter {
+        this.consume("COLON", "Expect ':' after field name.");
+        const type = this.typeExpr();
+        this.consume("SEMICOLON", "Expect ';' after field type.");
+        return new Field(name, type);
     }
 
     private statement(): Stmt {
@@ -234,8 +254,7 @@ export default class Parser {
         return new ExpressionStmt(expr);
     }
 
-    private func(kind: string): FunctionStmt {
-        const name = this.consume("IDENTIFIER", `Expect ${kind} name.`);
+    private func(kind: string, name: Token): FunctionStmt {
         this.consume("LEFT_PAREN", `Expect '(' after ${kind} name.`);
 
         const parameters: Parameter[] = [];

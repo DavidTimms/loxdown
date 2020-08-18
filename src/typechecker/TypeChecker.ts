@@ -38,6 +38,7 @@ import CallableType from "./CallableType";
 import { default as types } from "./builtinTypes";
 import globalsTypes from "./globalsTypes";
 import ImplementationError from "../ImplementationError";
+import Field from "../Field";
 
 class LoxError {
     constructor(
@@ -288,35 +289,36 @@ implements ExprVisitor<Type>, StmtVisitor<void>, TypeExprVisitor<Type> {
         let superType: ClassType | null = null;
 
         if (stmt.superclass) {
+            this.currentClass = "SUBCLASS";
+
             if (stmt.name.lexeme === stmt.superclass.name.lexeme) {
                 this.error(
                     "A class cannot inherit from itself.",
                     stmt.superclass.name,
                 );
-            }
-            this.currentClass = "SUBCLASS";
-            const potentialSuperType = this.checkExpr(stmt.superclass);
-
-
-            if (potentialSuperType instanceof ClassType) {
-                superType = potentialSuperType;
             } else {
-                this.error(
-                    `Cannot inherit from '${stmt.superclass?.name.lexeme}' ` +
-                    "because it is not a class.",
-                    stmt.superclass?.name,
-                );
+                const potentialSuperType = this.checkExpr(stmt.superclass);
+
+                if (potentialSuperType instanceof ClassType) {
+                    superType = potentialSuperType;
+                } else {
+                    const superclassName = stmt.superclass?.name.lexeme;
+                    this.error(
+                        `Cannot inherit from '${superclassName}' ` +
+                        "because it is not a class.",
+                        stmt.superclass?.name,
+                    );
+                }
             }
         }
-        // TODO populate class field types
-        const fields: Map<string, Type> = new Map();
+
+        const fields: Map<string, Type> = this.getFieldTypes(stmt.fields);
         const methods = this.getMethodTypes(stmt.methods);
 
         const classType = new ClassType(
             stmt.name.lexeme, fields, methods, superType);
         this.defineValue(stmt.name, classType);
         this.defineType(stmt.name, classType.instance());
-
 
         if (superType) {
             this.beginScope();
@@ -334,6 +336,17 @@ implements ExprVisitor<Type>, StmtVisitor<void>, TypeExprVisitor<Type> {
         if (superType) this.endScope();
 
         this.currentClass = enclosingClass;
+    }
+
+    private getFieldTypes(fields: Field[]): Map<string, Type> {
+        const fieldTypes = new Map<string, Type>();
+
+        for (const field of fields) {
+            const type = this.evaluateTypeExpr(field.type);
+            fieldTypes.set(field.name.lexeme, type);
+        }
+
+        return fieldTypes;
     }
 
     private getMethodTypes(methods: FunctionStmt[]): Map<string, Type> {
@@ -561,9 +574,14 @@ implements ExprVisitor<Type>, StmtVisitor<void>, TypeExprVisitor<Type> {
     }
 
     visitSetExpr(expr: SetExpr): Type {
-        throw "Not Implemented Yet";
-        // this.resolve(expr.value);
-        // this.resolve(expr.object);
+        const objectType = this.checkExpr(expr.object);
+        const memberType =
+            objectType.classType?.findMember(expr.name.lexeme) ??
+            types.PreviousTypeError;
+
+        this.checkExpr(expr.value, memberType);
+
+        return memberType;
     }
 
     visitSuperExpr(expr: SuperExpr): Type {

@@ -1,4 +1,6 @@
-class Foo {}
+class Foo {
+    bar: String;
+}
 var foo = Foo();
 foo.bar = "Hello";
 print foo.bar;

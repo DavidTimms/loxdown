@@ -2,6 +2,7 @@
 
 import Token from "./Token";
 import VariableExpr from "./VariableExpr";
+import Field from "./Field";
 import Expr from "./Expr";
 import Parameter from "./Parameter";
 import TypeExpr from "./TypeExpr";
@@ -20,6 +21,7 @@ export class ClassStmt {
     constructor(
         readonly name: Token,
         readonly superclass: VariableExpr | null,
+        readonly fields: Field[],
         readonly methods: FunctionStmt[],
     ) {}
 

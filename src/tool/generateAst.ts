@@ -37,6 +37,7 @@ function main(args: string[]): void {
         "Block      -> statements: Stmt[]",
         `Class      -> name: Token,
                        superclass: VariableExpr | null,
+                       fields: Field[],
                        methods: FunctionStmt[]`,
         "Expression -> expression: Expr",
         `Function   -> name: Token,

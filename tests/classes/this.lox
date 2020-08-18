@@ -1,4 +1,5 @@
 class Person {
+    name: String;
     sayHello() {
         print "Hello, my name is " + this.name;
     }

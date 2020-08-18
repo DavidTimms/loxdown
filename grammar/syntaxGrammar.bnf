@@ -7,7 +7,7 @@ declaration    → classDecl
                | statement ;
 
 classDecl      → "class" IDENTIFIER ( "<" IDENTIFIER )?
-                 "{" function* "}" ;
+                 "{" (function | field)* "}" ;
 funDecl        → "fun" function ;
 varDecl        → "var" IDENTIFIER (":" typeExpr)? ( "=" expression )? ";" ;
 
@@ -52,6 +52,8 @@ primary        → "true" | "false" | "nil" | "this"
 
 typeExpr       → IDENTIFIER ;
 
+
+field          → IDENTIFIER ":" typeExpr ;
 
 function       → IDENTIFIER "(" parameters? ")" (":" typeExpr)? block ;
 parameters     → parameter ( "," parameter )* ;

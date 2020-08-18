@@ -1,5 +1,4 @@
 var X = 123;
 class Y < X {}
 -- ERROR --
-Superclass must be a class.
-[line 2]
+[line 2] Error at 'X': Cannot inherit from 'X' because it is not a class.

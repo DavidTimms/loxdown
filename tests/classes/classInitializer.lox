@@ -1,10 +1,13 @@
 class City {
+    name: String;
+    country: String;
+
     init(name: String, country: String) {
         this.name = name;
         this.country = country;
         print("initialized!");
     }
-    location() {
+    location(): String {
         return this.name + ", " + this.country;
     }
 }
