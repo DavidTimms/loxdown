@@ -1,0 +1,4 @@
+var x: NotAType = 123;
+x.foo;
+-- ERROR --
+[line 1] Error at 'NotAType': The type 'NotAType' is not defined.

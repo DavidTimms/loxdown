@@ -271,7 +271,8 @@ implements ExprVisitor<Type>, StmtVisitor<void>, TypeExprVisitor<Type> {
             if (type) return type;
         }
 
-        throw new LoxError(`The type '${name.lexeme}' is not defined.`, name);
+        this.error(`The type '${name.lexeme}' is not defined.`, name);
+        return types.PreviousTypeError;
     }
 
     visitBlockStmt(stmt: BlockStmt): void {
@@ -480,7 +481,8 @@ implements ExprVisitor<Type>, StmtVisitor<void>, TypeExprVisitor<Type> {
         }
 
         // Unreachable
-        throw new Error(`Unexpected binary operator: ${expr.operator.lexeme}`);
+        throw new ImplementationError(
+            `Unexpected binary operator: ${expr.operator.lexeme}`);
     }
 
     visitCallExpr(expr: CallExpr): Type {
@@ -554,7 +556,7 @@ implements ExprVisitor<Type>, StmtVisitor<void>, TypeExprVisitor<Type> {
             case "NUMBER": return types.Number;
             case "STRING": return types.String;
         }
-        throw new Error("Unexpected literal type.");
+        throw new ImplementationError("Unexpected literal type.");
     }
 
     visitLogicalExpr(expr: LogicalExpr): Type {
@@ -633,7 +635,8 @@ implements ExprVisitor<Type>, StmtVisitor<void>, TypeExprVisitor<Type> {
         }
 
         // Unreachable
-        throw new Error(`Unexpected unary operator: ${expr.operator.lexeme}`);
+        throw new ImplementationError(
+            `Unexpected unary operator: ${expr.operator.lexeme}`);
     }
 
     visitVariableExpr(expr: VariableExpr): Type {
