@@ -1,0 +1,16 @@
+class Foo {
+    x: Number;
+
+    bar(): Number {
+        // The typechecker will allow this even though
+        // the field has not been initialised, so it
+        // will fail at runtime.
+        return this.x;
+    }
+}
+
+Foo().bar();
+
+-- ERROR --
+Undefined property 'x'.
+[line 8]
