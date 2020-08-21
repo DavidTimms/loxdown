@@ -50,7 +50,9 @@ primary        → "true" | "false" | "nil" | "this"
                | "super" "." IDENTIFIER ;
 
 
-typeExpr       → IDENTIFIER ;
+typeExpr       → IDENTIFIER | funType;
+funType        → "fun" "(" typeParameters ")" ":" typeExpr ;
+funTypeParams  → typeExpr ( "," typeExpr )* ;
 
 
 field          → IDENTIFIER ":" typeExpr ;
