@@ -56,6 +56,14 @@ class Scope {
         this.valueNamespace = initialProps.valueNamespace ?? new Map();
         this.functions = initialProps.functions ?? [];
     }
+
+    clone(): Scope {
+        return new Scope({
+            typeNamespace: new Map(this.typeNamespace.entries()),
+            valueNamespace: new Map(this.valueNamespace.entries()),
+            functions: [...this.functions],
+        });
+    }
 }
 
 interface FunctionContext {
@@ -67,7 +75,7 @@ type ClassContext = "NONE" | "CLASS" | "SUBCLASS";
 
 export default class TypeChecker
 implements ExprVisitor<Type>, StmtVisitor<void>, TypeExprVisitor<Type> {
-    private readonly scopes: Scope[] = [this.globalScope()];
+    private scopes: Scope[] = [this.globalScope()];
     private currentFunction: FunctionContext | null = null;
     private currentClass: ClassContext = "NONE";
     private errors: LoxError[] = [];
@@ -85,11 +93,20 @@ implements ExprVisitor<Type>, StmtVisitor<void>, TypeExprVisitor<Type> {
     }
 
     checkProgram(stmts: Stmt[]): LoxError[] {
+        const scopesSnapshot = this.scopes.map(scope => scope.clone());
         this.errors = [];
         this.checkStmts(stmts);
         this.checkDeferredFunctionBodies();
-        this.sortErrorBySourceLocation();
-        return this.errors;
+        if (this.errors.length > 0) {
+            // if there are type errors, restore the state of the scopes to
+            // their state before the program was checked. This ensures the
+            // typechecker state stays in sync with the interpreter state
+            // in the REPL.
+            this.scopes = scopesSnapshot;
+            this.sortErrorBySourceLocation();
+            return this.errors;
+        }
+        return [];
     }
 
     private sortErrorBySourceLocation(): void {
