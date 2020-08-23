@@ -20,3 +20,25 @@ export function zip<L, R>(left: L[], right: R[]): [L, R][] {
     }
     return zipped;
 }
+
+enum ComparisonResult {
+    Lower  = -1,
+    Equal  =  0,
+    Higher =  1,
+}
+
+type Comparator<Item> = (a: Item, b: Item) => ComparisonResult;
+
+export function comparator<Item>(
+    key: (item: Item) => (number | string | boolean)[],
+): Comparator<Item> {
+    return (a, b): ComparisonResult => {
+        const aKey = key(a);
+        const bKey = key(b);
+        for (let i = 0; i < aKey.length; i++) {
+            if (aKey[i] < bKey[0]) return ComparisonResult.Lower;
+            if (aKey[i] > bKey[0]) return ComparisonResult.Higher;
+        }
+        return ComparisonResult.Equal;
+    };
+}

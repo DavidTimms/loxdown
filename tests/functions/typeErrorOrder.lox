@@ -1,0 +1,14 @@
+// The typechecker checks the body of functions after it has finished
+// checking the outer scope. This means errors may not be found in the
+// order they appear in the source code. This test ensures that errors
+// are shown in lexical order rather than discovery order.
+
+fun foo() {
+    var x = x;
+}
+
+var y = y;
+
+-- ERROR --
+[line 7] Error at 'x': Cannot read local variable in its own initializer.
+[line 10] Error at 'y': Cannot read local variable in its own initializer.

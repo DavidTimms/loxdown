@@ -22,7 +22,8 @@
   - [X] Add syntax for declaring callable types.
   - [ ] Change scoping rules so variable initialisations are hoisted.
   - [ ] Adapt AST to allow accessing the source location of any expression for type errors.
-  - [ ] Sort errors by location in the source code, so the order is not affected by deferred checking.
+  - [X] Sort errors by location in the source code, so the order is not affected by deferred checking.
+  - [ ] Rollback typechecker state after type error in the REPL, so it correctly reflects interpreter state.
   - [ ] Add support for union types.
   - [ ] Add type aliases.
   - [ ] Add generics.

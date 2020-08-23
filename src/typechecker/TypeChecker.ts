@@ -33,7 +33,7 @@ import Lox from "../Lox";
 import Type from "./Type";
 import ClassType from "./ClassType";
 import TypeExpr, { TypeExprVisitor, VariableTypeExpr, CallableTypeExpr } from "../TypeExpr";
-import { zip } from "../helpers";
+import { zip, comparator } from "../helpers";
 import CallableType from "./CallableType";
 import { default as types } from "./builtinTypes";
 import globalsTypes from "./globalsTypes";
@@ -88,7 +88,12 @@ implements ExprVisitor<Type>, StmtVisitor<void>, TypeExprVisitor<Type> {
         this.errors = [];
         this.checkStmts(stmts);
         this.checkDeferredFunctionBodies();
+        this.sortErrorBySourceLocation();
         return this.errors;
+    }
+
+    private sortErrorBySourceLocation(): void {
+        this.errors.sort(comparator(error => [error.token?.line ?? 0]));
     }
 
     private checkStmts(stmts: Stmt[]): void {
@@ -678,7 +683,7 @@ implements ExprVisitor<Type>, StmtVisitor<void>, TypeExprVisitor<Type> {
 
     visitVariableExpr(expr: VariableExpr): Type {
         if (this.scopes[0].valueNamespace.get(expr.name.lexeme) === null) {
-            this.error(
+            return this.error(
                 "Cannot read local variable in its own initializer.",
                 expr.name,
             );
