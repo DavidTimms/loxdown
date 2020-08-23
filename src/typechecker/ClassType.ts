@@ -24,7 +24,7 @@ export default class ClassType {
     }
 
     get callable(): CallableType {
-        const initializer = this.methods.get("init")?.callable ?? null;
+        const initializer = this.findMethod("init")?.callable ?? null;
         return new CallableType(initializer?.params ?? [], this.instance());
     }
 
@@ -40,7 +40,7 @@ export default class ClassType {
     findMethod(name: string): Type | null {
         return (
             this.methods.get(name) ??
-            this.superclass?.findMember(name) ??
+            this.superclass?.findMethod(name) ??
             null
         );
     }

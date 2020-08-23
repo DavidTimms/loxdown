@@ -32,7 +32,7 @@ import Token from "../Token";
 import Lox from "../Lox";
 import Type from "./Type";
 import ClassType from "./ClassType";
-import TypeExpr, { TypeExprVisitor, VariableTypeExpr } from "../TypeExpr";
+import TypeExpr, { TypeExprVisitor, VariableTypeExpr, CallableTypeExpr } from "../TypeExpr";
 import { zip } from "../helpers";
 import CallableType from "./CallableType";
 import { default as types } from "./builtinTypes";
@@ -130,9 +130,45 @@ implements ExprVisitor<Type>, StmtVisitor<void>, TypeExprVisitor<Type> {
             }
         }
 
-        // TODO compatibility for callable types
+        if (target.tag === "CALLABLE" && candidate.callable) {
+            const callable = candidate.callable;
+            if (callable && this.isCallableTypeCompatible(callable, target)) {
+                return true;
+            }
+        }
 
         return candidate === target;
+    }
+
+    private isCallableTypeCompatible(
+        candidate: CallableType,
+        target: CallableType,
+    ): boolean {
+        // Each *target* parameter type must be a subtype of the *candidate*
+        // parameter type.
+        const areParamsCompatible =
+        candidate.params.length === target.params.length &&
+        candidate.params.every(
+            (candidateParam, i) => this.isTypeCompatible(
+                target.params[i],
+                candidateParam,
+            ));
+
+        if (!areParamsCompatible) return false;
+
+        // The *candidate* return type must be a subtype of the *target*
+        // return type.
+        const areReturnTypesCompatible =
+            (
+                candidate.returns &&
+                target.returns &&
+                this.isTypeCompatible(candidate.returns, target.returns)
+            ) || (
+                candidate.returns === null &&
+                target.returns === null
+            );
+
+        return areReturnTypesCompatible;
     }
 
     private attemptTypeUnion(left: Type, right: Type): Type | null {
@@ -255,8 +291,7 @@ implements ExprVisitor<Type>, StmtVisitor<void>, TypeExprVisitor<Type> {
             }
         }
 
-        this.error(`The name '${name.lexeme}' is not defined.`, name);
-        return types.PreviousTypeError;
+        return this.error(`The name '${name.lexeme}' is not defined.`, name);
     }
 
     private evaluateTypeExpr(typeExpr: TypeExpr): Type {
@@ -271,8 +306,18 @@ implements ExprVisitor<Type>, StmtVisitor<void>, TypeExprVisitor<Type> {
             if (type) return type;
         }
 
-        this.error(`The type '${name.lexeme}' is not defined.`, name);
-        return types.PreviousTypeError;
+        return this.error(`The type '${name.lexeme}' is not defined.`, name);
+    }
+
+    visitCallableTypeExpr(typeExpr: CallableTypeExpr): Type {
+        const params =
+            typeExpr.paramTypes.map(param => this.evaluateTypeExpr(param));
+
+        const returns =
+            typeExpr.returnType ?
+                this.evaluateTypeExpr(typeExpr.returnType) : null;
+
+        return new CallableType(params, returns);
     }
 
     visitBlockStmt(stmt: BlockStmt): void {
@@ -457,11 +502,10 @@ implements ExprVisitor<Type>, StmtVisitor<void>, TypeExprVisitor<Type> {
                     }
                 }
 
-                this.error(
+                return this.error(
                     "Incorrect type for the left operand of '+'. " +
                     `Expected '${types.String}' or '${types.Number}',` +
                     ` but found '${leftType}'.`);
-                return types.PreviousTypeError;
             }
             case "MINUS":
             case "SLASH":
@@ -564,13 +608,12 @@ implements ExprVisitor<Type>, StmtVisitor<void>, TypeExprVisitor<Type> {
         const right = this.checkExpr(expr.right);
         const type = this.attemptTypeUnion(left, right);
         if (type === null) {
-            this.error(
+            return this.error(
                 `The operand types for '${expr.operator.lexeme}' are not ` +
                 "compatible. They must have a shared superclass. Found " +
                 `'${left}' and '${right}'.`,
                 expr.operator,
             );
-            return types.PreviousTypeError;
         }
         return type;
     }
@@ -588,37 +631,31 @@ implements ExprVisitor<Type>, StmtVisitor<void>, TypeExprVisitor<Type> {
 
     visitSuperExpr(expr: SuperExpr): Type {
         if (this.currentClass === "NONE") {
-            this.error(
+            return this.error(
                 "Cannot use 'super' outside of a class.",
                 expr.keyword,
             );
-            return types.PreviousTypeError;
         } else if (this.currentClass !== "SUBCLASS") {
-            this.error(
+            return this.error(
                 "Cannot use 'super' in a class with no superclass.",
                 expr.keyword,
             );
-            return types.PreviousTypeError;
         }
 
         const superType = this.resolveName(expr, expr.keyword);
         const methodType = superType.classType?.findMethod(expr.method.lexeme);
 
-        if (!methodType) {
-            this.error(
-                `Superclass type '${superType}' has no method ` +
-                `'${expr.method.lexeme}'.`,
-                expr.method,
-            );
-        }
-        return methodType ?? types.PreviousTypeError;
+        return methodType ?? this.error(
+            `Superclass type '${superType}' has no method ` +
+            `'${expr.method.lexeme}'.`,
+            expr.method,
+        );
     }
 
     visitThisExpr(expr: ThisExpr): Type {
         if (this.currentClass === "NONE") {
-            this.error(
+            return this.error(
                 "Cannot use 'this' outside of a class.", expr.keyword);
-            return types.PreviousTypeError;
         } else {
             return this.resolveName(expr, expr.keyword);
         }
@@ -650,7 +687,8 @@ implements ExprVisitor<Type>, StmtVisitor<void>, TypeExprVisitor<Type> {
     }
 
     // Records an error when it is possible to continue typechecking
-    private error(message: string, token: Token | null = null): void {
+    private error(message: string, token: Token | null = null): Type {
         this.errors.push(new LoxError(message, token));
+        return types.PreviousTypeError;
     }
 }

@@ -51,7 +51,7 @@ primary        → "true" | "false" | "nil" | "this"
 
 
 typeExpr       → IDENTIFIER | funType;
-funType        → "fun" "(" typeParameters ")" ":" typeExpr ;
+funType        → "fun" "(" typeParameters ")" ( ":" typeExpr )? ;
 funTypeParams  → typeExpr ( "," typeExpr )* ;
 
 

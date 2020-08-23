@@ -14,6 +14,7 @@ export default class CallableType {
     }
 
     toString(): string {
-        return `fun (${this.params.join(", ")}): ${this.returns}`;
+        const params = this.params.join(", ");
+        return `fun (${params})` + (this.returns ? `: ${this.returns}` : "");
     }
 }

@@ -1,0 +1,20 @@
+class Animal {
+    name: String;
+    init(name: String) {
+        this.name = name;
+    }
+}
+
+class Sheep < Animal {}
+class Wolf < Animal {}
+
+fun inSheepsClothing(a: Animal): Sheep {
+    return Sheep(a.name);
+}
+
+var transformWolf: fun (Wolf): Animal = inSheepsClothing;
+
+var mrWolf = Wolf("Brad");
+var mrSheep = transformWolf(mrWolf);
+
+assert(mrSheep.name == "Brad", "Brad is now a sheep.");

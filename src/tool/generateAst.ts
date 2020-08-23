@@ -59,6 +59,8 @@ function main(args: string[]): void {
 
     defineAst(outputDir, "TypeExpr", [
         "Variable   -> name: Token",
+        `Callable   -> paramTypes: TypeExpr[],
+                       returnType: TypeExpr | null`,
     ]);
 }
 

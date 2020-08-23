@@ -31,7 +31,7 @@ import {
 import LoxValue from "./LoxValue";
 import { loxTrue, loxFalse } from "./LoxBool";
 import Parameter from "./Parameter";
-import { TypeExpr, VariableTypeExpr } from "./TypeExpr";
+import { TypeExpr, VariableTypeExpr, CallableTypeExpr } from "./TypeExpr";
 import Field from "./Field";
 
 type Associativity = "LEFT" | "RIGHT";
@@ -291,8 +291,27 @@ export default class Parser {
     }
 
     private typeExpr(): TypeExpr {
+        if (this.match("FUN")) return this.callableTypeExpr();
         const name = this.consume("IDENTIFIER", "Expect parameter name.");
         return new VariableTypeExpr(name);
+    }
+
+    private callableTypeExpr(): TypeExpr {
+        this.consume("LEFT_PAREN", "Expect '(' after 'fun'.");
+
+        const paramTypes: TypeExpr[] = [];
+
+        if (!this.check("RIGHT_PAREN")) {
+            do {
+                paramTypes.push(this.typeExpr());
+            } while (this.match("COMMA"));
+        }
+
+        this.consume("RIGHT_PAREN", "Expect ')' after parameter types.");
+
+        const returnType = this.match("COLON") ? this.typeExpr() : null;
+
+        return new CallableTypeExpr(paramTypes, returnType);
     }
 
     private block(): Stmt[] {

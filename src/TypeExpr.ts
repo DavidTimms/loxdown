@@ -12,11 +12,24 @@ export class VariableTypeExpr {
     }
 }
 
+export class CallableTypeExpr {
+    constructor(
+        readonly paramTypes: TypeExpr[],
+        readonly returnType: TypeExpr | null,
+    ) {}
+
+    accept<R>(visitor: TypeExprVisitor<R>): R {
+        return visitor.visitCallableTypeExpr(this);
+    }
+}
+
 export type TypeExpr =
-    VariableTypeExpr;
+    VariableTypeExpr |
+    CallableTypeExpr;
 
 export default TypeExpr;
 
 export interface TypeExprVisitor<R> {
     visitVariableTypeExpr(typeExpr: VariableTypeExpr): R;
+    visitCallableTypeExpr(typeExpr: CallableTypeExpr): R;
 }
