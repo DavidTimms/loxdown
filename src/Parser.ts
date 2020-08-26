@@ -176,7 +176,8 @@ export default class Parser {
         }
 
         let condition = this.check("SEMICOLON") ? null : this.expression();
-        this.consume("SEMICOLON", "Expect ';' after loop condition.");
+        const postConditionSemicolon =
+            this.consume("SEMICOLON", "Expect ';' after loop condition.");
 
         const increment = this.check("RIGHT_PAREN") ? null : this.expression();
         this.consume("RIGHT_PAREN", "Expect ')' after for clauses.");
@@ -192,7 +193,9 @@ export default class Parser {
             ]);
         }
 
-        if (condition === null) condition = new LiteralExpr(loxTrue);
+        if (condition === null) {
+            condition = new LiteralExpr(loxTrue, postConditionSemicolon);
+        }
         body = new WhileStmt(condition, body);
 
         if (initializer !== null) {
@@ -423,15 +426,16 @@ export default class Parser {
         const paren =
             this.consume("RIGHT_PAREN", "Expect ')' after arguments.");
 
-        return new CallExpr(callee, paren, args);
+        return new CallExpr(callee, args, paren);
     }
 
     private primary(): Expr {
-        if (this.match("FALSE")) return new LiteralExpr(loxFalse);
-        if (this.match("TRUE")) return new LiteralExpr(loxTrue);
+        if (this.match("FALSE")) return new LiteralExpr(loxFalse, this.previous());
+        if (this.match("TRUE")) return new LiteralExpr(loxTrue, this.previous());
 
         if (this.match("NIL", "NUMBER", "STRING")) {
-            return new LiteralExpr(this.previous().literal as LoxValue);
+            const token = this.previous();
+            return new LiteralExpr(token.literal as LoxValue, token);
         }
 
         if (this.match("SUPER")) {

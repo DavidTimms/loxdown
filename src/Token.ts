@@ -1,5 +1,6 @@
 import TokenType from "./TokenType";
 import LoxValue from "./LoxValue";
+import SourceRange from "./SourceRange";
 
 export default class Token {
     constructor(
@@ -7,14 +8,23 @@ export default class Token {
         readonly lexeme: string,
         readonly literal: LoxValue | null,
         readonly line: number,
-    ) {
-        this.type = type;
-        this.lexeme = lexeme;
-        this.literal = literal;
-        this.line = line;
-    }
+        readonly column: number,
+    ) {}
 
     toString(): string {
         return `${this.type} ${this.lexeme} ${this.literal}`;
+    }
+
+    sourceRange(): SourceRange {
+        const start = {
+            line: this.line,
+            column: this.column,
+        };
+        // TODO handle tokens which span line breaks
+        const end = {
+            line: this.line,
+            column: this.column + this.lexeme.length,
+        };
+        return new SourceRange(start, end);
     }
 }

@@ -374,7 +374,7 @@ implements ExprVisitor<Type>, StmtVisitor<void>, TypeExprVisitor<Type> {
                     this.error(
                         `Cannot inherit from '${superclassName}' ` +
                         "because it is not a class.",
-                        stmt.superclass?.name,
+                        stmt.superclass.name,
                     );
                 }
             }
@@ -573,7 +573,7 @@ implements ExprVisitor<Type>, StmtVisitor<void>, TypeExprVisitor<Type> {
             this.error(
                 "Too many arguments for function call. Expected " +
                 `${params.length} arguments, but found ${args.length}.`,
-                expr.paren,
+                expr.closingParen,
             );
 
             // Pad the params array with nulls to ensure the additional
@@ -585,7 +585,7 @@ implements ExprVisitor<Type>, StmtVisitor<void>, TypeExprVisitor<Type> {
             this.error(
                 "Too few arguments for function call. Expected " +
                 `${params.length} arguments, but only found ${args.length}.`,
-                expr.paren,
+                expr.closingParen,
             );
         }
 

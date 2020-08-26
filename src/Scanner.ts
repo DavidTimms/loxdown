@@ -30,6 +30,7 @@ export default class Scanner {
     private start = 0;
     private current = 0;
     private line = 1;
+    private column = 1;
 
     constructor(private readonly lox: Lox, private readonly source: string) {
         this.lox = lox;
@@ -42,7 +43,7 @@ export default class Scanner {
             this.scanToken();
         }
 
-        this.tokens.push(new Token("EOF", "", null, this.line));
+        this.tokens.push(new Token("EOF", "", null, this.line, this.column));
         return this.tokens;
     }
 
@@ -112,6 +113,7 @@ export default class Scanner {
                 break;
             case "\n":
                 this.line += 1;
+                this.column = 1;
                 break;
             case "\"":
                 this.string();
@@ -122,10 +124,7 @@ export default class Scanner {
                 } else if (isAlpha(c)) {
                     this.identifier();
                 } else {
-                    this.lox.error(
-                        this.line,
-                        `Unexpected character: ${JSON.stringify(c)}`,
-                    );
+                    this.error(`Unexpected character: ${JSON.stringify(c)}`);
                 }
         }
     }
@@ -148,7 +147,7 @@ export default class Scanner {
 
         // Unterminated string
         if (this.isAtEnd()) {
-            this.lox.error(this.line, "Unterminated string.");
+            this.error("Unterminated string.");
             return;
         }
 
@@ -192,12 +191,14 @@ export default class Scanner {
 
     advance(): string {
         this.current += 1;
+        this.column += 1;
         return this.source.charAt(this.current - 1);
     }
 
     addToken(type: TokenType, literal: LoxValue | null = null): void {
         const text = this.source.substring(this.start, this.current);
-        this.tokens.push(new Token(type, text, literal, this.line));
+        this.tokens.push(
+            new Token(type, text, literal, this.line, this.column));
     }
 
     match(expected: string): boolean {
@@ -216,6 +217,10 @@ export default class Scanner {
     peekNext(): string {
         if (this.current + 1 >= this.source.length) return "\0";
         return this.source.charAt(this.current + 1);
+    }
+
+    error(message: string): void {
+        this.lox.error({line: this.line, column: this.column}, message);
     }
 }
 

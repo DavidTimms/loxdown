@@ -9,7 +9,10 @@ interface ClassDefinition {
         types: string[];
         name: string;
     }[];
+    methods: MethodMaker[];
 }
+
+type MethodMaker = (baseName: string, classDef: ClassDefinition) => string;
 
 function main(args: string[]): void {
     if (args.length !== 1) {
@@ -18,56 +21,74 @@ function main(args: string[]): void {
     }
     const outputDir = args[0];
 
-    defineAst(outputDir, "Expr", [
-        "Assign   -> name: Token, value: Expr",
-        "Binary   -> left: Expr, operator: Token, right: Expr",
-        "Call     -> callee: Expr, paren: Token, args: Expr[]",
-        "Get      -> object: Expr, name: Token",
-        "Grouping -> expression: Expr",
-        "Literal  -> value: LoxValue",
-        "Logical  -> left: Expr, operator: Token, right: Expr",
-        "Set      -> object: Expr, name: Token, value: Expr",
-        "Super    -> keyword: Token, method: Token",
-        "This     -> keyword: Token",
-        "Unary    -> operator: Token, right: Expr",
-        "Variable -> name: Token",
-    ]);
+    defineAst({
+        outputDir,
+        baseName: "Expr",
+        withSourceRange: true,
+        classes: [
+            "Assign   -> name: Token, value: Expr",
+            "Binary   -> left: Expr, operator: Token, right: Expr",
+            "Call     -> callee: Expr, args: Expr[], closingParen: Token",
+            "Get      -> object: Expr, name: Token",
+            "Grouping -> expression: Expr",
+            "Literal  -> value: LoxValue, token: Token",
+            "Logical  -> left: Expr, operator: Token, right: Expr",
+            "Set      -> object: Expr, name: Token, value: Expr",
+            "Super    -> keyword: Token, method: Token",
+            "This     -> keyword: Token",
+            "Unary    -> operator: Token, right: Expr",
+            "Variable -> name: Token",
+        ],
+    });
 
-    defineAst(outputDir, "Stmt", [
-        "Block      -> statements: Stmt[]",
-        `Class      -> name: Token,
-                       superclass: VariableExpr | null,
-                       fields: Field[],
-                       methods: FunctionStmt[]`,
-        "Expression -> expression: Expr",
-        `Function   -> name: Token,
-                       params: Parameter[],
-                       returnType: TypeExpr | null,
-                       body: Stmt[]`,
-        `If         -> condition: Expr,
-                       thenBranch: Stmt,
-                       elseBranch: Stmt | null`,
-        "Print      -> expression: Expr",
-        `Return     -> keyword: Token,
-                       value: Expr | null`,
-        `Var        -> name: Token,
-                       type: TypeExpr | null,
-                       initializer: Expr | null`,
-        `While      -> condition: Expr,
-                       body: Stmt`,
-    ]);
+    defineAst({
+        outputDir,
+        baseName: "Stmt",
+        classes: [
+            "Block      -> statements: Stmt[]",
+            `Class      -> name: Token,
+                           superclass: VariableExpr | null,
+                           fields: Field[],
+                           methods: FunctionStmt[]`,
+            "Expression -> expression: Expr",
+            `Function   -> name: Token,
+                           params: Parameter[],
+                           returnType: TypeExpr | null,
+                           body: Stmt[]`,
+            `If         -> condition: Expr,
+                           thenBranch: Stmt,
+                           elseBranch: Stmt | null`,
+            "Print      -> expression: Expr",
+            `Return     -> keyword: Token,
+                           value: Expr | null`,
+            `Var        -> name: Token,
+                           type: TypeExpr | null,
+                           initializer: Expr | null`,
+            `While      -> condition: Expr,
+                           body: Stmt`,
+        ],
+    });
 
-    defineAst(outputDir, "TypeExpr", [
-        "Variable   -> name: Token",
-        `Callable   -> paramTypes: TypeExpr[],
-                       returnType: TypeExpr | null`,
-    ]);
+    defineAst({
+        outputDir,
+        baseName: "TypeExpr",
+        classes: [
+            "Variable   -> name: Token",
+            `Callable   -> paramTypes: TypeExpr[],
+                           returnType: TypeExpr | null`,
+        ],
+    });
 }
 
-function defineAst(outputDir: string, baseName: string, types: string[]): void {
+function defineAst({ outputDir, baseName, classes, withSourceRange = false }: {
+    outputDir: string;
+    baseName: string;
+    classes: string[];
+    withSourceRange?: boolean;
+}): void {
     const path = `${outputDir}/${baseName}.ts`;
 
-    const classDefs = types.map(type => parseClassDefinition(baseName, type));
+    const classDefs = classes.map(type => parseClassDefinition(baseName, type));
 
 
     const globalEnv = new Set([
@@ -83,6 +104,11 @@ function defineAst(outputDir: string, baseName: string, types: string[]): void {
             .flatMap(type => type.match(/\w+/g) || [])
             .filter(identifier => !globalEnv.has(identifier)),
     );
+
+    if (withSourceRange) {
+        importedTypes.add("SourceRange");
+        classDefs.forEach(({methods}) => methods.push(sourceRange));
+    }
 
     const lines = [
         "// This file is programatically generated. Do not edit it directly.",
@@ -103,7 +129,14 @@ function defineAst(outputDir: string, baseName: string, types: string[]): void {
     fs.writeFileSync(path, lines.join("\n"));
 }
 
-function defineType({baseName, className, fields}: ClassDefinition): string[] {
+function defineType(classDef: ClassDefinition): string[] {
+    const {
+        baseName,
+        className,
+        fields,
+        methods,
+    } = classDef;
+
     return [
         `export class ${className} {`,
 
@@ -119,6 +152,8 @@ function defineType({baseName, className, fields}: ClassDefinition): string[] {
         `    accept<R>(visitor: ${baseName}Visitor<R>): R {`,
         `        return visitor.visit${className}(this);`,
         "    }",
+
+        ...methods.map(method => "\n" + method(baseName, classDef)),
 
         "}",
         "",
@@ -151,7 +186,22 @@ function parseClassDefinition(
         return {name, types: typeList.split("|").map(s => s.trim())};
     });
 
-    return {baseName, className, fields};
+    return {baseName, className, fields, methods: []};
+}
+
+function sourceRange(baseName: string, {fields}: ClassDefinition): string {
+    const typesWithSourceRange = new Set(["TypeExpr", "Expr", "Token"]);
+    const fieldsWithSourceRange =
+        fields.filter(f => typesWithSourceRange.has(f.types[0]));
+    const firstField = fieldsWithSourceRange[0];
+    const lastField = fieldsWithSourceRange[fieldsWithSourceRange.length - 1];
+    return [
+        "    sourceRange(): SourceRange {",
+        `        const start = this.${firstField?.name}.sourceRange().start;`,
+        `        const end = this.${lastField?.name}.sourceRange().end;`,
+        "        return new SourceRange(start, end);",
+        "    }",
+    ].join("\n");
 }
 
 main(process.argv.slice(2));

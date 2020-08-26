@@ -336,14 +336,14 @@ implements ExprVisitor<LoxValue>, StmtVisitor<void> {
         if (!isLoxCallable(callee)) {
             throw new RuntimeError(
                 "Can only call functions and classes.",
-                expr.paren,
+                expr.closingParen,
             );
         }
 
         if (args.length !== callee.arity()) {
             throw new RuntimeError(
                 `Expected ${callee.arity()} arguments but got ${args.length}.`,
-                expr.paren,
+                expr.closingParen,
             );
         }
 
@@ -353,7 +353,7 @@ implements ExprVisitor<LoxValue>, StmtVisitor<void> {
             // Add the missing location token to runtime errors raised by
             // native functions.
             if (error instanceof RuntimeError && error.token === null) {
-                error.token = expr.paren;
+                error.token = expr.closingParen;
             }
             throw error;
         }

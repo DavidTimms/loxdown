@@ -2,6 +2,7 @@
 
 import Token from "./Token";
 import LoxValue from "./LoxValue";
+import SourceRange from "./SourceRange";
 
 export class AssignExpr {
     constructor(
@@ -11,6 +12,12 @@ export class AssignExpr {
 
     accept<R>(visitor: ExprVisitor<R>): R {
         return visitor.visitAssignExpr(this);
+    }
+
+    sourceRange(): SourceRange {
+        const start = this.name.sourceRange().start;
+        const end = this.value.sourceRange().end;
+        return new SourceRange(start, end);
     }
 }
 
@@ -24,17 +31,29 @@ export class BinaryExpr {
     accept<R>(visitor: ExprVisitor<R>): R {
         return visitor.visitBinaryExpr(this);
     }
+
+    sourceRange(): SourceRange {
+        const start = this.left.sourceRange().start;
+        const end = this.right.sourceRange().end;
+        return new SourceRange(start, end);
+    }
 }
 
 export class CallExpr {
     constructor(
         readonly callee: Expr,
-        readonly paren: Token,
         readonly args: Expr[],
+        readonly closingParen: Token,
     ) {}
 
     accept<R>(visitor: ExprVisitor<R>): R {
         return visitor.visitCallExpr(this);
+    }
+
+    sourceRange(): SourceRange {
+        const start = this.callee.sourceRange().start;
+        const end = this.closingParen.sourceRange().end;
+        return new SourceRange(start, end);
     }
 }
 
@@ -47,6 +66,12 @@ export class GetExpr {
     accept<R>(visitor: ExprVisitor<R>): R {
         return visitor.visitGetExpr(this);
     }
+
+    sourceRange(): SourceRange {
+        const start = this.object.sourceRange().start;
+        const end = this.name.sourceRange().end;
+        return new SourceRange(start, end);
+    }
 }
 
 export class GroupingExpr {
@@ -57,15 +82,28 @@ export class GroupingExpr {
     accept<R>(visitor: ExprVisitor<R>): R {
         return visitor.visitGroupingExpr(this);
     }
+
+    sourceRange(): SourceRange {
+        const start = this.expression.sourceRange().start;
+        const end = this.expression.sourceRange().end;
+        return new SourceRange(start, end);
+    }
 }
 
 export class LiteralExpr {
     constructor(
         readonly value: LoxValue,
+        readonly token: Token,
     ) {}
 
     accept<R>(visitor: ExprVisitor<R>): R {
         return visitor.visitLiteralExpr(this);
+    }
+
+    sourceRange(): SourceRange {
+        const start = this.token.sourceRange().start;
+        const end = this.token.sourceRange().end;
+        return new SourceRange(start, end);
     }
 }
 
@@ -79,6 +117,12 @@ export class LogicalExpr {
     accept<R>(visitor: ExprVisitor<R>): R {
         return visitor.visitLogicalExpr(this);
     }
+
+    sourceRange(): SourceRange {
+        const start = this.left.sourceRange().start;
+        const end = this.right.sourceRange().end;
+        return new SourceRange(start, end);
+    }
 }
 
 export class SetExpr {
@@ -91,6 +135,12 @@ export class SetExpr {
     accept<R>(visitor: ExprVisitor<R>): R {
         return visitor.visitSetExpr(this);
     }
+
+    sourceRange(): SourceRange {
+        const start = this.object.sourceRange().start;
+        const end = this.value.sourceRange().end;
+        return new SourceRange(start, end);
+    }
 }
 
 export class SuperExpr {
@@ -102,6 +152,12 @@ export class SuperExpr {
     accept<R>(visitor: ExprVisitor<R>): R {
         return visitor.visitSuperExpr(this);
     }
+
+    sourceRange(): SourceRange {
+        const start = this.keyword.sourceRange().start;
+        const end = this.method.sourceRange().end;
+        return new SourceRange(start, end);
+    }
 }
 
 export class ThisExpr {
@@ -111,6 +167,12 @@ export class ThisExpr {
 
     accept<R>(visitor: ExprVisitor<R>): R {
         return visitor.visitThisExpr(this);
+    }
+
+    sourceRange(): SourceRange {
+        const start = this.keyword.sourceRange().start;
+        const end = this.keyword.sourceRange().end;
+        return new SourceRange(start, end);
     }
 }
 
@@ -123,6 +185,12 @@ export class UnaryExpr {
     accept<R>(visitor: ExprVisitor<R>): R {
         return visitor.visitUnaryExpr(this);
     }
+
+    sourceRange(): SourceRange {
+        const start = this.operator.sourceRange().start;
+        const end = this.right.sourceRange().end;
+        return new SourceRange(start, end);
+    }
 }
 
 export class VariableExpr {
@@ -132,6 +200,12 @@ export class VariableExpr {
 
     accept<R>(visitor: ExprVisitor<R>): R {
         return visitor.visitVariableExpr(this);
+    }
+
+    sourceRange(): SourceRange {
+        const start = this.name.sourceRange().start;
+        const end = this.name.sourceRange().end;
+        return new SourceRange(start, end);
     }
 }
 

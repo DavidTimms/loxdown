@@ -1,6 +1,7 @@
 import * as fs from "fs";
 import * as readline from "readline";
 
+import SourceLocation from "./SourceLocation";
 import Token from "./Token";
 import Scanner from "./Scanner";
 import Parser from "./Parser";
@@ -54,7 +55,7 @@ export default class Lox {
 
         if (staticErrors.length > 0) {
             for (const error of staticErrors) {
-                this.error(error.token ?? 0, error.message);
+                this.error(error.token ?? {line: 0, column: 0}, error.message);
             }
             return;
         }
@@ -70,7 +71,7 @@ export default class Lox {
         this.interpreter.interpret(statements);
     }
 
-    error(location: number | Token, message: string): void {
+    error(location: SourceLocation, message: string): void {
         if (location instanceof Token) {
             if (location.type === "EOF") {
                 this.report(location.line, " at end", message);
@@ -78,7 +79,7 @@ export default class Lox {
                 this.report(location.line, ` at '${location.lexeme}'`, message);
             }
         } else {
-            this.report(location, "", message);
+            this.report(location.line, "", message);
         }
     }
 
