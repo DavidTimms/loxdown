@@ -1,3 +1,6 @@
 var y = x + 2;
 -- ERROR --
-[line 1] Error at 'x': The name 'x' is not defined.
+1:9 - error: The name 'x' is not defined.
+
+1     var y = x + 2;
+              ^

@@ -9,6 +9,7 @@ import Interpreter from "./Interpreter";
 import RuntimeError from "./RuntimeError";
 import { ExpressionStmt, PrintStmt } from "./Stmt";
 import TypeChecker from "./typechecker/TypeChecker";
+import SourceRange from "./SourceRange";
 
 export default class Lox {
     private hadError = false;
@@ -55,7 +56,8 @@ export default class Lox {
 
         if (staticErrors.length > 0) {
             for (const error of staticErrors) {
-                this.error(error.token ?? {line: 0, column: 0}, error.message);
+                // this.error(error.sourceRange.start, error.message);
+                this.rangeError(source, error.sourceRange, error.message);
             }
             return;
         }
@@ -95,6 +97,24 @@ export default class Lox {
     report(line: number, where: string, message: string): void {
         this.printError(`[line ${line}] Error${where}: ${message}`);
         this.hadError = true;
+    }
+
+    rangeError(source: string, range: SourceRange, message: string): void {
+        const indent = 6;
+        const {start} = range;
+
+        const sourceLine = source.split("\n")[start.line - 1];
+        const underline =
+            Array(indent + start.column - 1).fill(" ").join("") +
+            Array(range.length()).fill("^").join("");
+
+
+        const report =
+            `${start.line}:${start.column} - error: ${message}\n\n` +
+            `${start.line.toString().padEnd(indent)}${sourceLine}\n` +
+            underline;
+
+        this.printError(report);
     }
 
     printError(message: string): void {

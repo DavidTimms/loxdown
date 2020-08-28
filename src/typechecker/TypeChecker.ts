@@ -39,11 +39,12 @@ import { default as types } from "./builtinTypes";
 import globalsTypes from "./globalsTypes";
 import ImplementationError from "../ImplementationError";
 import Field from "../Field";
+import SourceRange from "../SourceRange";
 
 class LoxError {
     constructor(
         readonly message: string,
-        readonly token: Token | null,
+        readonly sourceRange: SourceRange,
     ) {}
 }
 
@@ -110,7 +111,10 @@ implements ExprVisitor<Type>, StmtVisitor<void>, TypeExprVisitor<Type> {
     }
 
     private sortErrorBySourceLocation(): void {
-        this.errors.sort(comparator(error => [error.token?.line ?? 0]));
+        this.errors.sort(comparator(error => [
+            error.sourceRange.start.line,
+            error.sourceRange.start.column,
+        ]));
     }
 
     private checkStmts(stmts: Stmt[]): void {
@@ -128,7 +132,9 @@ implements ExprVisitor<Type>, StmtVisitor<void>, TypeExprVisitor<Type> {
         if (expectedType && !this.isTypeCompatible(exprType, expectedType)) {
             this.error(
                 "Incorrect type. " +
-                `Expected '${expectedType}', but found '${exprType}'.`);
+                `Expected '${expectedType}', but found '${exprType}'.`,
+                expr,
+            );
         }
 
         // Should this return the expected type instead of the actual type?
@@ -527,7 +533,9 @@ implements ExprVisitor<Type>, StmtVisitor<void>, TypeExprVisitor<Type> {
                 return this.error(
                     "Incorrect type for the left operand of '+'. " +
                     `Expected '${types.String}' or '${types.Number}',` +
-                    ` but found '${leftType}'.`);
+                    ` but found '${leftType}'.`,
+                    expr.left,
+                );
             }
             case "MINUS":
             case "SLASH":
@@ -558,7 +566,8 @@ implements ExprVisitor<Type>, StmtVisitor<void>, TypeExprVisitor<Type> {
 
         if (callable === null) {
             if (calleeType !== types.PreviousTypeError) {
-                this.error(`Type '${calleeType}' is not callable.`);
+                this.error(
+                    `Type '${calleeType}' is not callable.`, expr.callee);
             }
             for (const arg of expr.args) {
                 this.checkExpr(arg);
@@ -709,8 +718,8 @@ implements ExprVisitor<Type>, StmtVisitor<void>, TypeExprVisitor<Type> {
     }
 
     // Records an error when it is possible to continue typechecking
-    private error(message: string, token: Token | null = null): Type {
-        this.errors.push(new LoxError(message, token));
+    private error(message: string, target: {sourceRange(): SourceRange}): Type {
+        this.errors.push(new LoxError(message, target.sourceRange()));
         return types.PreviousTypeError;
     }
 }

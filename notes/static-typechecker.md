@@ -21,7 +21,11 @@
   - [X] Allow classes to declare the types of their fields.
   - [X] Add syntax for declaring callable types.
   - [ ] Change scoping rules so variable initialisations are hoisted.
-  - [ ] Adapt AST to allow accessing the source location of any expression for type errors.
+  - Improve errors:
+    - [X] Adapt AST to allow accessing the source location of any expression for type errors.
+    - [ ] Fix tests to use new error format.
+    - [ ] Use `rangeError` for scanner, parser and runtime errors.
+    - [ ] Refactor error reporting to avoid the scanner, parser, typechecker and interpreter needing access to the Lox instance.
   - [X] Sort errors by location in the source code, so the order is not affected by deferred checking.
   - [X] Rollback typechecker state after type error in the REPL, so it correctly reflects interpreter state.
   - [ ] Add support for union types.

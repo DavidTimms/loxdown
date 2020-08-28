@@ -30,7 +30,7 @@ export default class Scanner {
     private start = 0;
     private current = 0;
     private line = 1;
-    private column = 1;
+    private lineStart = 0;
 
     constructor(private readonly lox: Lox, private readonly source: string) {
         this.lox = lox;
@@ -43,7 +43,8 @@ export default class Scanner {
             this.scanToken();
         }
 
-        this.tokens.push(new Token("EOF", "", null, this.line, this.column));
+        const column = 1 + this.start - this.lineStart;
+        this.tokens.push(new Token("EOF", "", null, this.line, column));
         return this.tokens;
     }
 
@@ -113,7 +114,7 @@ export default class Scanner {
                 break;
             case "\n":
                 this.line += 1;
-                this.column = 1;
+                this.lineStart = this.current;
                 break;
             case "\"":
                 this.string();
@@ -191,14 +192,13 @@ export default class Scanner {
 
     advance(): string {
         this.current += 1;
-        this.column += 1;
         return this.source.charAt(this.current - 1);
     }
 
     addToken(type: TokenType, literal: LoxValue | null = null): void {
         const text = this.source.substring(this.start, this.current);
-        this.tokens.push(
-            new Token(type, text, literal, this.line, this.column));
+        const column = 1 + this.start - this.lineStart;
+        this.tokens.push(new Token(type, text, literal, this.line, column));
     }
 
     match(expected: string): boolean {
@@ -220,7 +220,8 @@ export default class Scanner {
     }
 
     error(message: string): void {
-        this.lox.error({line: this.line, column: this.column}, message);
+        const [line, column] = [this.line, this.current - this.lineStart];
+        this.lox.error({line, column}, message);
     }
 }
 
