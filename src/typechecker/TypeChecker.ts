@@ -82,7 +82,6 @@ implements ExprVisitor<Type>, StmtVisitor<void>, TypeExprVisitor<Type> {
     private errors: LoxError[] = [];
 
     constructor(
-        private readonly lox: Lox,
         private readonly interpreter: Interpreter,
     ) {}
 

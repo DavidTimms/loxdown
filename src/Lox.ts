@@ -15,7 +15,7 @@ export default class Lox {
     private hadError = false;
     private hadRuntimeError = false;
     private readonly interpreter = new Interpreter(this);
-    private readonly typechecker = new TypeChecker(this, this.interpreter);
+    private readonly typechecker = new TypeChecker(this.interpreter);
 
     runFile(path: string): void {
         this.run(fs.readFileSync(path, {encoding: "utf8"}));
@@ -56,7 +56,6 @@ export default class Lox {
 
         if (staticErrors.length > 0) {
             for (const error of staticErrors) {
-                // this.error(error.sourceRange.start, error.message);
                 this.rangeError(source, error.sourceRange, error.message);
             }
             return;
