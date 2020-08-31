@@ -3,4 +3,7 @@
 // are incorrect.
 foo(1, 2, 3);
 -- ERROR --
-[line 4] Error at 'foo': The name 'foo' is not defined.
+4:1 - error: The name 'foo' is not defined.
+
+4     foo(1, 2, 3);
+      ^^^

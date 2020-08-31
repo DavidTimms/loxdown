@@ -1,3 +1,7 @@
+// This restriction will be lifted once we have union types
 true or "hello";
 -- ERROR --
-[line 1] Error at 'or': The operand types for 'or' are not compatible. They must have a shared superclass. Found 'Boolean' and 'String'.
+2:1 - error: The operand types for 'or' are not compatible. They must have a shared superclass. Found 'Boolean' and 'String'.
+
+2     true or "hello";
+      ^^^^^^^^^^^^^^^

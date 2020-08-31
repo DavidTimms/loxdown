@@ -487,7 +487,7 @@ implements ExprVisitor<Type>, StmtVisitor<void>, TypeExprVisitor<Type> {
                 this.error(
                     "Cannot return a value from this function because there " +
                     "is no declared return type.",
-                    stmt.keyword,
+                    stmt.value,
                 );
             }
             this.checkExpr(stmt.value, this.currentFunction.type.returns);
@@ -579,10 +579,15 @@ implements ExprVisitor<Type>, StmtVisitor<void>, TypeExprVisitor<Type> {
         let params = callable.params;
 
         if (args.length > params.length) {
+            const startOfFirstExtraArg =
+                args[params.length].sourceRange().start;
+            const endOfLastExtraArg =
+                args[args.length - 1].sourceRange().end;
+
             this.error(
                 "Too many arguments for function call. Expected " +
                 `${params.length} arguments, but found ${args.length}.`,
-                expr.closingParen,
+                new SourceRange(startOfFirstExtraArg, endOfLastExtraArg),
             );
 
             // Pad the params array with nulls to ensure the additional
@@ -594,7 +599,7 @@ implements ExprVisitor<Type>, StmtVisitor<void>, TypeExprVisitor<Type> {
             this.error(
                 "Too few arguments for function call. Expected " +
                 `${params.length} arguments, but only found ${args.length}.`,
-                expr.closingParen,
+                expr,
             );
         }
 
@@ -643,7 +648,7 @@ implements ExprVisitor<Type>, StmtVisitor<void>, TypeExprVisitor<Type> {
                 `The operand types for '${expr.operator.lexeme}' are not ` +
                 "compatible. They must have a shared superclass. Found " +
                 `'${left}' and '${right}'.`,
-                expr.operator,
+                expr,
             );
         }
         return type;

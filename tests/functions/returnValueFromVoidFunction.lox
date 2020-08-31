@@ -2,4 +2,7 @@ fun helloWorld() {
     return "Hello, world!";
 }
 -- ERROR --
-[line 2] Error at 'return': Cannot return a value from this function because there is no declared return type.
+2:12 - error: Cannot return a value from this function because there is no declared return type.
+
+2         return "Hello, world!";
+                 ^^^^^^^^^^^^^^^

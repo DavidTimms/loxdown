@@ -1,4 +1,7 @@
 var x = "hello";
 x();
 -- ERROR --
-[line 0] Error: Type 'String' is not callable.
+2:1 - error: Type 'String' is not callable.
+
+2     x();
+      ^

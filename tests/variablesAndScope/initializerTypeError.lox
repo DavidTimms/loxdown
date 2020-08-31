@@ -1,3 +1,6 @@
 var isOk: Boolean = nil;
 -- ERROR --
-[line 0] Error: Incorrect type. Expected 'Boolean', but found 'Nil'.
+1:21 - error: Incorrect type. Expected 'Boolean', but found 'Nil'.
+
+1     var isOk: Boolean = nil;
+                          ^^^

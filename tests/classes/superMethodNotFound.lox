@@ -5,4 +5,7 @@ class B < A {
     }
 }
 -- ERROR --
-[line 4] Error at 'foo': Superclass type 'A' has no method 'foo'.
+4:15 - error: Superclass type 'A' has no method 'foo'.
+
+4             super.foo();
+                    ^^^

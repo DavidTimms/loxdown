@@ -1,3 +1,6 @@
 return "at top level";
 -- ERROR --
-[line 1] Error at 'return': Cannot return from top-level code.
+1:1 - error: Cannot return from top-level code.
+
+1     return "at top level";
+      ^^^^^^

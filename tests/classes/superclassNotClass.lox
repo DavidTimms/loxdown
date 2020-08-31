@@ -1,4 +1,7 @@
 var X = 123;
 class Y < X {}
 -- ERROR --
-[line 2] Error at 'X': Cannot inherit from 'X' because it is not a class.
+2:11 - error: Cannot inherit from 'X' because it is not a class.
+
+2     class Y < X {}
+                ^

@@ -1,4 +1,7 @@
 var x: NotAType = 123;
 x.foo;
 -- ERROR --
-[line 1] Error at 'NotAType': The type 'NotAType' is not defined.
+1:8 - error: The type 'NotAType' is not defined.
+
+1     var x: NotAType = 123;
+             ^^^^^^^^

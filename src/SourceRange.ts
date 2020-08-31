@@ -13,4 +13,8 @@ export default class SourceRange {
         // TODO handle multiline source ranges better.
         return 1;
     }
+
+    sourceRange(): SourceRange {
+        return this;
+    }
 }

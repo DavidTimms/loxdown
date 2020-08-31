@@ -1,3 +1,6 @@
 print this;
 -- ERROR --
-[line 1] Error at 'this': Cannot use 'this' outside of a class.
+1:7 - error: Cannot use 'this' outside of a class.
+
+1     print this;
+            ^^^^

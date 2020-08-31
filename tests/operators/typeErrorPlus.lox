@@ -2,6 +2,15 @@
 "2" + 2;
 true + 2;
 -- ERROR --
-[line 0] Error: Incorrect type. Expected 'Number', but found 'String'.
-[line 0] Error: Incorrect type. Expected 'String', but found 'Number'.
-[line 0] Error: Incorrect type for the left operand of '+'. Expected 'String' or 'Number', but found 'Boolean'.
+1:5 - error: Incorrect type. Expected 'Number', but found 'String'.
+
+1     2 + "2";
+          ^^^
+2:7 - error: Incorrect type. Expected 'String', but found 'Number'.
+
+2     "2" + 2;
+            ^
+3:1 - error: Incorrect type for the left operand of '+'. Expected 'String' or 'Number', but found 'Boolean'.
+
+3     true + 2;
+      ^^^^

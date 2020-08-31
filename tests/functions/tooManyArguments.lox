@@ -2,6 +2,9 @@ fun add(a: Number, b: Number): Number {
     return a + b;
 }
 
-add(1, 2, 3);
+add(1, 2, 3, 4);
 -- ERROR --
-[line 5] Error at ')': Too many arguments for function call. Expected 2 arguments, but found 3.
+5:11 - error: Too many arguments for function call. Expected 2 arguments, but found 4.
+
+5     add(1, 2, 3, 4);
+                ^^^^

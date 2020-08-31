@@ -3,4 +3,7 @@ fun bad() {
     var a = "second";
 }
 -- ERROR --
-[line 3] Error at 'a': Variable with this name already declared in this scope.
+3:9 - error: Variable with this name already declared in this scope.
+
+3         var a = "second";
+              ^

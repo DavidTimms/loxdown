@@ -2,4 +2,7 @@ class Person {}
 var jane = Person();
 print jane.name;
 -- ERROR --
-[line 3] Error at 'name': Type 'Person' has no property 'name'.
+3:12 - error: Type 'Person' has no property 'name'.
+
+3     print jane.name;
+                 ^^^^

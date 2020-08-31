@@ -1,3 +1,6 @@
 class TimeTraveller < TimeTraveller {}
 -- ERROR --
-[line 1] Error at 'TimeTraveller': A class cannot inherit from itself.
+1:23 - error: A class cannot inherit from itself.
+
+1     class TimeTraveller < TimeTraveller {}
+                            ^^^^^^^^^^^^^

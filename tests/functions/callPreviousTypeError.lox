@@ -4,4 +4,7 @@
 var func = notDefined();
 func(1, 2, 3);
 -- ERROR --
-[line 4] Error at 'notDefined': The name 'notDefined' is not defined.
+4:12 - error: The name 'notDefined' is not defined.
+
+4     var func = notDefined();
+                 ^^^^^^^^^^

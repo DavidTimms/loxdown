@@ -10,5 +10,11 @@ fun foo() {
 var y = y;
 
 -- ERROR --
-[line 7] Error at 'x': Cannot read local variable in its own initializer.
-[line 10] Error at 'y': Cannot read local variable in its own initializer.
+7:13 - error: Cannot read local variable in its own initializer.
+
+7         var x = x;
+                  ^
+10:9 - error: Cannot read local variable in its own initializer.
+
+10    var y = y;
+              ^

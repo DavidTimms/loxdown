@@ -1,3 +1,6 @@
 var minusBoolean = -true;
 -- ERROR --
-[line 0] Error: Incorrect type. Expected 'Number', but found 'Boolean'.
+1:21 - error: Incorrect type. Expected 'Number', but found 'Boolean'.
+
+1     var minusBoolean = -true;
+                          ^^^^

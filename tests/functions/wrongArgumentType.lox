@@ -4,4 +4,7 @@ fun add(a: Number, b: Number): Number {
 
 add(1, "32");
 -- ERROR --
-[line 0] Error: Incorrect type. Expected 'Number', but found 'String'.
+5:8 - error: Incorrect type. Expected 'Number', but found 'String'.
+
+5     add(1, "32");
+             ^^^^

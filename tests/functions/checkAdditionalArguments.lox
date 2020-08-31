@@ -4,7 +4,13 @@ fun add(a: Number, b: Number): Number {
 
 // The third argument should still be checked for other errors,
 // even if the function only expects two arguments.
-add(1, 2, x);
+add(1, 2, 3 + x);
 -- ERROR --
-[line 7] Error at ')': Too many arguments for function call. Expected 2 arguments, but found 3.
-[line 7] Error at 'x': The name 'x' is not defined.
+7:11 - error: Too many arguments for function call. Expected 2 arguments, but found 3.
+
+7     add(1, 2, 3 + x);
+                ^^^^^
+7:15 - error: The name 'x' is not defined.
+
+7     add(1, 2, 3 + x);
+                    ^
