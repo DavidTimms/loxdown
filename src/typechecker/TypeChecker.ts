@@ -390,7 +390,7 @@ implements ExprVisitor<Type>, StmtVisitor<void>, TypeExprVisitor<Type> {
         const methods = this.getMethodTypes(stmt.methods);
 
         const classType = new ClassType(
-            stmt.name.lexeme, fields, methods, superType);
+            stmt.name.lexeme, {fields, methods, superclass: superType});
         this.defineValue(stmt.name, classType);
         this.defineType(stmt.name, classType.instance());
 

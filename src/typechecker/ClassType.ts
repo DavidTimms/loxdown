@@ -4,6 +4,9 @@ import CallableType from "./CallableType";
 
 export default class ClassType {
     readonly tag = "CLASS";
+    private readonly fields: Map<string, Type>;
+    private readonly methods: Map<string, Type>;
+    readonly superclass: ClassType | null;
 
     // Because classes are themselves instances of the class 'Class',
     // we have to create an instance of the type to be the class type
@@ -12,12 +15,20 @@ export default class ClassType {
 
     constructor(
         readonly name: string,
-        private readonly fields:
-            Map<string, Type> = new Map(),
-        private readonly methods:
-            Map<string, Type> = new Map(),
-        readonly superclass: ClassType | null = null,
-    ) {}
+        {
+            fields = new Map(),
+            methods = new Map(),
+            superclass = null,
+        }: {
+            fields?: ClassType["fields"];
+            methods?: ClassType["methods"];
+            superclass?: ClassType["superclass"];
+        } = {},
+    ) {
+        this.fields = fields;
+        this.methods = methods;
+        this.superclass = superclass;
+    }
 
     get classType(): ClassType {
         return ClassType.metaClass;
