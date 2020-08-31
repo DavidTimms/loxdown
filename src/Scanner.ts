@@ -5,6 +5,8 @@ import LoxValue from "./LoxValue";
 import { nil } from "./LoxNil";
 import LoxString from "./LoxString";
 import LoxNumber from "./LoxNumber";
+import SyntaxError from "./SyntaxError";
+import SourceRange from "./SourceRange";
 
 const keywords = new Map<string, TokenType>([
     ["and", "AND"],
@@ -32,10 +34,7 @@ export default class Scanner {
     private line = 1;
     private lineStart = 0;
 
-    constructor(private readonly lox: Lox, private readonly source: string) {
-        this.lox = lox;
-        this.source = source;
-    }
+    constructor(private readonly source: string) {}
 
     scanTokens(): Token[] {
         while (!this.isAtEnd()) {
@@ -48,11 +47,11 @@ export default class Scanner {
         return this.tokens;
     }
 
-    isAtEnd(): boolean {
+    private isAtEnd(): boolean {
         return this.current >= this.source.length;
     }
 
-    scanToken(): void {
+    private scanToken(): void {
         const c = this.advance();
 
         switch (c) {
@@ -130,7 +129,7 @@ export default class Scanner {
         }
     }
 
-    blockComment(): void {
+    private blockComment(): void {
         while (
             !(this.match("*") && this.match("/")) &&
             !this.isAtEnd()
@@ -140,17 +139,14 @@ export default class Scanner {
         }
     }
 
-    string(): void {
+    private string(): void {
         while (this.peek() !== "\"" && !this.isAtEnd()) {
             if (this.peek() === "\n") this.line += 1;
             this.advance();
         }
 
         // Unterminated string
-        if (this.isAtEnd()) {
-            this.error("Unterminated string.");
-            return;
-        }
+        if (this.isAtEnd()) this.error("Unterminated string.");
 
         // The closing "
         this.advance();
@@ -160,7 +156,7 @@ export default class Scanner {
         this.addToken("STRING", new LoxString(value));
     }
 
-    number(): void {
+    private number(): void {
         while (isDigit(this.peek())) this.advance();
 
         // Look for a fractional part
@@ -177,7 +173,7 @@ export default class Scanner {
         this.addToken("NUMBER", new LoxNumber(value));
     }
 
-    identifier(): void {
+    private identifier(): void {
         while (isAlphaNumeric(this.peek())) this.advance();
 
         const text = this.source.substring(this.start, this.current);
@@ -187,21 +183,20 @@ export default class Scanner {
         } else {
             this.addToken(keywords.get(text) || "IDENTIFIER");
         }
-
     }
 
-    advance(): string {
+    private advance(): string {
         this.current += 1;
         return this.source.charAt(this.current - 1);
     }
 
-    addToken(type: TokenType, literal: LoxValue | null = null): void {
+    private addToken(type: TokenType, literal: LoxValue | null = null): void {
         const text = this.source.substring(this.start, this.current);
         const column = 1 + this.start - this.lineStart;
         this.tokens.push(new Token(type, text, literal, this.line, column));
     }
 
-    match(expected: string): boolean {
+    private match(expected: string): boolean {
         if (this.isAtEnd()) return false;
         if (this.source.charAt(this.current) !== expected) return false;
 
@@ -209,19 +204,24 @@ export default class Scanner {
         return true;
     }
 
-    peek(): string {
+    private peek(): string {
         if (this.isAtEnd()) return "\0";
         return this.source.charAt(this.current);
     }
 
-    peekNext(): string {
+    private peekNext(): string {
         if (this.current + 1 >= this.source.length) return "\0";
         return this.source.charAt(this.current + 1);
     }
 
-    error(message: string): void {
-        const [line, column] = [this.line, this.current - this.lineStart];
-        this.lox.error({line, column}, message);
+    private error(message: string): never {
+        const line = this.line;
+        const column = this.current - this.lineStart;
+        const sourceRange = new SourceRange(
+            {line, column},
+            {line, column: column + 1},
+        );
+        throw new SyntaxError(message, sourceRange);
     }
 }
 

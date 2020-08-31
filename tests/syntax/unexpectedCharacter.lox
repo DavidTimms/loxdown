@@ -1,0 +1,6 @@
+foo(); # This isn't the comment syntax
+-- ERROR --
+1:8 - error: Unexpected character: "#"
+
+1     foo(); # This isn't the comment syntax
+             ^

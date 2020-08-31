@@ -29,7 +29,6 @@ import {
 } from "../Stmt";
 import Interpreter from "../Interpreter";
 import Token from "../Token";
-import Lox from "../Lox";
 import Type from "./Type";
 import ClassType from "./ClassType";
 import TypeExpr, { TypeExprVisitor, VariableTypeExpr, CallableTypeExpr } from "../TypeExpr";
@@ -41,7 +40,7 @@ import ImplementationError from "../ImplementationError";
 import Field from "../Field";
 import SourceRange from "../SourceRange";
 
-class LoxError {
+class StaticError {
     constructor(
         readonly message: string,
         readonly sourceRange: SourceRange,
@@ -79,7 +78,7 @@ implements ExprVisitor<Type>, StmtVisitor<void>, TypeExprVisitor<Type> {
     private scopes: Scope[] = [this.globalScope()];
     private currentFunction: FunctionContext | null = null;
     private currentClass: ClassContext = "NONE";
-    private errors: LoxError[] = [];
+    private errors: StaticError[] = [];
 
     constructor(
         private readonly interpreter: Interpreter,
@@ -92,7 +91,7 @@ implements ExprVisitor<Type>, StmtVisitor<void>, TypeExprVisitor<Type> {
         });
     }
 
-    checkProgram(stmts: Stmt[]): LoxError[] {
+    checkProgram(stmts: Stmt[]): StaticError[] {
         const scopesSnapshot = this.scopes.map(scope => scope.clone());
         this.errors = [];
         this.checkStmts(stmts);
@@ -277,7 +276,7 @@ implements ExprVisitor<Type>, StmtVisitor<void>, TypeExprVisitor<Type> {
 
     private endScope(): void {
         this.checkDeferredFunctionBodies();
-        const scope = this.scopes.shift();
+        this.scopes.shift();
 
         // // Print the types of variables in this scope
         // if (scope) {
@@ -723,7 +722,7 @@ implements ExprVisitor<Type>, StmtVisitor<void>, TypeExprVisitor<Type> {
 
     // Records an error when it is possible to continue typechecking
     private error(message: string, target: {sourceRange(): SourceRange}): Type {
-        this.errors.push(new LoxError(message, target.sourceRange()));
+        this.errors.push(new StaticError(message, target.sourceRange()));
         return types.PreviousTypeError;
     }
 }

@@ -7,9 +7,10 @@ import Scanner from "./Scanner";
 import Parser from "./Parser";
 import Interpreter from "./Interpreter";
 import RuntimeError from "./RuntimeError";
-import { ExpressionStmt, PrintStmt } from "./Stmt";
+import Stmt, { ExpressionStmt, PrintStmt } from "./Stmt";
 import TypeChecker from "./typechecker/TypeChecker";
 import SourceRange from "./SourceRange";
+import SyntaxError from "./SyntaxError";
 
 export default class Lox {
     private hadError = false;
@@ -44,11 +45,17 @@ export default class Lox {
     }
 
     run(source: string, {printLastExpr = false} = {}): void {
-        const scanner = new Scanner(this, source);
-        const tokens = scanner.scanTokens();
+        let statements: Stmt[] | null = null;
 
-        const parser = new Parser(this, tokens);
-        const statements = parser.parse();
+        try {
+            const tokens = new Scanner(source).scanTokens();
+            const parser = new Parser(this, tokens);
+            statements = parser.parse();
+        } catch (error) {
+            if (error instanceof SyntaxError) {
+                this.rangeError(source, error.sourceRange, error.message);
+            } else throw error;
+        }
 
         if (!statements || this.hadError) return;
 

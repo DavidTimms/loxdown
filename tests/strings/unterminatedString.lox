@@ -1,0 +1,6 @@
+var str = "Hello there
+-- ERROR --
+1:22 - error: Unterminated string.
+
+1     var str = "Hello there
+                           ^
