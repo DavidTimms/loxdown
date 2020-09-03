@@ -46,22 +46,26 @@ export default class Lox {
 
     run(source: string, {printLastExpr = false} = {}): void {
         let statements: Stmt[] | null = null;
+        let errors: SyntaxError[] = [];
 
         try {
             const tokens = new Scanner(source).scanTokens();
-            const parser = new Parser(this, tokens);
-            statements = parser.parse();
+            ({statements, errors} = new Parser(tokens).parse());
         } catch (error) {
             if (error instanceof SyntaxError) {
-                this.rangeError(source, error.sourceRange, error.message);
+                errors.push(error);
             } else throw error;
         }
 
-        if (!statements || this.hadError) return;
+        for (const error of errors) {
+            this.rangeError(source, error.sourceRange, error.message);
+        }
+
+        if (!statements) return;
 
         const staticErrors = this.typechecker.checkProgram(statements);
 
-        if (staticErrors.length > 0) {
+        if (errors.length + staticErrors.length > 0) {
             for (const error of staticErrors) {
                 this.rangeError(source, error.sourceRange, error.message);
             }

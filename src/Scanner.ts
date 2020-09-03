@@ -1,4 +1,3 @@
-import Lox from "./Lox";
 import Token from "./Token";
 import TokenType from "./TokenType";
 import LoxValue from "./LoxValue";

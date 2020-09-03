@@ -1,4 +1,3 @@
-import Lox from "./Lox";
 import Token from "./Token";
 import TokenType from "./TokenType";
 import {
@@ -33,6 +32,8 @@ import { loxTrue, loxFalse } from "./LoxBool";
 import Parameter from "./Parameter";
 import { TypeExpr, VariableTypeExpr, CallableTypeExpr } from "./TypeExpr";
 import Field from "./Field";
+import SyntaxError from "./SyntaxError";
+import SourceRange from "./SourceRange";
 
 type Associativity = "LEFT" | "RIGHT";
 
@@ -41,10 +42,7 @@ class OperatorLevel {
         readonly exprType: typeof LogicalExpr | typeof BinaryExpr,
         readonly associativity: Associativity,
         readonly operators: TokenType[],
-    ) {
-        this.associativity = associativity;
-        this.operators = operators;
-    }
+    ) {}
 }
 
 const operatorPrecedence: OperatorLevel[] = [
@@ -74,24 +72,24 @@ const operatorPrecedence: OperatorLevel[] = [
     ]),
 ];
 
-class ParseError extends Error {}
-
 export default class Parser {
     private current = 0;
+    private errors: SyntaxError[] = [];
 
-    constructor(private readonly lox: Lox, private readonly tokens: Token[]) {
-        this.lox = lox;
-        this.tokens = tokens;
-    }
+    constructor(
+        private readonly tokens: Token[],
+    ) {}
 
-    parse(): Stmt[] {
+    parse(): {statements: Stmt[]; errors: SyntaxError[]} {
+        this.errors = [];
         const statements: Stmt[] = [];
+
         while (!this.isAtEnd()) {
             const declaration = this.declaration();
             if (declaration !== null) statements.push(declaration);
         }
 
-        return statements;
+        return {statements, errors: this.errors};
     }
 
     private declaration(): Stmt | null {
@@ -106,7 +104,7 @@ export default class Parser {
 
             return this.statement();
         } catch (error) {
-            if (error instanceof ParseError) {
+            if (error instanceof SyntaxError) {
                 this.synchronize();
                 return null;
             }
@@ -265,9 +263,9 @@ export default class Parser {
         if (!this.check("RIGHT_PAREN")) {
             do {
                 if (parameters.length >= 255) {
-                    this.lox.error(
-                        this.peek(),
+                    this.error(
                         "Cannot have more than 255 parameters.",
+                        this.peek(),
                     );
                 }
 
@@ -337,7 +335,6 @@ export default class Parser {
         const expr = this.binary();
 
         if (this.match("EQUAL")) {
-            const equals = this.previous();
             const value = this.assignment();
 
             if (expr instanceof VariableExpr) {
@@ -347,8 +344,8 @@ export default class Parser {
             }
 
             // Report a parse error, but don't throw it, as we do not
-            // need to synchronize her
-            this.parseError(equals, "Invalid assignment target.");
+            // need to synchronize here.
+            this.error("Invalid assignment target.", expr);
         }
 
         return expr;
@@ -414,9 +411,9 @@ export default class Parser {
         if (!this.check("RIGHT_PAREN")) {
             do {
                 if (args.length >= 255) {
-                    this.lox.error(
-                        this.peek(),
+                    this.error(
                         "Cannot have more than 255 arguments.",
+                        this.peek(),
                     );
                 }
                 args.push(this.expression());
@@ -459,18 +456,22 @@ export default class Parser {
             return new GroupingExpr(expr);
         }
 
-        throw this.parseError(this.peek(), "Expect expression.");
+        throw this.error("Expect expression.", this.peek());
     }
 
     private consume(type: TokenType, message: string): Token {
         if (this.check(type)) return this.advance();
 
-        throw this.parseError(this.peek(), message);
+        throw this.error(message, this.peek());
     }
 
-    private parseError(token: Token, message: string): ParseError {
-        this.lox.error(token, message);
-        return new ParseError(message);
+    private error(
+        message: string,
+        token: {sourceRange(): SourceRange},
+    ): SyntaxError {
+        const error = new SyntaxError(message, token.sourceRange());
+        this.errors.push(error);
+        return error;
     }
 
     private synchronize(): void {

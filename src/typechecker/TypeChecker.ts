@@ -31,7 +31,12 @@ import Interpreter from "../Interpreter";
 import Token from "../Token";
 import Type from "./Type";
 import ClassType from "./ClassType";
-import TypeExpr, { TypeExprVisitor, VariableTypeExpr, CallableTypeExpr } from "../TypeExpr";
+import {
+    TypeExpr,
+    TypeExprVisitor,
+    VariableTypeExpr,
+    CallableTypeExpr,
+} from "../TypeExpr";
 import { zip, comparator } from "../helpers";
 import CallableType from "./CallableType";
 import { default as types } from "./builtinTypes";

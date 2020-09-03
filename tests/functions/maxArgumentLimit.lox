@@ -257,4 +257,11 @@ foo(
     256
 );
 -- ERROR --
-[line 257] Error at '256': Cannot have more than 255 arguments.
+257:5 - error: Cannot have more than 255 arguments.
+
+257       256
+          ^^^
+1:1 - error: The name 'foo' is not defined.
+
+1     foo(
+      ^^^
