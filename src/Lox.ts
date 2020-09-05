@@ -41,6 +41,9 @@ export default class Lox {
     }
 
     run(source: string, {printLastExpr = false} = {}): RunStatus {
+        // TODO refactor this function.
+        // Perhaps use a monad to accumulate errors.
+
         let statements: Stmt[] | null = null;
         let errors: SyntaxError[] = [];
 
