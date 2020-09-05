@@ -9,7 +9,15 @@ function main(args: string[]): void {
         console.error("Usage: tslox [script]");
         process.exit(64);
     } else if (args.length === 1) {
-        lox.runFile(args[0]);
+        switch (lox.runFile(args[0])) {
+            case "SYNTAX_ERROR":
+            case "STATIC_ERROR":
+                return process.exit(65);
+            case "RUNTIME_ERROR":
+                return process.exit(70);
+            case "SUCCESS":
+                return process.exit(0);
+        }
     } else {
         lox.runPrompt();
     }

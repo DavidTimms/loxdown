@@ -9,17 +9,18 @@ import SourceRange from "./SourceRange";
 import SyntaxError from "./SyntaxError";
 import RuntimeError from "./RuntimeError";
 
+type RunStatus =
+    | "SYNTAX_ERROR"
+    | "STATIC_ERROR"
+    | "RUNTIME_ERROR"
+    | "SUCCESS";
+
 export default class Lox {
     private readonly interpreter = new Interpreter(this);
     private readonly typechecker = new TypeChecker(this.interpreter);
 
-    runFile(path: string): void {
-        this.run(fs.readFileSync(path, {encoding: "utf8"}));
-
-        // TODO return correct exit code
-        // // Indicate an error in the exit code
-        // if (this.hadError) process.exit(65);
-        // if (this.hadRuntimeError) process.exit(70);
+    runFile(path: string): RunStatus {
+        return this.run(fs.readFileSync(path, {encoding: "utf8"}));
     }
 
     runPrompt(): void {
@@ -39,7 +40,7 @@ export default class Lox {
         nextLine();
     }
 
-    run(source: string, {printLastExpr = false} = {}): void {
+    run(source: string, {printLastExpr = false} = {}): RunStatus {
         let statements: Stmt[] | null = null;
         let errors: SyntaxError[] = [];
 
@@ -56,7 +57,7 @@ export default class Lox {
             this.rangeError(source, error.sourceRange, error.message);
         }
 
-        if (!statements) return;
+        if (!statements) return "SYNTAX_ERROR";
 
         const staticErrors = this.typechecker.checkProgram(statements);
 
@@ -64,7 +65,7 @@ export default class Lox {
             for (const error of staticErrors) {
                 this.rangeError(source, error.sourceRange, error.message);
             }
-            return;
+            return "STATIC_ERROR";
         }
 
         // Replace final expression statement with print statement
@@ -80,9 +81,11 @@ export default class Lox {
         } catch (error) {
             if (error instanceof RuntimeError) {
                 this.rangeError(source, error.sourceRange, error.message);
+                return "RUNTIME_ERROR";
             } else throw error;
         }
 
+        return "SUCCESS";
     }
 
     rangeError(source: string, range: SourceRange, message: string): void {
