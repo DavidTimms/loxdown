@@ -1,7 +1,11 @@
-import Token from "./Token";
+import SourceRange from "./SourceRange";
 
-export default class RuntimeError extends Error {
-    constructor(message: string, public token: Token | null = null) {
-        super(message);
+export default class RuntimeError {
+    readonly sourceRange: SourceRange;
+    constructor(
+        readonly message: string,
+        location: {sourceRange(): SourceRange},
+    ) {
+        this.sourceRange = location.sourceRange();
     }
 }

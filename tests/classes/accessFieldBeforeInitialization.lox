@@ -12,5 +12,7 @@ class Foo {
 Foo().bar();
 
 -- ERROR --
-Undefined property 'x'.
-[line 8]
+8:21 - error: Undefined property 'x'.
+
+8             return this.x;
+                          ^

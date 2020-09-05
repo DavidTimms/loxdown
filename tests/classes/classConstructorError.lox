@@ -1,4 +1,6 @@
 Class();
 -- ERROR --
-It is not possible to create a class by calling the constructor.
-[line 1]
+1:1 - error: It is not possible to create a class by calling the constructor.
+
+1     Class();
+      ^^^^^^^

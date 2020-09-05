@@ -6,7 +6,7 @@ import LoxClass from "./LoxClass";
 import { nil, LoxNil } from "./LoxNil";
 import { isTruthy } from "./coreSemantics";
 import LoxString from "./LoxString";
-import RuntimeError from "./RuntimeError";
+import NativeRuntimeError from "./NativeRuntimeError";
 
 export const clock = new NativeFunction(
     () => new LoxNumber(Date.now() / 1000),
@@ -14,7 +14,7 @@ export const clock = new NativeFunction(
 
 export const assert = new NativeFunction((assertion, description) => {
     if (!isTruthy(assertion)) {
-        throw new RuntimeError(`Assertion Failed: ${description}`);
+        throw new NativeRuntimeError(`Assertion Failed: ${description}`);
     }
     return nil;
 });
@@ -56,14 +56,14 @@ export const Number = new LoxClass("Number").withNativeMethods({
 
         if (value.type !== "STRING") {
             const className = value.loxClass.name;
-            throw new RuntimeError(
+            throw new NativeRuntimeError(
                 `Unable to convert type '${className}' to a number.`);
         }
 
         const parsedValue = +value.value;
 
         if (isNaN(parsedValue)) {
-            throw new RuntimeError("Invalid number.");
+            throw new NativeRuntimeError("Invalid number.");
         }
 
         return new LoxNumber(parsedValue);
@@ -78,7 +78,7 @@ export const String = new LoxClass("String").withNativeMethods({
 
 export const Function = new LoxClass("Function").withNativeMethods({
     init(): LoxValue {
-        throw new RuntimeError(
+        throw new NativeRuntimeError(
             "It is not possible to create a function " +
             "by calling the constructor.",
         );
@@ -87,7 +87,7 @@ export const Function = new LoxClass("Function").withNativeMethods({
 
 export const Class = new LoxClass("Class").withNativeMethods({
     init(): LoxValue {
-        throw new RuntimeError(
+        throw new NativeRuntimeError(
             "It is not possible to create a class by calling the constructor.",
         );
     },

@@ -1,6 +1,5 @@
 import LoxValue from "./LoxValue";
 import Token from "./Token";
-import RuntimeError from "./RuntimeError";
 import ImplementationError from "./ImplementationError";
 
 export default class Environment {
@@ -25,8 +24,8 @@ export default class Environment {
             if (this.enclosing) {
                 return this.enclosing.get(name);
             }
-            throw new RuntimeError(
-                `Undefined variable '${name.lexeme}'.`, name);
+            throw new ImplementationError(
+                `Undefined variable '${name.lexeme}'.`);
         }
 
         return value;
@@ -38,8 +37,8 @@ export default class Environment {
         } else if (this.enclosing) {
             this.enclosing.assign(name, value);
         } else {
-            throw new RuntimeError(
-                `Undefined variable '${name.lexeme}'.`, name);
+            throw new ImplementationError(
+                `Undefined variable '${name.lexeme}'.`);
         }
     }
 

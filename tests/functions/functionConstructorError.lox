@@ -1,4 +1,6 @@
 Function();
 -- ERROR --
-It is not possible to create a function by calling the constructor.
-[line 1]
+1:1 - error: It is not possible to create a function by calling the constructor.
+
+1     Function();
+      ^^^^^^^^^^

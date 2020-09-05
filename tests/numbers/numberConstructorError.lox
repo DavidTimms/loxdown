@@ -1,4 +1,6 @@
 Number(true);
 -- ERROR --
-Unable to convert type 'Boolean' to a number.
-[line 1]
+1:1 - error: Unable to convert type 'Boolean' to a number.
+
+1     Number(true);
+      ^^^^^^^^^^^^

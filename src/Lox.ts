@@ -1,29 +1,25 @@
 import * as fs from "fs";
 import * as readline from "readline";
-
-import SourceLocation from "./SourceLocation";
-import Token from "./Token";
 import Scanner from "./Scanner";
 import Parser from "./Parser";
 import Interpreter from "./Interpreter";
-import RuntimeError from "./RuntimeError";
 import Stmt, { ExpressionStmt, PrintStmt } from "./Stmt";
 import TypeChecker from "./typechecker/TypeChecker";
 import SourceRange from "./SourceRange";
 import SyntaxError from "./SyntaxError";
+import RuntimeError from "./RuntimeError";
 
 export default class Lox {
-    private hadError = false;
-    private hadRuntimeError = false;
     private readonly interpreter = new Interpreter(this);
     private readonly typechecker = new TypeChecker(this.interpreter);
 
     runFile(path: string): void {
         this.run(fs.readFileSync(path, {encoding: "utf8"}));
 
-        // Indicate an error in the exit code
-        if (this.hadError) process.exit(65);
-        if (this.hadRuntimeError) process.exit(70);
+        // TODO return correct exit code
+        // // Indicate an error in the exit code
+        // if (this.hadError) process.exit(65);
+        // if (this.hadRuntimeError) process.exit(70);
     }
 
     runPrompt(): void {
@@ -36,7 +32,6 @@ export default class Lox {
         const nextLine = (): void => {
             stdinInterface.question("> ", line => {
                 this.run(line, {printLastExpr: true});
-                this.hadError = false;
                 nextLine();
             });
         };
@@ -80,33 +75,14 @@ export default class Lox {
                 new PrintStmt(lastStatement.expression);
         }
 
-        this.interpreter.interpret(statements);
-    }
-
-    error(location: SourceLocation, message: string): void {
-        if (location instanceof Token) {
-            if (location.type === "EOF") {
-                this.report(location.line, " at end", message);
-            } else {
-                this.report(location.line, ` at '${location.lexeme}'`, message);
-            }
-        } else {
-            this.report(location.line, "", message);
+        try {
+            this.interpreter.interpret(statements);
+        } catch (error) {
+            if (error instanceof RuntimeError) {
+                this.rangeError(source, error.sourceRange, error.message);
+            } else throw error;
         }
-    }
 
-    runtimeError(error: RuntimeError): void {
-        let errorMessage = error.message;
-        if (error.token) {
-            errorMessage += `\n[line ${error.token.line}]`;
-        }
-        this.printError(errorMessage);
-        this.hadRuntimeError = true;
-    }
-
-    report(line: number, where: string, message: string): void {
-        this.printError(`[line ${line}] Error${where}: ${message}`);
-        this.hadError = true;
     }
 
     rangeError(source: string, range: SourceRange, message: string): void {
