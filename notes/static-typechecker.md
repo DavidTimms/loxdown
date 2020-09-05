@@ -7,7 +7,7 @@
   - Functions which do not declare a return type must not return a value.
   - The types of variables will be inferred, but not parameters or return types.
   - If a subclass overrides a method, the type of each parameter must match or be a superclass of the parameter's type in the original method.
-  - Eventually, type guards using `isInstance` will allow refining union types.
+  - Eventually, type guards using `isInstance` will allow narrowing union types.
 
 - Roadmap:
   - [X] Add syntax support for type declarations for parameters, return types and variable declarations.
@@ -20,7 +20,7 @@
   - [X] Add support for classes and subtyping.
   - [X] Allow classes to declare the types of their fields.
   - [X] Add syntax for declaring callable types.
-  - [ ] Change scoping rules so variable initialisations are hoisted.
+  - [ ] Only defer typechecking of top-level functions, to obey Lox scoping rules, while allowing mutually recursive functions at top-level.
   - Improve errors:
     - [X] Adapt AST to allow accessing the source location of any expression for type errors.
     - [X] Fix tests to use new error format.
