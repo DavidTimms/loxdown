@@ -292,6 +292,10 @@ implements ExprVisitor<Type>, StmtVisitor<void>, TypeExprVisitor<Type> {
         // }
     }
 
+    private isInGlobalScope(): boolean {
+        return this.scopes.length === 1;
+    }
+
     private declareValue(name: Token): void {
         const {valueNamespace} = this.scopes[0];
 
@@ -463,7 +467,14 @@ implements ExprVisitor<Type>, StmtVisitor<void>, TypeExprVisitor<Type> {
         const type = this.getFunctionType(stmt);
         this.declareValue(stmt.name);
         this.defineValue(stmt.name, type);
-        this.deferCheckingFunctionBody(stmt);
+
+        // functions in the global scope can be mutually recursive,
+        // so we defer checking their bodies until the end of the file.
+        if (this.isInGlobalScope()) {
+            this.deferCheckingFunctionBody(stmt);
+        } else {
+            this.checkFunctionBody(stmt, {tag: "FUNCTION", type});
+        }
     }
 
     visitIfStmt(stmt: IfStmt): void {

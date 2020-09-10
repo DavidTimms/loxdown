@@ -1,0 +1,23 @@
+// Mutual recursion is only allowed in the global scope.
+// In all nested scopes, functions must be defined lexically
+// before they are referenced.
+{
+  fun a(i: Number): Number {
+    if (i < 1) {
+      return 42;
+    } else {
+      return b(i);
+    }
+  }
+
+  fun b(i: Number): Number {
+    return a(i - 1);
+  }
+
+  print a(5);
+}
+-- ERROR --
+9:14 - error: The name 'b' is not defined.
+
+9           return b(i);
+                   ^

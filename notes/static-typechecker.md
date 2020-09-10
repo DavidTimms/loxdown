@@ -20,7 +20,7 @@
   - [X] Add support for classes and subtyping.
   - [X] Allow classes to declare the types of their fields.
   - [X] Add syntax for declaring callable types.
-  - [ ] Only defer typechecking of top-level functions, to obey Lox scoping rules, while allowing mutually recursive functions at top-level.
+  - [X] Only defer typechecking of top-level functions, to obey Lox scoping rules, while allowing mutually recursive functions at top-level.
   - Improve errors:
     - [X] Adapt AST to allow accessing the source location of any expression for type errors.
     - [X] Fix tests to use new error format.
