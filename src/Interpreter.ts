@@ -1,4 +1,3 @@
-import Lox from "./Lox";
 import LoxValue from "./LoxValue";
 import Token from "./Token";
 import Environment from "./Environment";
@@ -45,6 +44,7 @@ import LoxString from "./LoxString";
 import { isTruthy, isEqual } from "./coreSemantics";
 import * as globals from "./globals";
 import ImplementationError from "./ImplementationError";
+import OutputHandler from "./OutputHandler";
 
 export default class Interpreter
 implements ExprVisitor<LoxValue>, StmtVisitor<void> {
@@ -52,7 +52,7 @@ implements ExprVisitor<LoxValue>, StmtVisitor<void> {
     private environment = this.globals;
     private readonly locals: Map<Expr, number> = new Map();
 
-    constructor(private readonly lox: Lox) {}
+    constructor(private readonly output: OutputHandler) {}
 
     interpret(statements: Stmt[]): void {
         for (const statement of statements) {
@@ -141,7 +141,7 @@ implements ExprVisitor<LoxValue>, StmtVisitor<void> {
 
     visitPrintStmt(stmt: PrintStmt): void {
         const value = this.evaluate(stmt.expression);
-        this.lox.print(value.toString());
+        this.output.print(value.toString());
     }
 
     visitReturnStmt(stmt: ReturnStmt): void {

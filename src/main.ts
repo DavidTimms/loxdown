@@ -3,7 +3,14 @@
 import Lox from "./Lox";
 
 function main(args: string[]): void {
-    const lox = new Lox();
+    const lox = new Lox({
+        print(message: string): void {
+            console.log(message);
+        },
+        printError(message: string): void {
+            console.error(message);
+        },
+    });
 
     if (args.length > 1) {
         console.error("Usage: loxdown [script]");

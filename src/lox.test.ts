@@ -5,22 +5,7 @@
 // output to the sections labelled -- OUTPUT -- and -- ERROR --
 
 import * as fs from "fs";
-import Lox from "./Lox.js";
-
-// This class overrides the print functions to allow capturing
-// STDERR and STDOUT for tests
-class TestLox extends Lox {
-    stdout = "";
-    stderr = "";
-
-    print(message: string): void {
-        this.stdout += message + "\n";
-    }
-
-    printError(message: string): void {
-        this.stderr += message + "\n";
-    }
-}
+import Lox from "./Lox";
 
 function findFilesRecursively(dirPath: string, suffix: string): string[] {
     const dirEntries = fs.readdirSync(dirPath, {withFileTypes: true});
@@ -57,11 +42,21 @@ for (const fileName of findFilesRecursively(testsDirPath, ".lox")) {
             else spec[target] += (spec[target] ? "\n" : "") + line;
         }
 
-        const lox = new TestLox();
+        let stdout = "";
+        let stderr = "";
+
+        const lox = new Lox({
+            print(message: string): void {
+                stdout += message + "\n";
+            },
+            printError(message: string): void {
+                stderr += message + "\n";
+            },
+        });
 
         lox.run(spec.source);
 
-        expect(lox.stderr).toBe(spec.stderr);
-        expect(lox.stdout).toBe(spec.stdout);
+        expect(stderr).toBe(spec.stderr);
+        expect(stdout).toBe(spec.stdout);
     });
 }

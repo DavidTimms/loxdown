@@ -8,6 +8,7 @@ import TypeChecker from "./typechecker/TypeChecker";
 import SourceRange from "./SourceRange";
 import SyntaxError from "./SyntaxError";
 import RuntimeError from "./RuntimeError";
+import OutputHandler from "./OutputHandler";
 
 type RunStatus =
     | "SYNTAX_ERROR"
@@ -16,8 +17,12 @@ type RunStatus =
     | "SUCCESS";
 
 export default class Lox {
-    private readonly interpreter = new Interpreter(this);
+    private readonly interpreter = new Interpreter(this.output);
     private readonly typechecker = new TypeChecker(this.interpreter);
+
+    constructor(
+        private readonly output: OutputHandler,
+    ) {}
 
     runFile(path: string): RunStatus {
         return this.run(fs.readFileSync(path, {encoding: "utf8"}));
@@ -106,14 +111,6 @@ export default class Lox {
             `${start.line.toString().padEnd(indent)}${sourceLine}\n` +
             underline;
 
-        this.printError(report);
-    }
-
-    printError(message: string): void {
-        console.error(message);
-    }
-
-    print(message: string): void {
-        console.log(message);
+        this.output.printError(report);
     }
 }
