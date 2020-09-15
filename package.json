@@ -1,7 +1,7 @@
 {
-  "name": "tslox",
-  "version": "0.0.1",
-  "description": "Lox interpreter written in TypeScript",
+  "name": "loxdown",
+  "version": "0.1.0",
+  "description": "A statically-typed variant of Lox, written in TypeScript",
   "main": "built/main.js",
   "scripts": {
     "build": "tsc",
@@ -11,21 +11,22 @@
     "generate-ast": "./src/tool/generateAst.ts src/"
   },
   "bin": {
-    "tslox": "src/main.ts"
+    "loxdown": "src/main.ts"
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/davidtimms/tslox.git"
+    "url": "git+https://github.com/davidtimms/loxdown.git"
   },
   "keywords": [
     "typescript",
     "lox",
+    "loxdown",
     "crafting",
     "interpreters"
   ],
   "author": "David Timms",
   "license": "UNLICENSED",
-  "homepage": "https://github.com/davidtimms/tslox#readme",
+  "homepage": "https://github.com/davidtimms/loxdown#readme",
   "devDependencies": {
     "@types/jest": "^25.2.1",
     "@types/node": "^13.11.1",
@@ -37,6 +38,9 @@
     "typescript": "^3.8.3"
   },
   "jest": {
-    "roots": ["built/", "tests/"]
+    "roots": [
+      "built/",
+      "tests/"
+    ]
   }
 }

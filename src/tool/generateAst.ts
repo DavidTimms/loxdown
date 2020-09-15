@@ -16,7 +16,7 @@ type MethodMaker = (baseName: string, classDef: ClassDefinition) => string;
 
 function main(args: string[]): void {
     if (args.length !== 1) {
-        console.error("Usage: tslox-generate-ast <output directory>");
+        console.error("Usage:npm run generate-ast <output directory>");
         process.exit(1);
     }
     const outputDir = args[0];

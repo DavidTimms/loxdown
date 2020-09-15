@@ -6,7 +6,7 @@ function main(args: string[]): void {
     const lox = new Lox();
 
     if (args.length > 1) {
-        console.error("Usage: tslox [script]");
+        console.error("Usage: loxdown [script]");
         process.exit(64);
     } else if (args.length === 1) {
         switch (lox.runFile(args[0])) {
