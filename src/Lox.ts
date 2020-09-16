@@ -1,5 +1,3 @@
-import * as fs from "fs";
-import * as readline from "readline";
 import Scanner from "./Scanner";
 import Parser from "./Parser";
 import Interpreter from "./Interpreter";
@@ -23,27 +21,6 @@ export default class Lox {
     constructor(
         private readonly output: OutputHandler,
     ) {}
-
-    runFile(path: string): RunStatus {
-        return this.run(fs.readFileSync(path, {encoding: "utf8"}));
-    }
-
-    runPrompt(): void {
-        process.stdin.setEncoding("utf8");
-        const stdinInterface = readline.createInterface({
-            input: process.stdin,
-            output: process.stdout,
-        });
-
-        const nextLine = (): void => {
-            stdinInterface.question("> ", line => {
-                this.run(line, {printLastExpr: true});
-                nextLine();
-            });
-        };
-
-        nextLine();
-    }
 
     run(source: string, {printLastExpr = false} = {}): RunStatus {
         // TODO refactor this function.
