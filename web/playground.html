@@ -11,6 +11,7 @@
     body {
       height: 100vh;
       margin: 0;
+      font-family: 'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;
     }
 
     .row {
@@ -30,23 +31,39 @@
 
     .control-bar {
       display: flex;
-      height: 60px;
+      height: 50px;
+      background-color: lightgray;
     }
 
     .control-bar button {
+      margin: 2px 0px;
       padding-left: 25px;
       padding-right: 25px;
+    }
+
+    .control-bar h4 {
+      line-height: 50px;
+      padding: 0px 15px;
+      margin: 0;
     }
 
     #run-button {
       margin-left: auto;
     }
 
-    .code-box {
+    .code-box, .output {
       height: 100%;
       padding: 5px;
       font-family: monospace;
       font-size: 110%;
+      white-space: pre;
+      border: none;
+      border-right: 1px solid lightgrey;
+      resize: none;
+    }
+
+    .output .error {
+      color: maroon;
     }
   </style>
 </head>
@@ -55,6 +72,7 @@
   <div class="row">
     <div class="column">
       <div class="control-bar">
+        <h4>Loxdown</h4>
         <button id="run-button">
           Run
         </button>
@@ -62,6 +80,9 @@
       <textarea id="source-code-box" class="code-box"></textarea>
     </div>
     <div class="column">
+      <div class="control-bar">
+        <h4>Output:</h4>
+      </div>
       <div id="output" class="output"></div>
     </div>
   </div>
