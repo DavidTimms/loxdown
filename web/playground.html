@@ -1,0 +1,72 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <title>Loxdown Playground</title>
+  <meta name="description" content="">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#fafafa">
+  <style type="text/css">
+    body {
+      height: 100vh;
+      margin: 0;
+    }
+
+    .row {
+      display: flex;
+      flex-direction: row;
+      flex-wrap: wrap;
+      width: 100%;
+      height: 95vh;
+    }
+
+    .column {
+      display: flex;
+      flex-direction: column;
+      flex-basis: 100%;
+      flex: 1;
+    }
+
+    .control-bar {
+      display: flex;
+      height: 60px;
+    }
+
+    .control-bar button {
+      padding-left: 25px;
+      padding-right: 25px;
+    }
+
+    #run-button {
+      margin-left: auto;
+    }
+
+    .code-box {
+      height: 100%;
+      padding: 5px;
+      font-family: monospace;
+      font-size: 110%;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="row">
+    <div class="column">
+      <div class="control-bar">
+        <button id="run-button">
+          Run
+        </button>
+      </div>
+      <textarea id="source-code-box" class="code-box"></textarea>
+    </div>
+    <div class="column">
+      <div id="output" class="output"></div>
+    </div>
+  </div>
+
+  <script src="js/playground.js"></script>
+</body>
+
+</html>
