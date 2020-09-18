@@ -32,7 +32,8 @@
     .control-bar {
       display: flex;
       height: 50px;
-      background-color: lightgray;
+      background-color: lightgrey;
+      border-bottom: 1px solid grey;
     }
 
     .control-bar button {
@@ -65,6 +66,15 @@
     .output .error {
       color: maroon;
     }
+
+    .syntax-error, .static-error, .runtime-error {
+      color: maroon;
+    }
+
+    .success {
+      color: darkgreen;
+    }
+
   </style>
 </head>
 
@@ -81,7 +91,7 @@
     </div>
     <div class="column">
       <div class="control-bar">
-        <h4>Output:</h4>
+        <h4 id="output-title">&nbsp;</h4>
       </div>
       <div id="output" class="output"></div>
     </div>

@@ -8,7 +8,7 @@ import SyntaxError from "./SyntaxError";
 import RuntimeError from "./RuntimeError";
 import OutputHandler from "./OutputHandler";
 
-type RunStatus =
+export type RunStatus =
     | "SYNTAX_ERROR"
     | "STATIC_ERROR"
     | "RUNTIME_ERROR"
