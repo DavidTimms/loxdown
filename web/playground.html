@@ -7,6 +7,8 @@
   <meta name="description" content="">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="theme-color" content="#fafafa">
+
+  <link rel="stylesheet" href="css/codemirror.css">
   <style type="text/css">
     body {
       height: 100vh;
@@ -19,7 +21,7 @@
       flex-direction: row;
       flex-wrap: wrap;
       width: 100%;
-      height: 95vh;
+      height: 100vh;
     }
 
     .column {
@@ -32,8 +34,8 @@
     .control-bar {
       display: flex;
       height: 50px;
-      background-color: lightgrey;
-      border-bottom: 1px solid grey;
+      border-bottom: 1px solid #ddd;
+      background-color: #f7f7f7;
     }
 
     .control-bar button {
@@ -52,7 +54,7 @@
       margin-left: auto;
     }
 
-    .code-box, .output {
+    .output {
       height: 100%;
       padding: 5px;
       font-family: monospace;
@@ -61,6 +63,10 @@
       border: none;
       border-right: 1px solid lightgrey;
       resize: none;
+    }
+
+    .CodeMirror {
+      height: 100%;
     }
 
     .output .error {

@@ -5,7 +5,7 @@
   "main": "built/main.js",
   "scripts": {
     "build": "tsc",
-    "build-playground": "npm run-script build && webpack",
+    "build-playground": "npm run-script build && webpack && cp node_modules/codemirror/lib/codemirror.css web/css/",
     "lint": "eslint . --ext .js,.ts",
     "format": "eslint . --ext .js,.ts --fix",
     "test": "npm run-script build && jest",
@@ -29,6 +29,7 @@
   "license": "UNLICENSED",
   "homepage": "https://github.com/davidtimms/loxdown#readme",
   "devDependencies": {
+    "@types/codemirror": "0.0.98",
     "@types/jest": "^25.2.1",
     "@types/node": "^13.11.1",
     "@typescript-eslint/eslint-plugin": "^2.27.0",
@@ -45,5 +46,8 @@
       "built/",
       "tests/"
     ]
+  },
+  "dependencies": {
+    "codemirror": "^5.57.0"
   }
 }

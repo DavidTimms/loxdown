@@ -1,11 +1,18 @@
 /// <reference lib="dom" />
 
+import * as CodeMirror from "codemirror";
 import Lox, { RunStatus } from "../Lox.js";
 
 const sourceCodeBox = document.getElementById("source-code-box") as HTMLTextAreaElement;
 const runButton = document.getElementById("run-button") as HTMLButtonElement;
 const outputBox = document.getElementById("output") as HTMLButtonElement;
 const outputTitle = document.getElementById("output-title") as HTMLHeadingElement;
+
+const codeMirror = CodeMirror.fromTextArea(sourceCodeBox, {
+    mode: "null",
+    lineNumbers: true,
+    autofocus: true,
+});
 
 const output = {
     clear(): void {
@@ -37,7 +44,7 @@ const output = {
 
 function run(): void {
     output.clear();
-    const source = sourceCodeBox.value;
+    const source = codeMirror.getValue();
     const lox = new Lox(output);
     const status = lox.run(source);
     output.setStatus(status);
