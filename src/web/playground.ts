@@ -1,7 +1,7 @@
 /// <reference lib="dom" />
 
 import * as CodeMirror from "codemirror";
-import Lox, { RunStatus } from "../Lox.js";
+import Lox, { CheckStatus, RunStatus } from "../Lox.js";
 
 const leftColumn =
     document.getElementById("left-column") as HTMLDivElement;
@@ -39,11 +39,12 @@ const output = {
         messageBox.classList.add("error");
         outputBox.appendChild(messageBox);
     },
-    setStatus(status: RunStatus): void {
-        const statusClasses: {[RS in RunStatus]: string} = {
+    setStatus(status: CheckStatus | RunStatus): void {
+        const statusClasses: {[RS in CheckStatus | RunStatus]: string} = {
             "SYNTAX_ERROR": "syntax-error",
             "STATIC_ERROR": "static-error",
             "RUNTIME_ERROR": "runtime-error",
+            "VALID": "success",
             "SUCCESS": "success",
         };
         outputTitle.classList.remove(...Object.values(statusClasses));
@@ -51,6 +52,15 @@ const output = {
         outputTitle.innerText = status.replace(/_/g, " ") + "!";
     },
 };
+
+
+function check(): void {
+    output.clear();
+    const source = codeMirror.getValue();
+    const lox = new Lox(output);
+    const status = lox.check(source);
+    output.setStatus(status);
+}
 
 function run(): void {
     output.clear();
@@ -72,6 +82,7 @@ async function selectExample(): Promise<void> {
     }
 }
 
+codeMirror.on("changes", check);
 runButton.addEventListener("click", run);
 exampleSelection.addEventListener("input", selectExample);
 selectExample();

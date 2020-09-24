@@ -8,6 +8,11 @@ import SyntaxError from "./SyntaxError";
 import RuntimeError from "./RuntimeError";
 import OutputHandler from "./OutputHandler";
 
+export type CheckStatus =
+    | "SYNTAX_ERROR"
+    | "STATIC_ERROR"
+    | "VALID";
+
 export type RunStatus =
     | "SYNTAX_ERROR"
     | "STATIC_ERROR"
@@ -22,7 +27,45 @@ export default class Lox {
         private readonly output: OutputHandler,
     ) {}
 
+    check(source: string): CheckStatus {
+        return this.checked(source).status;
+    }
+
     run(source: string, {printLastExpr = false} = {}): RunStatus {
+        let program: Stmt[];
+
+        const checked = this.checked(source);
+
+        if (checked.status !== "VALID") {
+            return checked.status;
+        } else {
+            program = checked.program;
+        }
+
+        // Replace final expression statement with print statement
+        // so expressions get printed in the REPL
+        const lastStatement = program[program.length - 1];
+        if (printLastExpr && lastStatement instanceof ExpressionStmt) {
+            program[program.length - 1] =
+                new PrintStmt(lastStatement.expression);
+        }
+
+        try {
+            this.interpreter.interpret(program);
+        } catch (error) {
+            if (error instanceof RuntimeError) {
+                this.rangeError(source, error.sourceRange, error.message);
+                return "RUNTIME_ERROR";
+            } else throw error;
+        }
+
+        return "SUCCESS";
+    }
+
+
+    private checked(source: string):
+        | {status: "SYNTAX_ERROR" | "STATIC_ERROR"}
+        | {status: "VALID"; program: Stmt[]} {
         // TODO refactor this function.
         // Perhaps use a monad to accumulate errors.
 
@@ -42,7 +85,7 @@ export default class Lox {
             this.rangeError(source, error.sourceRange, error.message);
         }
 
-        if (!statements) return "SYNTAX_ERROR";
+        if (!statements) return {status: "SYNTAX_ERROR"};
 
         const staticErrors = this.typechecker.checkProgram(statements);
 
@@ -50,27 +93,10 @@ export default class Lox {
             for (const error of staticErrors) {
                 this.rangeError(source, error.sourceRange, error.message);
             }
-            return "STATIC_ERROR";
+            return {status: "STATIC_ERROR"};
         }
 
-        // Replace final expression statement with print statement
-        // so expressions get printed in the REPL
-        const lastStatement = statements[statements.length - 1];
-        if (printLastExpr && lastStatement instanceof ExpressionStmt) {
-            statements[statements.length - 1] =
-                new PrintStmt(lastStatement.expression);
-        }
-
-        try {
-            this.interpreter.interpret(statements);
-        } catch (error) {
-            if (error instanceof RuntimeError) {
-                this.rangeError(source, error.sourceRange, error.message);
-                return "RUNTIME_ERROR";
-            } else throw error;
-        }
-
-        return "SUCCESS";
+        return {status: "VALID", program: statements};
     }
 
     rangeError(source: string, range: SourceRange, message: string): void {
