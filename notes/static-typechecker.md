@@ -29,6 +29,7 @@
   - [X] Sort errors by location in the source code, so the order is not affected by deferred checking.
   - [X] Rollback typechecker state after type error in the REPL, so it correctly reflects interpreter state.
   - [X] Add types for builtin type constructors (Boolean, Number, String).
+  - [ ] Ensure all code paths in a function return.
   - [ ] Add support for union types.
   - [ ] Add type aliases.
   - [ ] Add generics.
