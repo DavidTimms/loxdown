@@ -3,8 +3,8 @@
 import * as CodeMirror from "codemirror";
 import Lox, { RunStatus } from "../Lox.js";
 
-const sourceCodeBox =
-    document.getElementById("source-code-box") as HTMLTextAreaElement;
+const leftColumn =
+    document.getElementById("left-column") as HTMLDivElement;
 
 const exampleSelection =
     document.getElementById("example-selection") as HTMLSelectElement;
@@ -18,7 +18,7 @@ const outputBox =
 const outputTitle =
     document.getElementById("output-title") as HTMLHeadingElement;
 
-const codeMirror = CodeMirror.fromTextArea(sourceCodeBox, {
+const codeMirror = CodeMirror(leftColumn, {
     mode: "null",
     lineNumbers: true,
     autofocus: true,

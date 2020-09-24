@@ -77,11 +77,14 @@ export default class Lox {
         const indent = 6;
         const {start} = range;
 
-        const sourceLine = source.split("\n")[start.line - 1];
+        // Replace tabs in the line with spaces to avoid the underline
+        // being misaligned.
+        const sourceLine =
+            source.split("\n")[start.line - 1].replace(/\t/g, " ");
+
         const underline =
             Array(indent + start.column - 1).fill(" ").join("") +
             Array(range.length()).fill("^").join("");
-
 
         const report =
             `${start.line}:${start.column} - error: ${message}\n\n` +
