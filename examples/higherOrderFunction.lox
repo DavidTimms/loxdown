@@ -1,0 +1,19 @@
+
+fun power(exponent: Number): fun (Number): Number {
+	fun applyPower(base: Number): Number {
+    	var current = 1;
+        for (var i = 0; i < exponent; i = i + 1) {
+        	current = current * base;
+        }
+        return current;
+    }
+    return applyPower;
+}
+
+var cube = power(3);
+
+print cube(1);
+print cube(2);
+print cube(3);
+print cube(4);
+print cube(5);
