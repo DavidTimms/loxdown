@@ -38,8 +38,8 @@
       background-color: #f7f7f7;
     }
 
-    .control-bar button {
-      margin: 2px 0px;
+    .control-bar button, .control-bar select {
+      margin: 2px 2px;
       padding-left: 25px;
       padding-right: 25px;
     }
@@ -50,7 +50,7 @@
       margin: 0;
     }
 
-    #run-button {
+    #example-selection {
       margin-left: auto;
     }
 
@@ -89,6 +89,10 @@
     <div class="column">
       <div class="control-bar">
         <h4>Loxdown</h4>
+        <select id="example-selection">
+          <option value="simpleClass.lox" selected>Simple Class</option>
+          <option value="nintyNineBottles.lox">99 Bottles</option>
+        </select>
         <button id="run-button">
           Run
         </button>

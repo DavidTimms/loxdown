@@ -3,10 +3,20 @@
 import * as CodeMirror from "codemirror";
 import Lox, { RunStatus } from "../Lox.js";
 
-const sourceCodeBox = document.getElementById("source-code-box") as HTMLTextAreaElement;
-const runButton = document.getElementById("run-button") as HTMLButtonElement;
-const outputBox = document.getElementById("output") as HTMLButtonElement;
-const outputTitle = document.getElementById("output-title") as HTMLHeadingElement;
+const sourceCodeBox =
+    document.getElementById("source-code-box") as HTMLTextAreaElement;
+
+const exampleSelection =
+    document.getElementById("example-selection") as HTMLSelectElement;
+
+const runButton =
+    document.getElementById("run-button") as HTMLButtonElement;
+
+const outputBox =
+    document.getElementById("output") as HTMLButtonElement;
+
+const outputTitle =
+    document.getElementById("output-title") as HTMLHeadingElement;
 
 const codeMirror = CodeMirror.fromTextArea(sourceCodeBox, {
     mode: "null",
@@ -50,4 +60,18 @@ function run(): void {
     output.setStatus(status);
 }
 
+async function selectExample(): Promise<void> {
+    const exampleFile = exampleSelection.value;
+
+    try {
+        const response = await fetch(`examples/${exampleFile}`);
+        if (!response.ok) throw Error();
+        codeMirror.setValue(await response.text());
+    } catch (error) {
+        codeMirror.setValue("// Unable to load example!");
+    }
+}
+
 runButton.addEventListener("click", run);
+exampleSelection.addEventListener("input", selectExample);
+selectExample();
