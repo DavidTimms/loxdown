@@ -1,0 +1,8 @@
+print "hello" + "
+
+    world
+-- ERROR --
+3:9 - error: Unterminated string.
+
+3         world
+              ^
