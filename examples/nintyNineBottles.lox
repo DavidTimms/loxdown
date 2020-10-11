@@ -1,0 +1,11 @@
+fun nintyNineBottles() {
+    for (var n = 99; n > 0; n = n - 1) {
+        print(String(n) + " bottles of beer on the wall");
+        print(String(n) + " bottles of beer");
+        print("Take one down, pass it around");
+        print(String(n - 1) + " bottles of beer on the wall");
+        print("---");
+    }
+}
+
+nintyNineBottles();
