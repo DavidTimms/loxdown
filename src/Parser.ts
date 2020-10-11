@@ -30,7 +30,7 @@ import {
 import LoxValue from "./LoxValue";
 import { loxTrue, loxFalse } from "./LoxBool";
 import Parameter from "./Parameter";
-import { TypeExpr, VariableTypeExpr, CallableTypeExpr } from "./TypeExpr";
+import { TypeExpr, VariableTypeExpr, CallableTypeExpr, UnionTypeExpr } from "./TypeExpr";
 import Field from "./Field";
 import SyntaxError from "./SyntaxError";
 import SourceRange from "./SourceRange";
@@ -292,8 +292,21 @@ export default class Parser {
     }
 
     private typeExpr(): TypeExpr {
+        let typeExpr = this.typePrimary();
+
+        while (this.match("PIPE")) {
+            const operator = this.previous();
+            const right = this.typePrimary();
+
+            typeExpr = new UnionTypeExpr(typeExpr, operator, right);
+        }
+
+        return typeExpr;
+    }
+
+    private typePrimary(): TypeExpr {
         if (this.match("FUN")) return this.callableTypeExpr();
-        const name = this.consume("IDENTIFIER", "Expect parameter name.");
+        const name = this.consume("IDENTIFIER", "Expect type.");
         return new VariableTypeExpr(name);
     }
 

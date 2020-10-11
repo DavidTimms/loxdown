@@ -36,6 +36,7 @@ import {
     TypeExprVisitor,
     VariableTypeExpr,
     CallableTypeExpr,
+    UnionTypeExpr,
 } from "../TypeExpr";
 import { zip, comparator } from "../helpers";
 import CallableType from "./CallableType";
@@ -370,6 +371,14 @@ implements ExprVisitor<Type>, StmtVisitor<ControlFlow>, TypeExprVisitor<Type> {
                 this.evaluateTypeExpr(typeExpr.returnType) : null;
 
         return new CallableType(params, returns);
+    }
+
+    visitUnionTypeExpr(typeExpr: UnionTypeExpr): Type {
+        const left = this.evaluateTypeExpr(typeExpr.left);
+        const right = this.evaluateTypeExpr(typeExpr.right);
+
+        // TODO enhance this to instantiate proper union type object
+        return this.attemptTypeUnion(left, right) ?? types.Any;
     }
 
     visitBlockStmt(stmt: BlockStmt): ControlFlow {

@@ -12,6 +12,7 @@ type TokenType =
     "SEMICOLON" |
     "SLASH" |
     "STAR" |
+    "PIPE" |
 
     // One or two character tokens.
     "BANG" |

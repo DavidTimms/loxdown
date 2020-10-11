@@ -1,0 +1,1 @@
+var length: String | Number = "long";

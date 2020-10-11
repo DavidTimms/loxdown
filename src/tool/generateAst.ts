@@ -73,9 +73,12 @@ function main(args: string[]): void {
         outputDir,
         baseName: "TypeExpr",
         classes: [
-            "Variable   -> name: Token",
             `Callable   -> paramTypes: TypeExpr[],
                            returnType: TypeExpr | null`,
+            `Union      -> left: TypeExpr,
+                           operator: Token,
+                           right: TypeExpr`,
+            "Variable   -> name: Token",
         ],
     });
 }
