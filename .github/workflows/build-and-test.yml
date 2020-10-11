@@ -23,6 +23,7 @@ jobs:
     - name: Build Playground
       run: npm run build-playground
     - name: Deploy to GitHub Pages
+      if: github.ref == 'refs/heads/master'
       uses: peaceiris/actions-gh-pages@3bdd7da
       with:
         github_token: ${{ secrets.GITHUB_TOKEN }}
