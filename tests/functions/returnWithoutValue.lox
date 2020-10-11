@@ -1,0 +1,8 @@
+fun returnsString(): String {
+    return;
+}
+-- ERROR --
+2:5 - error: This function cannot return without a value.
+
+2         return;
+          ^^^^^^

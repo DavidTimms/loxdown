@@ -78,8 +78,12 @@ interface FunctionContext {
 
 type ClassContext = "NONE" | "CLASS" | "SUBCLASS";
 
+interface ControlFlow {
+    passable: boolean;
+}
+
 export default class TypeChecker
-implements ExprVisitor<Type>, StmtVisitor<void>, TypeExprVisitor<Type> {
+implements ExprVisitor<Type>, StmtVisitor<ControlFlow>, TypeExprVisitor<Type> {
     private scopes: Scope[] = [this.globalScope()];
     private currentFunction: FunctionContext | null = null;
     private currentClass: ClassContext = "NONE";
@@ -120,14 +124,18 @@ implements ExprVisitor<Type>, StmtVisitor<void>, TypeExprVisitor<Type> {
         ]));
     }
 
-    private checkStmts(stmts: Stmt[]): void {
+    private checkStmts(stmts: Stmt[]): ControlFlow {
+        let passable = true;
+
         for (const stmt of stmts) {
-            this.checkStmt(stmt);
+            const stmtControlFlow = this.checkStmt(stmt);
+            passable = passable && stmtControlFlow.passable;
         }
+        return {passable};
     }
 
-    private checkStmt(stmt: Stmt): void {
-        stmt.accept(this);
+    private checkStmt(stmt: Stmt): ControlFlow {
+        return stmt.accept(this);
     }
 
     private checkExpr(expr: Expr, expectedType: Type | null = null): Type {
@@ -247,7 +255,16 @@ implements ExprVisitor<Type>, StmtVisitor<void>, TypeExprVisitor<Type> {
             this.declareValue(param.name);
             this.defineValue(param.name, type);
         }
-        this.checkStmts(func.body);
+        const controlFlow = this.checkStmts(func.body);
+
+        if (controlFlow.passable && context.type.returns !== null) {
+            const name = func.name.lexeme;
+            this.error(
+                `Not all code paths return in the function '${name}'.`,
+                func.name,
+            );
+        }
+
         this.endScope();
         this.currentFunction = enclosingFunction;
     }
@@ -355,13 +372,14 @@ implements ExprVisitor<Type>, StmtVisitor<void>, TypeExprVisitor<Type> {
         return new CallableType(params, returns);
     }
 
-    visitBlockStmt(stmt: BlockStmt): void {
+    visitBlockStmt(stmt: BlockStmt): ControlFlow {
         this.beginScope();
-        this.checkStmts(stmt.statements);
+        const controlFlow = this.checkStmts(stmt.statements);
         this.endScope();
+        return controlFlow;
     }
 
-    visitClassStmt(stmt: ClassStmt): void {
+    visitClassStmt(stmt: ClassStmt): ControlFlow {
         const enclosingClass = this.currentClass;
         this.currentClass = "CLASS";
 
@@ -417,6 +435,8 @@ implements ExprVisitor<Type>, StmtVisitor<void>, TypeExprVisitor<Type> {
         if (superType) this.endScope();
 
         this.currentClass = enclosingClass;
+
+        return {passable: true};
     }
 
     private getFieldTypes(fields: Field[]): Map<string, Type> {
@@ -459,11 +479,12 @@ implements ExprVisitor<Type>, StmtVisitor<void>, TypeExprVisitor<Type> {
         }
     }
 
-    visitExpressionStmt(stmt: ExpressionStmt): void {
+    visitExpressionStmt(stmt: ExpressionStmt): ControlFlow {
         this.checkExpr(stmt.expression);
+        return {passable: true};
     }
 
-    visitFunctionStmt(stmt: FunctionStmt): void {
+    visitFunctionStmt(stmt: FunctionStmt): ControlFlow {
         const type = this.getFunctionType(stmt);
         this.declareValue(stmt.name);
         this.defineValue(stmt.name, type);
@@ -475,25 +496,29 @@ implements ExprVisitor<Type>, StmtVisitor<void>, TypeExprVisitor<Type> {
         } else {
             this.checkFunctionBody(stmt, {tag: "FUNCTION", type});
         }
+        return {passable: true};
     }
 
-    visitIfStmt(stmt: IfStmt): void {
+    visitIfStmt(stmt: IfStmt): ControlFlow {
         this.checkExpr(stmt.condition);
-        this.checkStmt(stmt.thenBranch);
-        if (stmt.elseBranch) this.checkStmt(stmt.elseBranch);
+        const {passable: thenIsPassable} = this.checkStmt(stmt.thenBranch);
+        if (stmt.elseBranch) {
+            const {passable: elseIsPassable} = this.checkStmt(stmt.elseBranch);
+            return {passable: thenIsPassable || elseIsPassable};
+        } else {
+            return {passable: true};
+        }
     }
 
-    visitPrintStmt(stmt: PrintStmt): void {
+    visitPrintStmt(stmt: PrintStmt): ControlFlow {
         this.checkExpr(stmt.expression);
+        return {passable: true};
     }
 
-    visitReturnStmt(stmt: ReturnStmt): void {
+    visitReturnStmt(stmt: ReturnStmt): ControlFlow {
         if (this.currentFunction === null) {
             this.error("Cannot return from top-level code.", stmt.keyword);
-            return;
-        }
-
-        if (stmt.value) {
+        } else if (stmt.value) {
             if (this.currentFunction.tag === "INITIALIZER") {
                 this.error(
                     "Cannot return a value from an initializer.", stmt.keyword);
@@ -505,10 +530,16 @@ implements ExprVisitor<Type>, StmtVisitor<void>, TypeExprVisitor<Type> {
                 );
             }
             this.checkExpr(stmt.value, this.currentFunction.type.returns);
+        } else if (this.currentFunction.type.returns !== null) {
+            this.error(
+                "This function cannot return without a value.",
+                stmt.keyword,
+            );
         }
+        return {passable: false};
     }
 
-    visitVarStmt(stmt: VarStmt): void {
+    visitVarStmt(stmt: VarStmt): ControlFlow {
         this.declareValue(stmt.name);
 
         const declaredType =
@@ -518,12 +549,16 @@ implements ExprVisitor<Type>, StmtVisitor<void>, TypeExprVisitor<Type> {
             stmt.initializer ?
                 this.checkExpr(stmt.initializer, declaredType) : null;
 
-        this.defineValue(stmt.name, declaredType ?? initializerType ?? types.Any);
+        const type = declaredType ?? initializerType ?? types.Any;
+
+        this.defineValue(stmt.name, type);
+
+        return {passable: true};
     }
 
-    visitWhileStmt(stmt: WhileStmt): void {
+    visitWhileStmt(stmt: WhileStmt): ControlFlow {
         this.checkExpr(stmt.condition);
-        this.checkStmt(stmt.body);
+        return this.checkStmt(stmt.body);
     }
 
     visitAssignExpr(expr: AssignExpr): Type {

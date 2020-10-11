@@ -1,0 +1,10 @@
+fun positive(x: Number): Number {
+    if (x > 0) {
+        return x;
+    }
+}
+-- ERROR --
+1:5 - error: Not all code paths return in the function 'positive'.
+
+1     fun positive(x: Number): Number {
+          ^^^^^^^^
