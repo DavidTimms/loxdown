@@ -4,31 +4,4 @@ Loxdown is an experimental statically-typed variant of the Lox programming langu
 
 This is not really intented for other people to use. It was mainly an exercise to learn more about implementing languages and type systems.
 
-Here is a simple example program:
-
-```
-var currentYear = 2020;
-
-class Person {
-    name: String;
-    yearOfBirth: Number;
-
-    init(name: String, yearOfBirth: Number) {
-        this.name = name;
-        this.yearOfBirth = yearOfBirth;
-    }
-
-    age(): Number {
-        return currentYear - this.yearOfBirth;
-    }
-}
-
-fun combinedAge(p1: Person, p2: Person): Number {
-    return p1.age() + p2.age();
-}
-
-var alice = Person("Alice", 1999);
-var bob   = Person("Robert", 1985);
-
-print combinedAge(alice, bob);
-```
+[You can read and run some example programs in your browser using the playground.](https://davidtimms.github.io/loxdown/playground)
