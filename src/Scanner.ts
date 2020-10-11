@@ -108,12 +108,13 @@ export default class Scanner {
             case " ":
             case "\r":
             case "\t":
+            case "\n":
                 // Ignore whitespace
                 break;
-            case "\n":
-                this.line += 1;
-                this.lineStart = this.current;
-                break;
+            // case "\n":
+            //     this.line += 1;
+            //     this.lineStart = this.current;
+            //     break;
             case "\"":
                 this.string();
                 break;
@@ -133,14 +134,12 @@ export default class Scanner {
             !(this.match("*") && this.match("/")) &&
             !this.isAtEnd()
         ) {
-            if (this.peek() === "\n") this.line += 1;
             this.advance();
         }
     }
 
     private string(): void {
         while (this.peek() !== "\"" && !this.isAtEnd()) {
-            if (this.peek() === "\n") this.line += 1;
             this.advance();
         }
 
@@ -186,7 +185,14 @@ export default class Scanner {
 
     private advance(): string {
         this.current += 1;
-        return this.source.charAt(this.current - 1);
+        const char = this.source.charAt(this.current - 1);
+
+        if (char === "\n") {
+            this.line += 1;
+            this.lineStart = this.current;
+        }
+
+        return char;
     }
 
     private addToken(type: TokenType, literal: LoxValue | null = null): void {
@@ -198,8 +204,7 @@ export default class Scanner {
     private match(expected: string): boolean {
         if (this.isAtEnd()) return false;
         if (this.source.charAt(this.current) !== expected) return false;
-
-        this.current += 1;
+        this.advance();
         return true;
     }
 

@@ -1,0 +1,24 @@
+var currentYear = 2020;
+
+class Person {
+    name: String;
+    yearOfBirth: Number;
+
+    init(name: String, yearOfBirth: Number) {
+        this.name = name;
+        this.yearOfBirth = yearOfBirth;
+    }
+
+    age(): Number {
+        return currentYear - this.yearOfBirth;
+    }
+}
+
+fun combinedAge(p1: Person, p2: Person): Number {
+    return p1.age() + p2.age();
+}
+
+var alice = Person("Alice", 1999);
+var bob   = Person("Robert", 1985);
+
+print combinedAge(alice, bob);
