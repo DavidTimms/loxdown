@@ -5,7 +5,7 @@ on: [push]
 jobs:
   build:
 
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
 
     steps:
     - name: Checkout the code
@@ -20,3 +20,10 @@ jobs:
       run: npm run lint
     - name: Run tests
       run: npm test
+    - name: Build Playground
+      run: npm run build-playground
+    - name: Deploy to GitHub Pages
+      uses: peaceiris/actions-gh-pages@3bdd7da
+      with:
+        github_token: ${{ secrets.GITHUB_TOKEN }}
+        publish_dir: ./web
