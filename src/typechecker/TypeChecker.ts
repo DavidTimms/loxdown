@@ -45,6 +45,10 @@ import globalsTypes from "./globalsTypes";
 import ImplementationError from "../ImplementationError";
 import Field from "../Field";
 import SourceRange from "../SourceRange";
+import InstanceType from "./InstanceType";
+import UnionType from "./UnionType";
+
+const DEBUG_SCOPE = false;
 
 class StaticError {
     constructor(
@@ -106,6 +110,7 @@ implements ExprVisitor<Type>, StmtVisitor<ControlFlow>, TypeExprVisitor<Type> {
         this.errors = [];
         this.checkStmts(stmts);
         this.checkDeferredFunctionBodies();
+        this.debugScope();
         if (this.errors.length > 0) {
             // if there are type errors, restore the state of the scopes to
             // their state before the program was checked. This ensures the
@@ -211,27 +216,19 @@ implements ExprVisitor<Type>, StmtVisitor<ControlFlow>, TypeExprVisitor<Type> {
         return areReturnTypesCompatible;
     }
 
-    private attemptTypeUnion(left: Type, right: Type): Type | null {
+    private union(left: Type, right: Type): Type | null {
         if (left === right) return left;
-        if (left === types.PreviousTypeError) return right;
-        if (right === types.PreviousTypeError) return left;
 
-        // Find a common ancestor in the inheritance chains of two instances
-        if (left.tag === "INSTANCE" && right.tag === "INSTANCE") {
-            const latestCommonAncestorPair =
-                zip(left.inheritanceChain(), right.inheritanceChain())
-                    .reverse()
-                    .find(
-                        ([leftAncestor, rightAncestor]) =>
-                            leftAncestor === rightAncestor,
-                    );
-
-            return latestCommonAncestorPair ?
-                latestCommonAncestorPair[0] : null;
+        if (
+            left === types.PreviousTypeError ||
+            right === types.PreviousTypeError
+        ) {
+            return types.PreviousTypeError;
         }
 
-        // Unable to find a type that contains both types
-        return null;
+        // TODO avoid duplicates, subsumed subtypes and nested unions
+
+        return new UnionType([left, right]);
     }
 
     private getFunctionType(func: FunctionStmt): CallableType {
@@ -299,15 +296,8 @@ implements ExprVisitor<Type>, StmtVisitor<ControlFlow>, TypeExprVisitor<Type> {
 
     private endScope(): void {
         this.checkDeferredFunctionBodies();
+        this.debugScope();
         this.scopes.shift();
-
-        // // Print the types of variables in this scope
-        // if (scope) {
-        //     const indent = Array(this.scopes.length).fill("  ").join("");
-        //     for (const [name, type] of scope.valueNamespace.entries()) {
-        //         console.log(`${indent}${name}: ${type}`);
-        //     }
-        // }
     }
 
     private isInGlobalScope(): boolean {
@@ -378,7 +368,7 @@ implements ExprVisitor<Type>, StmtVisitor<ControlFlow>, TypeExprVisitor<Type> {
         const right = this.evaluateTypeExpr(typeExpr.right);
 
         // TODO enhance this to instantiate proper union type object
-        return this.attemptTypeUnion(left, right) ?? types.Any;
+        return this.union(left, right) ?? types.Any;
     }
 
     visitBlockStmt(stmt: BlockStmt): ControlFlow {
@@ -671,7 +661,7 @@ implements ExprVisitor<Type>, StmtVisitor<ControlFlow>, TypeExprVisitor<Type> {
 
     visitGetExpr(expr: GetExpr): Type {
         const objectType = this.checkExpr(expr.object);
-        const memberType = objectType.classType?.findMember(expr.name.lexeme);
+        const memberType = objectType.get(expr.name.lexeme);
 
         if (memberType === null && objectType !== types.PreviousTypeError) {
             this.error(
@@ -700,7 +690,7 @@ implements ExprVisitor<Type>, StmtVisitor<ControlFlow>, TypeExprVisitor<Type> {
     visitLogicalExpr(expr: LogicalExpr): Type {
         const left = this.checkExpr(expr.left);
         const right = this.checkExpr(expr.right);
-        const type = this.attemptTypeUnion(left, right);
+        const type = this.union(left, right);
         if (type === null) {
             return this.error(
                 `The operand types for '${expr.operator.lexeme}' are not ` +
@@ -715,8 +705,7 @@ implements ExprVisitor<Type>, StmtVisitor<ControlFlow>, TypeExprVisitor<Type> {
     visitSetExpr(expr: SetExpr): Type {
         const objectType = this.checkExpr(expr.object);
         const memberType =
-            objectType.classType?.findMember(expr.name.lexeme) ??
-            types.PreviousTypeError;
+            objectType.get(expr.name.lexeme) ?? types.PreviousTypeError;
 
         this.checkExpr(expr.value, memberType);
 
@@ -736,8 +725,8 @@ implements ExprVisitor<Type>, StmtVisitor<ControlFlow>, TypeExprVisitor<Type> {
             );
         }
 
-        const superType = this.resolveName(expr, expr.keyword);
-        const methodType = superType.classType?.findMethod(expr.method.lexeme);
+        const superType = this.resolveName(expr, expr.keyword) as InstanceType;
+        const methodType = superType.classType.findMethod(expr.method.lexeme);
 
         return methodType ?? this.error(
             `Superclass type '${superType}' has no method ` +
@@ -784,5 +773,15 @@ implements ExprVisitor<Type>, StmtVisitor<ControlFlow>, TypeExprVisitor<Type> {
     private error(message: string, target: {sourceRange(): SourceRange}): Type {
         this.errors.push(new StaticError(message, target.sourceRange()));
         return types.PreviousTypeError;
+    }
+
+    private debugScope(scope: Scope = this.scopes[0]): void {
+        // Print the types of variables in this scope
+        if (DEBUG_SCOPE) {
+            const indent = Array(this.scopes.length).fill("  ").join("");
+            for (const [name, type] of scope.valueNamespace.entries()) {
+                console.log(`${indent}${name}: ${type}`);
+            }
+        }
     }
 }

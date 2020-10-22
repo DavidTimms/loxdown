@@ -13,6 +13,10 @@ export default class CallableType {
         return this;
     }
 
+    get(name: string): Type | null {
+        return null;
+    }
+
     toString(): string {
         const params = this.params.join(", ");
         return `fun (${params})` + (this.returns ? `: ${this.returns}` : "");

@@ -1,0 +1,17 @@
+class Bird {
+    fly() {
+        print "flap flap flap";
+    }
+}
+
+class Bee {
+    fly() {
+        print "buzzzzz";
+    }
+}
+
+var ufo: Bird | Bee = Bird();
+
+ufo.fly();
+-- OUTPUT --
+flap flap flap

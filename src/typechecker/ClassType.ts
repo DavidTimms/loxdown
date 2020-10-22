@@ -30,6 +30,10 @@ export default class ClassType {
         this.superclass = superclass;
     }
 
+    toString(): string {
+        return `class ${this.name}`;
+    }
+
     get classType(): ClassType {
         return ClassType.metaClass;
     }
@@ -37,6 +41,10 @@ export default class ClassType {
     get callable(): CallableType {
         const initializer = this.findMethod("init")?.callable ?? null;
         return new CallableType(initializer?.params ?? [], this.instance());
+    }
+
+    get(name: string): Type | null {
+        return this.classType.instance().get(name);
     }
 
     findMember(name: string): Type | null {
@@ -54,10 +62,6 @@ export default class ClassType {
             this.superclass?.findMethod(name) ??
             null
         );
-    }
-
-    toString(): string {
-        return `class ${this.name}`;
     }
 
     instance(): InstanceType {

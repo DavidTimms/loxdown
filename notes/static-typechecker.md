@@ -31,5 +31,11 @@
   - [X] Add types for builtin type constructors (Boolean, Number, String).
   - [X] Ensure all code paths in a function return.
   - [ ] Add support for union types.
+    - [X] Add syntax for unions.
+    - [X] Add basic class for unions.
+    - [ ] Move union and type compatibility methods out of type checker class.
+    - [ ] Implement type compatibility for unions.
+    - [ ] Implement construction for unions.
+  - [ ] Add control-flow type refinement.
   - [ ] Add type aliases.
   - [ ] Add generics.

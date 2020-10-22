@@ -1,4 +1,5 @@
 import ClassType from "./ClassType";
+import Type from "./Type";
 
 export default class InstanceType {
     readonly tag = "INSTANCE";
@@ -8,6 +9,10 @@ export default class InstanceType {
 
     get callable(): null {
         return null;
+    }
+
+    get(name: string): Type | null {
+        return this.classType.findMember(name);
     }
 
     toString(): string {
