@@ -46,7 +46,6 @@ import ImplementationError from "../ImplementationError";
 import Field from "../Field";
 import SourceRange from "../SourceRange";
 import InstanceType from "./InstanceType";
-import UnionType from "./UnionType";
 
 const DEBUG_SCOPE = false;
 
@@ -146,7 +145,7 @@ implements ExprVisitor<Type>, StmtVisitor<ControlFlow>, TypeExprVisitor<Type> {
 
     private checkExpr(expr: Expr, expectedType: Type | null = null): Type {
         const exprType = expr.accept(this);
-        if (expectedType && !this.isTypeCompatible(exprType, expectedType)) {
+        if (expectedType && !Type.isCompatible(exprType, expectedType)) {
             this.error(
                 "Incorrect type. " +
                 `Expected '${expectedType}', but found '${exprType}'.`,
@@ -156,79 +155,6 @@ implements ExprVisitor<Type>, StmtVisitor<ControlFlow>, TypeExprVisitor<Type> {
 
         // Should this return the expected type instead of the actual type?
         return exprType;
-    }
-
-    private isTypeCompatible(candidate: Type, target: Type): boolean {
-        // Anything can be assigned to an 'Any' type.
-        if (target.tag === "ANY") return true;
-
-        // 'PreviousTypeError' is used to avoid cascading type errors
-        // so it can be assigned to anything.
-        if (candidate === types.PreviousTypeError) return true;
-
-        // An instance is compatible with its superclass.
-        if (target.tag === "INSTANCE") {
-            let currentClassType: ClassType | null = candidate.classType;
-            while (currentClassType) {
-                if (currentClassType === target.classType) return true;
-                currentClassType = currentClassType.superclass;
-            }
-        }
-
-        if (target.tag === "CALLABLE" && candidate.callable) {
-            const callable = candidate.callable;
-            if (callable && this.isCallableTypeCompatible(callable, target)) {
-                return true;
-            }
-        }
-
-        return candidate === target;
-    }
-
-    private isCallableTypeCompatible(
-        candidate: CallableType,
-        target: CallableType,
-    ): boolean {
-        // Each *target* parameter type must be a subtype of the *candidate*
-        // parameter type.
-        const areParamsCompatible =
-        candidate.params.length === target.params.length &&
-        candidate.params.every(
-            (candidateParam, i) => this.isTypeCompatible(
-                target.params[i],
-                candidateParam,
-            ));
-
-        if (!areParamsCompatible) return false;
-
-        // The *candidate* return type must be a subtype of the *target*
-        // return type.
-        const areReturnTypesCompatible =
-            (
-                candidate.returns &&
-                target.returns &&
-                this.isTypeCompatible(candidate.returns, target.returns)
-            ) || (
-                candidate.returns === null &&
-                target.returns === null
-            );
-
-        return areReturnTypesCompatible;
-    }
-
-    private union(left: Type, right: Type): Type | null {
-        if (left === right) return left;
-
-        if (
-            left === types.PreviousTypeError ||
-            right === types.PreviousTypeError
-        ) {
-            return types.PreviousTypeError;
-        }
-
-        // TODO avoid duplicates, subsumed subtypes and nested unions
-
-        return new UnionType([left, right]);
     }
 
     private getFunctionType(func: FunctionStmt): CallableType {
@@ -367,8 +293,7 @@ implements ExprVisitor<Type>, StmtVisitor<ControlFlow>, TypeExprVisitor<Type> {
         const left = this.evaluateTypeExpr(typeExpr.left);
         const right = this.evaluateTypeExpr(typeExpr.right);
 
-        // TODO enhance this to instantiate proper union type object
-        return this.union(left, right) ?? types.Any;
+        return Type.union(left, right) ?? types.Any;
     }
 
     visitBlockStmt(stmt: BlockStmt): ControlFlow {
@@ -572,7 +497,7 @@ implements ExprVisitor<Type>, StmtVisitor<ControlFlow>, TypeExprVisitor<Type> {
                 const leftType = this.checkExpr(expr.left);
 
                 for (const candidate of [types.Number, types.String]) {
-                    if (this.isTypeCompatible(leftType, candidate)) {
+                    if (Type.isCompatible(leftType, candidate)) {
                         this.checkExpr(expr.right, candidate);
                         return candidate;
                     }
@@ -690,16 +615,7 @@ implements ExprVisitor<Type>, StmtVisitor<ControlFlow>, TypeExprVisitor<Type> {
     visitLogicalExpr(expr: LogicalExpr): Type {
         const left = this.checkExpr(expr.left);
         const right = this.checkExpr(expr.right);
-        const type = this.union(left, right);
-        if (type === null) {
-            return this.error(
-                `The operand types for '${expr.operator.lexeme}' are not ` +
-                "compatible. They must have a shared superclass. Found " +
-                `'${left}' and '${right}'.`,
-                expr,
-            );
-        }
-        return type;
+        return Type.union(left, right);
     }
 
     visitSetExpr(expr: SetExpr): Type {

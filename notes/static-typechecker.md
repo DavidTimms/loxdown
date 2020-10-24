@@ -33,7 +33,7 @@
   - [ ] Add support for union types.
     - [X] Add syntax for unions.
     - [X] Add basic class for unions.
-    - [ ] Move union and type compatibility methods out of type checker class.
+    - [X] Move union and type compatibility methods out of type checker class.
     - [ ] Implement type compatibility for unions.
     - [ ] Implement construction for unions.
   - [ ] Add control-flow type refinement.
