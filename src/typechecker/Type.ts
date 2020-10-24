@@ -11,30 +11,39 @@ type Type = ClassType | InstanceType | CallableType | AnyType | UnionType;
 
 const Type = {
     isCompatible(candidate: Type, target: Type): boolean {
-        // Anything can be assigned to an 'Any' type.
-        if (target.tag === "ANY") return true;
-
         // 'PreviousTypeError' is used to avoid cascading type errors
         // so it can be assigned to anything.
         if (candidate === types.PreviousTypeError) return true;
 
-        // An instance is compatible with its superclass.
-        if (target.tag === "INSTANCE") {
-            let currentClassType: ClassType | null = candidate.classType;
-            while (currentClassType) {
-                if (currentClassType === target.classType) return true;
-                currentClassType = currentClassType.superclass;
-            }
-        }
-
-        if (target.tag === "CALLABLE" && candidate.callable) {
-            const callable = candidate.callable;
-            if (callable && Type.isCallableCompatible(callable, target)) {
+        switch (target.tag) {
+            // Anything can be assigned to an 'Any' type.
+            case "ANY": {
                 return true;
             }
+            case "INSTANCE": {
+                // An instance is compatible with its superclass.
+                let currentClassType: ClassType | null = candidate.classType;
+                while (currentClassType) {
+                    if (currentClassType === target.classType) return true;
+                    currentClassType = currentClassType.superclass;
+                }
+                return false;
+            }
+            case "CALLABLE": {
+                const callable = candidate.callable;
+                return (
+                    callable !== null &&
+                    Type.isCallableCompatible(callable, target)
+                );
+            }
+            case "UNION": {
+                return target.children.some(
+                    child => Type.isCompatible(candidate, child));
+            }
+            case "CLASS": {
+                return candidate === target;
+            }
         }
-
-        return candidate === target;
     },
 
     isCallableCompatible(

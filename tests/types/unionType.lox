@@ -1,1 +1,3 @@
 var length: String | Number = "long";
+length = 10;
+length = "short";
