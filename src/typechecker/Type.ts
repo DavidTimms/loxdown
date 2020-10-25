@@ -89,7 +89,22 @@ const Type = {
 
         // TODO avoid duplicates, subsumed subtypes and nested unions
 
-        return new UnionType([left, right]);
+        let combinedChildren = left.tag === "UNION" ? left.children : [left];
+        const rightChildren = right.tag === "UNION" ? right.children : [right];
+
+        for (const newChild of rightChildren) {
+            if (!combinedChildren.some(existingChild =>
+                Type.isCompatible(newChild, existingChild))
+            ) {
+                combinedChildren =
+                    combinedChildren
+                        .filter(existingChild =>
+                            !Type.isCompatible(existingChild, newChild))
+                        .concat([newChild]);
+            }
+        }
+
+        return new UnionType(combinedChildren);
     },
 };
 
