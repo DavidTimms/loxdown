@@ -9,12 +9,11 @@ name = 123.45;
 name = false;
 
 -- ERROR --
-8:8 - error: Incorrect type. Expected 'String | Nil', but found 'Number'.·
+8:8 - error: Incorrect type. Expected 'String | Nil', but found 'Number'.
 
 8     name = 123.45;
              ^^^^^^
-
-9:8 - error: Incorrect type. Expected 'String | Nil', but found 'Boolean'.·
+9:8 - error: Incorrect type. Expected 'String | Nil', but found 'Boolean'.
 
 9     name = false;
              ^^^^^

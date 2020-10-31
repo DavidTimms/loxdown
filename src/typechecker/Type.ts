@@ -3,7 +3,7 @@ import InstanceType from "./InstanceType";
 import CallableType from "./CallableType";
 import AnyType from "./AnyType";
 import UnionType from "./UnionType";
-import { default as types } from "./builtinTypes";
+import types from "./builtinTypes";
 
 // TODO add FunctionType (combination of InstanceType and CallableType)
 
@@ -87,8 +87,6 @@ const Type = {
             return types.PreviousTypeError;
         }
 
-        // TODO avoid duplicates, subsumed subtypes and nested unions
-
         let combinedChildren = left.tag === "UNION" ? left.children : [left];
         const rightChildren = right.tag === "UNION" ? right.children : [right];
 
@@ -103,6 +101,8 @@ const Type = {
                         .concat([newChild]);
             }
         }
+
+        if (combinedChildren.length === 1) return combinedChildren[0];
 
         return new UnionType(combinedChildren);
     },
