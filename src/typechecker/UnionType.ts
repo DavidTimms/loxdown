@@ -9,13 +9,18 @@ export default class UnionType {
     ) {}
 
     get callable(): null {
-        // TODO
         return null;
     }
 
     get(name: string): Type | null {
-        // TODO
-        return null;
+        let member = this.children[0].get(name);
+
+        for (const child of this.children) {
+            const childMember = child.get(name);
+            if (childMember === null || member === null) return null;
+            member = Type.union(member, childMember);
+        }
+        return member;
     }
 
     toString(): string {

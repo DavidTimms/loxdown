@@ -3,6 +3,7 @@ import types from "./builtinTypes";
 import InstanceType from "./InstanceType";
 import ClassType from "./ClassType";
 import UnionType from "./UnionType";
+import CallableType from "./CallableType";
 
 describe("Type.union", () => {
 
@@ -66,7 +67,7 @@ describe("Type.union", () => {
     });
 
     test("The union of a union type with a superclass of one of its members " +
-         "is a new union type with the superclass replacing the subclass.",
+         "is a new union type with the superclass replacing the subclass",
     () => {
         const Animal = new ClassType("Animal");
         const Mouse = new ClassType("Mouse", {superclass: Animal});
@@ -77,5 +78,42 @@ describe("Type.union", () => {
                 Animal.instance(),
                 types.Nil,
             ]));
+    });
+
+    test("The union of a callable type with an identical callable type is an " +
+         "identical callable type",
+    () => {
+        const callable1 =
+            new CallableType([types.String, types.Number], types.Boolean);
+        const callable2 =
+            new CallableType([types.String, types.Number], types.Boolean);
+
+        expect(Type.union(callable1, callable2)).toEqual(callable1);
+    });
+
+    test("The union of a callable type with a compatible callable type with " +
+         "narrower parameter types is the narrower callable type. (classes)",
+    () => {
+        const Animal = new ClassType("Animal");
+        const Platypus = new ClassType("Platypus", {superclass: Animal});
+        const wider =
+            new CallableType([Animal.instance(), types.Number], types.String);
+        const narrower =
+            new CallableType([Platypus.instance(), types.Number], types.String);
+
+        expect(Type.union(wider, narrower)).toEqual(narrower);
+    });
+
+    test("The union of a callable type with a compatible callable type with " +
+        "narrower parameter types is the narrower callable type. (unions)",
+    () => {
+        const stringOrBoolean =
+            new UnionType([types.String, types.Boolean]);
+        const wider =
+            new CallableType([types.Number, stringOrBoolean], types.String);
+        const narrower =
+            new CallableType([types.Number, types.String], types.String);
+
+        expect(Type.union(wider, narrower)).toEqual(narrower);
     });
 });
