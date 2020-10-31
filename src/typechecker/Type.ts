@@ -87,6 +87,9 @@ const Type = {
             return types.PreviousTypeError;
         }
 
+        if (left.tag === "CALLABLE" && right.tag === "CALLABLE" && left.params.length === right.params.length) {}
+
+
         let combinedChildren = left.tag === "UNION" ? left.children : [left];
         const rightChildren = right.tag === "UNION" ? right.children : [right];
 

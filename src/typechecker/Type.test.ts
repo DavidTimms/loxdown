@@ -116,4 +116,22 @@ describe("Type.union", () => {
 
         expect(Type.union(wider, narrower)).toEqual(narrower);
     });
+
+    // TODO test mixed params
+    // e.g. fun (String | Nil, Boolean) | fun (String, Boolean | Nil) = fun (String, Boolean)
+
+    test("The union of two callable types with compatible parameter types " +
+         "but different return types is a callable with a union return type",
+    () => {
+        const returnsString =
+            new CallableType([types.Number], types.String);
+        const returnsNumber =
+            new CallableType([types.Number], types.Number);
+
+        expect(Type.union(returnsString, returnsNumber))
+            .toEqual(new CallableType(
+                [types.Number],
+                new UnionType([types.String, types.Number]),
+            ));
+    });
 });
