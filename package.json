@@ -4,8 +4,8 @@
   "description": "A statically-typed variant of Lox, written in TypeScript",
   "main": "built/main.js",
   "scripts": {
-    "build": "rm -r built/ && tsc",
-    "build-watch": "rm -r built/ && tsc --watch",
+    "build": "rm -rf built/ && tsc",
+    "build-watch": "rm -rf built/ && tsc --watch",
     "build-playground": "npm run-script build && webpack && cp node_modules/codemirror/lib/codemirror.css web/css/",
     "lint": "eslint . --ext .js,.ts",
     "format": "eslint . --ext .js,.ts --fix",
