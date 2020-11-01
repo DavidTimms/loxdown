@@ -1,0 +1,10 @@
+class Person {
+    mother: Person | Nil;
+    father: Person | Nil;
+    init(mother: Person | Nil, father: Person | Nil) {
+        this.mother = mother;
+        this.father = father;
+    }
+}
+var mum = Person(nil, nil);
+var daughter = Person(mum, nil);

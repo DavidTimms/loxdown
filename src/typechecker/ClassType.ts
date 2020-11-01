@@ -4,8 +4,8 @@ import CallableType from "./CallableType";
 
 export default class ClassType {
     readonly tag = "CLASS";
-    private readonly fields: Map<string, Type>;
-    private readonly methods: Map<string, Type>;
+    fields: Map<string, Type>;
+    methods: Map<string, Type>;
     readonly superclass: ClassType | null;
 
     // Because classes are themselves instances of the class 'Class',

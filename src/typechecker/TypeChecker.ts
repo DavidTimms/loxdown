@@ -335,13 +335,13 @@ implements ExprVisitor<Type>, StmtVisitor<ControlFlow>, TypeExprVisitor<Type> {
             }
         }
 
-        const fields: Map<string, Type> = this.getFieldTypes(stmt.fields);
-        const methods = this.getMethodTypes(stmt.methods);
-
         const classType = new ClassType(
-            stmt.name.lexeme, {fields, methods, superclass: superType});
+            stmt.name.lexeme, {superclass: superType});
         this.defineValue(stmt.name, classType);
         this.defineType(stmt.name, classType.instance());
+
+        classType.fields = this.getFieldTypes(stmt.fields);
+        classType.methods = this.getMethodTypes(stmt.methods);
 
         if (superType) {
             this.beginScope();
