@@ -4,6 +4,7 @@ import CallableType from "./CallableType";
 import AnyType from "./AnyType";
 import UnionType from "./UnionType";
 import types from "./builtinTypes";
+import { zip } from "../helpers";
 
 // TODO add FunctionType (combination of InstanceType and CallableType)
 
@@ -87,8 +88,12 @@ const Type = {
             return types.PreviousTypeError;
         }
 
-        if (left.tag === "CALLABLE" && right.tag === "CALLABLE" && left.params.length === right.params.length) {}
-
+        if (left.tag === "CALLABLE" && right.tag === "CALLABLE") {
+            return (
+                Type.attemptUnionOfCallables(left, right) ??
+                new UnionType([left, right])
+            );
+        }
 
         let combinedChildren = left.tag === "UNION" ? left.children : [left];
         const rightChildren = right.tag === "UNION" ? right.children : [right];
@@ -108,6 +113,36 @@ const Type = {
         if (combinedChildren.length === 1) return combinedChildren[0];
 
         return new UnionType(combinedChildren);
+    },
+
+    attemptUnionOfCallables(left: CallableType, right: CallableType): CallableType | null {
+        if (left.params.length !== right.params.length) {
+            return null;
+        }
+
+        const paramTypes = [];
+
+        for (const paramPair of zip(left.params, right.params)) {
+            const paramType = Type.intersection(...paramPair);
+            if (paramType === null) {
+                return null;
+            }
+            paramTypes.push(paramType);
+        }
+
+        const returnType =
+            Type.union(left.returns ?? types.Nil, right.returns ?? types.Nil);
+
+        return new CallableType(paramTypes, returnType);
+    },
+
+    intersection(left: Type, right: Type): Type | null {
+        if (Type.isCompatible(left, right)) {
+            return left;
+        } else if (Type.isCompatible(right, left)) {
+            return right;
+        }
+        return null;
     },
 };
 

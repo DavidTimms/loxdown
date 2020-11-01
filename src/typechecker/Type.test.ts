@@ -1,6 +1,5 @@
 import Type from "./Type";
 import types from "./builtinTypes";
-import InstanceType from "./InstanceType";
 import ClassType from "./ClassType";
 import UnionType from "./UnionType";
 import CallableType from "./CallableType";
