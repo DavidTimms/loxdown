@@ -351,7 +351,6 @@ implements ExprVisitor<Type>, StmtVisitor<ControlFlow>, TypeExprVisitor<Type> {
         this.beginScope();
         this.scopes[0].valueNamespace.set("this", classType.instance());
 
-        // TODO check method bodies
         this.checkMethods(stmt.methods, classType);
 
         this.endScope();
