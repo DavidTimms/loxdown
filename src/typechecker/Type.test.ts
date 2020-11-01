@@ -104,7 +104,7 @@ describe("Type.union", () => {
     });
 
     test("The union of a callable type with a compatible callable type with " +
-        "narrower parameter types is the narrower callable type. (unions)",
+         "narrower parameter types is the narrower callable type. (unions)",
     () => {
         const stringOrBoolean =
             new UnionType([types.String, types.Boolean]);
@@ -116,8 +116,24 @@ describe("Type.union", () => {
         expect(Type.union(wider, narrower)).toEqual(narrower);
     });
 
-    // TODO test mixed params
-    // e.g. fun (String | Nil, Boolean) | fun (String, Boolean | Nil) = fun (String, Boolean)
+    test("The union of a callable type with a compatible callable type will " +
+         "pick the narrowest type for each of their parameters.",
+    () => {
+        const stringOrBoolean =
+            new UnionType([types.String, types.Boolean]);
+        const stringOrNumber =
+            new UnionType([types.String, types.Number]);
+        const wider =
+            new CallableType([types.Number, stringOrBoolean], types.String);
+        const narrower =
+            new CallableType([stringOrNumber, types.String], types.String);
+
+        expect(Type.union(wider, narrower))
+            .toEqual(new CallableType(
+                [types.Number, types.String],
+                types.String,
+            ));
+    });
 
     test("The union of two callable types with compatible parameter types " +
          "but different return types is a callable with a union return type",
