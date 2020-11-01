@@ -1,10 +1,12 @@
 class Person {
+    name: String;
     mother: Person | Nil;
     father: Person | Nil;
-    init(mother: Person | Nil, father: Person | Nil) {
+    init(name: String, mother: Person | Nil, father: Person | Nil) {
+        this.name = name;
         this.mother = mother;
         this.father = father;
     }
 }
-var mum = Person(nil, nil);
-var daughter = Person(mum, nil);
+var mum = Person("Beth", nil, nil);
+var daughter = Person("Jane", mum, nil);

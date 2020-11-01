@@ -35,9 +35,9 @@
     - [X] Add basic class for unions.
     - [X] Move union and type compatibility methods out of type checker class.
     - [X] Implement type compatibility for unions.
-    - [ ] Implement construction for unions.
-    - [ ] Implement `.get` for unions.
-    - [ ] Implement `.callable` for unions.
+    - [X] Implement construction for unions.
+    - [X] Implement `.get` for unions.
+    - [X] Implement callable unions.
   - [ ] Add control-flow type refinement.
   - [ ] Add type aliases.
   - [ ] Add generics.

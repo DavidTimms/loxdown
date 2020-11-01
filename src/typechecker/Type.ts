@@ -45,8 +45,12 @@ function isCompatible(candidate: Type, target: Type): boolean {
             );
         }
         case "UNION": {
-            return target.children.some(
-                child => isCompatible(candidate, child));
+            const candidates =
+                candidate.tag === "UNION" ? candidate.children : [candidate];
+
+            return candidates.every(candidate =>
+                target.children.some(child => isCompatible(candidate, child)),
+            );
         }
         case "CLASS": {
             return candidate === target;
