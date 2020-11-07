@@ -4,11 +4,13 @@ program        → declaration* EOF ;
 declaration    → classDecl
                | funDecl
                | varDecl
+               | typeDecl
                | statement ;
 
 classDecl      → "class" IDENTIFIER ( "<" IDENTIFIER )?
                  "{" (function | field)* "}" ;
 funDecl        → "fun" function ;
+typeDecl       → "type" IDENTIFIER "=" typeExpr ;
 varDecl        → "var" IDENTIFIER (":" typeExpr)? ( "=" expression )? ";" ;
 
 

@@ -61,6 +61,8 @@ function main(args: string[]): void {
             "Print      -> expression: Expr",
             `Return     -> keyword: Token,
                            value: Expr | null`,
+            `Type       -> name: Token,
+                           type: TypeExpr`,
             `Var        -> name: Token,
                            type: TypeExpr | null,
                            initializer: Expr | null`,

@@ -26,6 +26,7 @@ import {
     ReturnStmt,
     PrintStmt,
     ClassStmt,
+    TypeStmt,
 } from "../Stmt";
 import Interpreter from "../Interpreter";
 import Token from "../Token";
@@ -460,6 +461,12 @@ implements ExprVisitor<Type>, StmtVisitor<ControlFlow>, TypeExprVisitor<Type> {
             );
         }
         return {passable: false};
+    }
+
+    visitTypeStmt(stmt: TypeStmt): ControlFlow {
+        const type = this.evaluateTypeExpr(stmt.type);
+        this.defineType(stmt.name, type);
+        return {passable: true};
     }
 
     visitVarStmt(stmt: VarStmt): ControlFlow {

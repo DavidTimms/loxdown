@@ -1,0 +1,9 @@
+type StringOrNumber = String | Number;
+var x: StringOrNumber = 123;
+var y: StringOrNumber = "hello";
+print x;
+print y;
+
+-- OUTPUT --
+123
+hello

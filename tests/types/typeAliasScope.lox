@@ -1,0 +1,11 @@
+if (true) {
+    type Foo = String;
+    var foo: Foo = "ok";
+}
+var bar: Foo = "bad";
+
+-- ERROR --
+5:10 - error: The type 'Foo' is not defined.
+
+5     var bar: Foo = "bad";
+               ^^^

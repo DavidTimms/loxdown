@@ -39,5 +39,5 @@
     - [X] Implement `.get` for unions.
     - [X] Implement callable unions.
   - [ ] Add control-flow type refinement.
-  - [ ] Add type aliases.
+  - [X] Add type aliases.
   - [ ] Add generics.

@@ -86,6 +86,17 @@ export class ReturnStmt {
     }
 }
 
+export class TypeStmt {
+    constructor(
+        readonly name: Token,
+        readonly type: TypeExpr,
+    ) {}
+
+    accept<R>(visitor: StmtVisitor<R>): R {
+        return visitor.visitTypeStmt(this);
+    }
+}
+
 export class VarStmt {
     constructor(
         readonly name: Token,
@@ -117,6 +128,7 @@ export type Stmt =
     IfStmt |
     PrintStmt |
     ReturnStmt |
+    TypeStmt |
     VarStmt |
     WhileStmt;
 
@@ -130,6 +142,7 @@ export interface StmtVisitor<R> {
     visitIfStmt(stmt: IfStmt): R;
     visitPrintStmt(stmt: PrintStmt): R;
     visitReturnStmt(stmt: ReturnStmt): R;
+    visitTypeStmt(stmt: TypeStmt): R;
     visitVarStmt(stmt: VarStmt): R;
     visitWhileStmt(stmt: WhileStmt): R;
 }

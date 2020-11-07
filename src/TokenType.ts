@@ -44,6 +44,7 @@ type TokenType =
     "SUPER" |
     "THIS" |
     "TRUE" |
+    "TYPE" |
     "VAR" |
     "WHILE" |
 

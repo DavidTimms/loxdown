@@ -31,6 +31,7 @@ import {
     FunctionStmt,
     ReturnStmt,
     ClassStmt,
+    TypeStmt,
 } from "./Stmt";
 import {isLoxCallable} from "./LoxCallable";
 import LoxFunction from "./LoxFunction";
@@ -147,6 +148,10 @@ implements ExprVisitor<LoxValue>, StmtVisitor<void> {
     visitReturnStmt(stmt: ReturnStmt): void {
         const value = stmt.value ? this.evaluate(stmt.value) : nil;
         throw new Return(value);
+    }
+
+    visitTypeStmt(stmt: TypeStmt): void {
+        // Type statements have no effect at runtime.
     }
 
     visitVarStmt(stmt: VarStmt): void {

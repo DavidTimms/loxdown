@@ -22,6 +22,7 @@ const keywords = new Map<string, TokenType>([
     ["super", "SUPER"],
     ["this", "THIS"],
     ["true", "TRUE"],
+    ["type", "TYPE"],
     ["var", "VAR"],
     ["while", "WHILE"],
 ]);

@@ -26,6 +26,7 @@ import {
     FunctionStmt,
     ReturnStmt,
     ClassStmt,
+    TypeStmt,
 } from "./Stmt";
 import LoxValue from "./LoxValue";
 import { loxTrue, loxFalse } from "./LoxBool";
@@ -100,6 +101,7 @@ export default class Parser {
                     this.consume("IDENTIFIER", "Expect function name.");
                 return this.func("function", name);
             }
+            if (this.match("TYPE")) return this.typeDeclaration();
             if (this.match("VAR")) return this.varDeclaration();
 
             return this.statement();
@@ -228,6 +230,18 @@ export default class Parser {
         return new ReturnStmt(keyword, value);
     }
 
+    private typeDeclaration(): Stmt {
+        const name = this.consume("IDENTIFIER", "Expect type name.");
+
+        this.consume("EQUAL", "Expect '=' after type name.");
+
+        const type = this.typeExpr();
+
+        this.consume("SEMICOLON", "Expect ';' after type declaration.");
+
+        return new TypeStmt(name, type);
+    }
+
     private varDeclaration(): Stmt {
         const name = this.consume("IDENTIFIER", "Expect variable name.");
 
@@ -235,7 +249,7 @@ export default class Parser {
 
         const initializer = this.match("EQUAL") ? this.expression() : null;
 
-        this.consume("SEMICOLON", "Expect ';' after variable declaration");
+        this.consume("SEMICOLON", "Expect ';' after variable declaration.");
 
         return new VarStmt(name, type, initializer);
     }
@@ -243,7 +257,7 @@ export default class Parser {
     private whileStatement(): Stmt {
         this.consume("LEFT_PAREN", "Expect '(' after 'while'.");
         const condition = this.expression();
-        this.consume("RIGHT_PAREN", "Expect '(' after condition");
+        this.consume("RIGHT_PAREN", "Expect '(' after condition.");
         const body = this.statement();
 
         return new WhileStmt(condition, body);
