@@ -47,6 +47,7 @@ import ImplementationError from "../ImplementationError";
 import Field from "../Field";
 import SourceRange from "../SourceRange";
 import InstanceType from "./InstanceType";
+import { nil } from "../LoxNil";
 
 const DEBUG_SCOPE = false;
 
@@ -74,6 +75,13 @@ class Scope {
             functions: [...this.functions],
         });
     }
+}
+
+class TypeNarrowing {
+    constructor(
+        readonly name: string,
+        readonly type: Type,
+    ) {}
 }
 
 interface FunctionContext {
@@ -156,6 +164,58 @@ implements ExprVisitor<Type>, StmtVisitor<ControlFlow>, TypeExprVisitor<Type> {
 
         // Should this return the expected type instead of the actual type?
         return exprType;
+    }
+
+    private checkExprWithNarrowing(
+        expr: Expr,
+        expectedType: Type | null = null,
+    ): {
+        type: Type;
+        narrowings: TypeNarrowing[];
+    } {
+        let narrowings: TypeNarrowing[] = [];
+
+        if (expr instanceof BinaryExpr) {
+            if (
+                expr.operator.type === "BANG_EQUAL" &&
+                expr.right instanceof LiteralExpr &&
+                expr.right.value === nil &&
+                expr.left instanceof VariableExpr
+            ) {
+                const variable = this.lookupValue(expr.left.name);
+                if (variable !== null) {
+                    narrowings = [
+                        new TypeNarrowing(
+                            expr.left.name.lexeme,
+                            Type.complement(variable.type, types.Nil),
+                        ),
+                    ];
+                }
+            }
+            // TODO other cases (null != x) (x == null) (null == x)
+        }
+        return {
+            type: this.checkExpr(expr, expectedType),
+            narrowings,
+        };
+    }
+
+    private withNarrowings<T>(narrowings: TypeNarrowing[], body: () => T): T {
+        const oldScopes = this.scopes;
+        const newScopes = oldScopes.slice();
+        for (const {name, type} of narrowings) {
+            for (const [i, scope] of newScopes.entries()) {
+                if (scope.valueNamespace.has(name)) {
+                    newScopes[i] = scope.clone();
+                    newScopes[i].valueNamespace.set(name, type);
+                    break;
+                }
+            }
+        }
+        this.scopes = newScopes;
+        const result = body();
+        this.scopes = oldScopes;
+        return result;
     }
 
     private getFunctionType(func: FunctionStmt): CallableType {
@@ -252,16 +312,24 @@ implements ExprVisitor<Type>, StmtVisitor<ControlFlow>, TypeExprVisitor<Type> {
         this.scopes[0].typeNamespace.set(name.lexeme, type);
     }
 
-    private resolveName(expr: Expr, name: Token): Type {
+    private lookupValue(name: Token): {type: Type; depth: number} | null {
         for (const [i, scope] of this.scopes.entries()) {
             const type = scope.valueNamespace.get(name.lexeme);
-            if (type) {
-                this.interpreter.resolve(expr, i);
-                return type;
-            }
+            if (type) return {type, depth: i};
+        }
+        return null;
+    }
+
+    private resolveName(expr: Expr, name: Token): Type {
+        const variable = this.lookupValue(name);
+
+        if (variable === null) {
+            return this.error(
+                `The name '${name.lexeme}' is not defined.`, name);
         }
 
-        return this.error(`The name '${name.lexeme}' is not defined.`, name);
+        this.interpreter.resolve(expr, variable.depth);
+        return variable.type;
     }
 
     private evaluateTypeExpr(typeExpr: TypeExpr): Type {
@@ -424,8 +492,13 @@ implements ExprVisitor<Type>, StmtVisitor<ControlFlow>, TypeExprVisitor<Type> {
     }
 
     visitIfStmt(stmt: IfStmt): ControlFlow {
-        this.checkExpr(stmt.condition);
-        const {passable: thenIsPassable} = this.checkStmt(stmt.thenBranch);
+        const {narrowings} = this.checkExprWithNarrowing(stmt.condition);
+
+        const {passable: thenIsPassable} = this.withNarrowings(
+            narrowings,
+            () => this.checkStmt(stmt.thenBranch),
+        );
+
         if (stmt.elseBranch) {
             const {passable: elseIsPassable} = this.checkStmt(stmt.elseBranch);
             return {passable: thenIsPassable || elseIsPassable};

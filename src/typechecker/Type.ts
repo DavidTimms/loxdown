@@ -5,6 +5,7 @@ import AnyType from "./AnyType";
 import UnionType from "./UnionType";
 import types from "./builtinTypes";
 import { zip } from "../helpers";
+import { type } from "os";
 
 // TODO add FunctionType (combination of InstanceType and CallableType)
 
@@ -14,6 +15,7 @@ const Type = {
     isCompatible,
     union,
     intersection,
+    complement,
 };
 
 export default Type;
@@ -160,4 +162,24 @@ function intersection(left: Type, right: Type): Type | null {
         return right;
     }
     return null;
+}
+
+/**
+ * Find the type of values which compatible with left but not right.
+ * This is a relative complement in set theory.
+ */
+function complement(left: Type, right: Type): Type {
+    if (left.tag === "UNION") {
+        const childrenNotInRight =
+            left.children.filter(child => !isCompatible(child, right));
+
+        if (childrenNotInRight.length === 0) {
+            return types.PreviousTypeError;
+        } else if (childrenNotInRight.length === 1) {
+            return childrenNotInRight[0];
+        }
+        return new UnionType(childrenNotInRight);
+    }
+
+    return left;
 }

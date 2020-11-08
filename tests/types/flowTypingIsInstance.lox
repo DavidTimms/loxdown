@@ -1,0 +1,22 @@
+class Animal {}
+
+class Dog {
+    isExcited: Boolean;
+
+    init() {
+        this.isExcited = true;
+    }
+
+    woof() {
+        print("woof!");
+    }
+}
+
+var animal = Dog();
+
+if (isInstance(animal, Dog) && animal.isExcited) {
+    animal.woof();
+}
+
+-- OUTPUT --
+woof!
