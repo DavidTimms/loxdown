@@ -182,22 +182,56 @@ implements ExprVisitor<Type>, StmtVisitor<ControlFlow>, TypeExprVisitor<Type> {
                 expr.right.value === nil &&
                 expr.left instanceof VariableExpr
             ) {
-                const variable = this.lookupValue(expr.left.name);
+                const name = expr.left.name.lexeme;
+                const variable = this.lookupValue(name);
                 if (variable !== null) {
                     narrowings = [
                         new TypeNarrowing(
-                            expr.left.name.lexeme,
+                            name,
                             Type.complement(variable.type, types.Nil),
                         ),
                     ];
                 }
             }
-            // TODO other cases (null != x) (x == null) (null == x)
+            if (
+                expr.operator.type === "EQUAL_EQUAL" &&
+                expr.right instanceof LiteralExpr &&
+                expr.right.value === nil &&
+                expr.left instanceof VariableExpr
+            ) {
+                const name = expr.left.name.lexeme;
+                const variable = this.lookupValue(name);
+                if (variable !== null) {
+                    narrowings = [
+                        new TypeNarrowing(
+                            name,
+                            types.Nil,
+                        ),
+                    ];
+                }
+            }
+            // TODO other cases (null != x) (null == x)
         }
         return {
             type: this.checkExpr(expr, expectedType),
             narrowings,
         };
+    }
+
+    private invertNarrowings(narrowings: TypeNarrowing[]): TypeNarrowing[] {
+        return narrowings.map(({name, type: narrowedType}) => {
+            const unnarrowedVariable = this.lookupValue(name);
+            if (unnarrowedVariable === null) {
+                throw new ImplementationError(
+                    `Unable to find the variable '${name}' ` +
+                    "while inverting a type narrowing.",
+                );
+            }
+            return new TypeNarrowing(
+                name,
+                Type.complement(unnarrowedVariable.type, narrowedType),
+            );
+        });
     }
 
     private withNarrowings<T>(narrowings: TypeNarrowing[], body: () => T): T {
@@ -312,16 +346,16 @@ implements ExprVisitor<Type>, StmtVisitor<ControlFlow>, TypeExprVisitor<Type> {
         this.scopes[0].typeNamespace.set(name.lexeme, type);
     }
 
-    private lookupValue(name: Token): {type: Type; depth: number} | null {
+    private lookupValue(name: string): {type: Type; depth: number} | null {
         for (const [i, scope] of this.scopes.entries()) {
-            const type = scope.valueNamespace.get(name.lexeme);
+            const type = scope.valueNamespace.get(name);
             if (type) return {type, depth: i};
         }
         return null;
     }
 
     private resolveName(expr: Expr, name: Token): Type {
-        const variable = this.lookupValue(name);
+        const variable = this.lookupValue(name.lexeme);
 
         if (variable === null) {
             return this.error(
@@ -492,6 +526,9 @@ implements ExprVisitor<Type>, StmtVisitor<ControlFlow>, TypeExprVisitor<Type> {
     }
 
     visitIfStmt(stmt: IfStmt): ControlFlow {
+        // TODO keep narrowing applied for subsequent statements based on
+        //      passability.
+
         const {narrowings} = this.checkExprWithNarrowing(stmt.condition);
 
         const {passable: thenIsPassable} = this.withNarrowings(
@@ -500,7 +537,12 @@ implements ExprVisitor<Type>, StmtVisitor<ControlFlow>, TypeExprVisitor<Type> {
         );
 
         if (stmt.elseBranch) {
-            const {passable: elseIsPassable} = this.checkStmt(stmt.elseBranch);
+            const invertedNarrowings = this.invertNarrowings(narrowings);
+
+            const {passable: elseIsPassable} = this.withNarrowings(
+                invertedNarrowings,
+                () => this.checkStmt(stmt.elseBranch ?? new BlockStmt([])),
+            );
             return {passable: thenIsPassable || elseIsPassable};
         } else {
             return {passable: true};

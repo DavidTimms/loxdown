@@ -1,0 +1,13 @@
+fun sayHi() {
+    print("Hi");
+}
+
+var func: fun () | Nil = sayHi;
+
+if (func == nil) {
+    print("No func");
+} else {
+    func();
+}
+-- OUTPUT --
+Hi

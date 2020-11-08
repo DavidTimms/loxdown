@@ -38,6 +38,11 @@
     - [X] Implement construction for unions.
     - [X] Implement `.get` for unions.
     - [X] Implement callable unions.
-  - [ ] Add control-flow type refinement.
   - [X] Add type aliases.
+  - [ ] Add control-flow type refinement.
+    - [ ] Use narrowings in while statements.
+    - [ ] Use narrowings in logical expressions.
+    - [ ] Propagate narrowings through logical expressions and not operator.
+    - [ ] Add a way for `isInstance` to provide narrowings.
+    - [ ] Combine passability with narrowings.
   - [ ] Add generics.
