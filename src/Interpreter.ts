@@ -194,7 +194,7 @@ implements ExprVisitor<LoxValue>, StmtVisitor<void> {
                 break;
             default:
                 // Unreachable
-                throw new Error(
+                throw new ImplementationError(
                     `Unexpected logical operator: ${expr.operator.lexeme}`);
         }
         return this.evaluate(expr.right);

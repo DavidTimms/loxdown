@@ -1,0 +1,14 @@
+class Cat {
+    isHungry(): Boolean {
+        return true;
+    }
+}
+
+var cat: Cat | Nil = Cat();
+
+if (cat != nil and cat.isHungry()) {
+    print("Dinner time");
+}
+
+-- OUTPUT --
+Dinner time

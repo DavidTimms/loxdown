@@ -1,0 +1,14 @@
+class Cat {
+    isHungry(): Boolean {
+        return false;
+    }
+}
+
+var cat: Cat | Nil = Cat();
+
+if (cat == nil or !cat.isHungry()) {
+    print("No dinner tonight");
+}
+
+-- OUTPUT --
+No dinner tonight

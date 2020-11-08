@@ -41,7 +41,7 @@
   - [X] Add type aliases.
   - [ ] Add control-flow type refinement.
     - [ ] Use narrowings in while statements.
-    - [ ] Use narrowings in logical expressions.
+    - [X] Use narrowings in logical expressions.
     - [ ] Propagate narrowings through logical expressions and not operator.
     - [ ] Add a way for `isInstance` to provide narrowings.
     - [ ] Combine passability with narrowings.

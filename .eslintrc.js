@@ -36,6 +36,7 @@ module.exports = {
         "semi-style": ["error", "last"],
         "indent": ["warn", 4, {
             "SwitchCase": 1,
+            "flatTernaryExpressions": true
         }],
         "curly": ["warn", "multi-line"],
         "brace-style": ["warn"],

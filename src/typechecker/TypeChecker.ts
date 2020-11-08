@@ -734,9 +734,19 @@ implements ExprVisitor<Type>, StmtVisitor<ControlFlow>, TypeExprVisitor<Type> {
     }
 
     visitLogicalExpr(expr: LogicalExpr): Type {
-        const left = this.checkExpr(expr.left);
-        const right = this.checkExpr(expr.right);
-        return Type.union(left, right);
+        const left = this.checkExprWithNarrowing(expr.left);
+
+        const narrowings =
+            expr.operator.type === "AND" ?
+                left.narrowings :
+                expr.operator.type === "OR" ?
+                    this.invertNarrowings(left.narrowings) :
+                    [];
+
+        const rightType =
+            this.withNarrowings(narrowings, () => this.checkExpr(expr.right));
+
+        return Type.union(left.type, rightType);
     }
 
     visitSetExpr(expr: SetExpr): Type {
