@@ -1,7 +1,7 @@
 var greeting: String | Nil = "Howdy";
 var place: String | Nil = "Texas";
 
-if (greeting != nil && place != nil) {
+if (greeting != nil and place != nil) {
     print(greeting + ", " + place + "!");
 }
 -- OUTPUT --

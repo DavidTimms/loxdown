@@ -84,6 +84,11 @@ class TypeNarrowing {
     ) {}
 }
 
+interface TypeWithNarrowings {
+    type: Type;
+    narrowings: TypeNarrowing[];
+}
+
 interface FunctionContext {
     tag: "FUNCTION" | "INITIALIZER" | "METHOD";
     type: CallableType;
@@ -169,52 +174,22 @@ implements ExprVisitor<Type>, StmtVisitor<ControlFlow>, TypeExprVisitor<Type> {
     private checkExprWithNarrowing(
         expr: Expr,
         expectedType: Type | null = null,
-    ): {
-        type: Type;
-        narrowings: TypeNarrowing[];
-    } {
-        let narrowings: TypeNarrowing[] = [];
+    ): TypeWithNarrowings {
 
+        // TODO refactor these methods to not check against the expected type
+        // so that they can be used by the visitXExpr methods to avoid
+        // duplicating logic.
         if (expr instanceof BinaryExpr) {
-            if (
-                expr.operator.type === "BANG_EQUAL" &&
-                expr.right instanceof LiteralExpr &&
-                expr.right.value === nil &&
-                expr.left instanceof VariableExpr
-            ) {
-                const name = expr.left.name.lexeme;
-                const variable = this.lookupValue(name);
-                if (variable !== null) {
-                    narrowings = [
-                        new TypeNarrowing(
-                            name,
-                            Type.complement(variable.type, types.Nil),
-                        ),
-                    ];
-                }
-            }
-            if (
-                expr.operator.type === "EQUAL_EQUAL" &&
-                expr.right instanceof LiteralExpr &&
-                expr.right.value === nil &&
-                expr.left instanceof VariableExpr
-            ) {
-                const name = expr.left.name.lexeme;
-                const variable = this.lookupValue(name);
-                if (variable !== null) {
-                    narrowings = [
-                        new TypeNarrowing(
-                            name,
-                            types.Nil,
-                        ),
-                    ];
-                }
-            }
-            // TODO other cases (null != x) (null == x)
+            return this.checkBinaryExprWithNarrowing(expr, expectedType);
+        } else if (expr instanceof GroupingExpr) {
+            return this.checkGroupingExprWithNarrowing(expr, expectedType);
+        } else if (expr instanceof UnaryExpr) {
+            return this.checkUnaryExprWithNarrowing(expr, expectedType);
         }
+
         return {
             type: this.checkExpr(expr, expectedType),
-            narrowings,
+            narrowings: [],
         };
     }
 
@@ -612,6 +587,54 @@ implements ExprVisitor<Type>, StmtVisitor<ControlFlow>, TypeExprVisitor<Type> {
         return expectedType;
     }
 
+    private checkBinaryExprWithNarrowing(
+        expr: BinaryExpr,
+        expectedType: Type | null = null,
+    ): TypeWithNarrowings {
+
+        let narrowings: TypeNarrowing[] = [];
+
+        if (
+            expr.operator.type === "BANG_EQUAL" &&
+            expr.right instanceof LiteralExpr &&
+            expr.right.value === nil &&
+            expr.left instanceof VariableExpr
+        ) {
+            const name = expr.left.name.lexeme;
+            const variable = this.lookupValue(name);
+            if (variable !== null) {
+                narrowings = [
+                    new TypeNarrowing(
+                        name,
+                        Type.complement(variable.type, types.Nil),
+                    ),
+                ];
+            }
+        } else if (
+            expr.operator.type === "EQUAL_EQUAL" &&
+            expr.right instanceof LiteralExpr &&
+            expr.right.value === nil &&
+            expr.left instanceof VariableExpr
+        ) {
+            const name = expr.left.name.lexeme;
+            const variable = this.lookupValue(name);
+            if (variable !== null) {
+                narrowings = [
+                    new TypeNarrowing(
+                        name,
+                        types.Nil,
+                    ),
+                ];
+            }
+        }
+        // TODO other cases (null != x) (null == x)
+
+        return {
+            type: this.checkExpr(expr, expectedType),
+            narrowings,
+        };
+    }
+
     visitBinaryExpr(expr: BinaryExpr): Type {
         switch (expr.operator.type) {
             case "PLUS": {
@@ -719,6 +742,13 @@ implements ExprVisitor<Type>, StmtVisitor<ControlFlow>, TypeExprVisitor<Type> {
         return memberType ?? types.PreviousTypeError;
     }
 
+    private checkGroupingExprWithNarrowing(
+        expr: GroupingExpr,
+        expectedType: Type | null = null,
+    ): TypeWithNarrowings {
+        return this.checkExprWithNarrowing(expr.expression, expectedType);
+    }
+
     visitGroupingExpr(expr: GroupingExpr): Type {
         return this.checkExpr(expr.expression);
     }
@@ -789,6 +819,23 @@ implements ExprVisitor<Type>, StmtVisitor<ControlFlow>, TypeExprVisitor<Type> {
         } else {
             return this.resolveName(expr, expr.keyword);
         }
+    }
+
+    private checkUnaryExprWithNarrowing(
+        expr: UnaryExpr,
+        expectedType: Type | null = null,
+    ): TypeWithNarrowings {
+        if (expr.operator.type === "BANG") {
+            const {narrowings} = this.checkExprWithNarrowing(expr.right);
+            return {
+                narrowings: this.invertNarrowings(narrowings),
+                type: types.Boolean,
+            };
+        }
+        return {
+            type: this.checkExpr(expr, expectedType),
+            narrowings: [],
+        };
     }
 
     visitUnaryExpr(expr: UnaryExpr): Type {

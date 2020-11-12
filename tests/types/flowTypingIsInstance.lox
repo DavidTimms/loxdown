@@ -1,6 +1,6 @@
 class Animal {}
 
-class Dog {
+class Dog < Animal {
     isExcited: Boolean;
 
     init() {
@@ -12,9 +12,9 @@ class Dog {
     }
 }
 
-var animal = Dog();
+var animal: Animal = Dog();
 
-if (isInstance(animal, Dog) && animal.isExcited) {
+if (isInstance(animal, Dog) and animal.isExcited) {
     animal.woof();
 }
 
