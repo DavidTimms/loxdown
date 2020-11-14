@@ -68,3 +68,8 @@ export default class ClassType {
         return new InstanceType(this);
     }
 }
+
+ClassType.metaClass.methods.set(
+    "getSuperclass",
+    new CallableType([], ClassType.metaClass.instance()),
+);

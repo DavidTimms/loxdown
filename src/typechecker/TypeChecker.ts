@@ -157,8 +157,11 @@ implements ExprVisitor<Type>, StmtVisitor<ControlFlow>, TypeExprVisitor<Type> {
         return stmt.accept(this);
     }
 
-    private checkExpr(expr: Expr, expectedType: Type | null = null): Type {
-        const exprType = expr.accept(this);
+    private validateExprType(
+        expr: Expr,
+        exprType: Type,
+        expectedType: Type,
+    ): void {
         if (expectedType && !Type.isCompatible(exprType, expectedType)) {
             this.error(
                 "Incorrect type. " +
@@ -166,6 +169,11 @@ implements ExprVisitor<Type>, StmtVisitor<ControlFlow>, TypeExprVisitor<Type> {
                 expr,
             );
         }
+    }
+
+    private checkExpr(expr: Expr, expectedType: Type | null = null): Type {
+        const exprType = expr.accept(this);
+        if (expectedType) this.validateExprType(expr, exprType, expectedType);
 
         // Should this return the expected type instead of the actual type?
         return exprType;
@@ -175,22 +183,23 @@ implements ExprVisitor<Type>, StmtVisitor<ControlFlow>, TypeExprVisitor<Type> {
         expr: Expr,
         expectedType: Type | null = null,
     ): TypeWithNarrowings {
+        let type: Type;
+        let narrowings: TypeNarrowing[];
 
-        // TODO refactor these methods to not check against the expected type
-        // so that they can be used by the visitXExpr methods to avoid
-        // duplicating logic.
         if (expr instanceof BinaryExpr) {
-            return this.checkBinaryExprWithNarrowing(expr, expectedType);
+            ({type, narrowings} = this.visitBinaryExprWithNarrowing(expr));
         } else if (expr instanceof GroupingExpr) {
-            return this.checkGroupingExprWithNarrowing(expr, expectedType);
+            ({type, narrowings} = this.visitGroupingExprWithNarrowing(expr));
         } else if (expr instanceof UnaryExpr) {
-            return this.checkUnaryExprWithNarrowing(expr, expectedType);
+            ({type, narrowings} = this.visitUnaryExprWithNarrowing(expr));
+        } else {
+            type = expr.accept(this);
+            narrowings = [];
         }
 
-        return {
-            type: this.checkExpr(expr, expectedType),
-            narrowings: [],
-        };
+        if (expectedType) this.validateExprType(expr, type, expectedType);
+
+        return {type, narrowings};
     }
 
     private invertNarrowings(narrowings: TypeNarrowing[]): TypeNarrowing[] {
@@ -587,10 +596,7 @@ implements ExprVisitor<Type>, StmtVisitor<ControlFlow>, TypeExprVisitor<Type> {
         return expectedType;
     }
 
-    private checkBinaryExprWithNarrowing(
-        expr: BinaryExpr,
-        expectedType: Type | null = null,
-    ): TypeWithNarrowings {
+    private visitBinaryExprWithNarrowing(expr: BinaryExpr): TypeWithNarrowings {
 
         let narrowings: TypeNarrowing[] = [];
 
@@ -630,7 +636,7 @@ implements ExprVisitor<Type>, StmtVisitor<ControlFlow>, TypeExprVisitor<Type> {
         // TODO other cases (null != x) (null == x)
 
         return {
-            type: this.checkExpr(expr, expectedType),
+            type: this.checkExpr(expr),
             narrowings,
         };
     }
@@ -667,6 +673,8 @@ implements ExprVisitor<Type>, StmtVisitor<ControlFlow>, TypeExprVisitor<Type> {
 
             case "EQUAL_EQUAL":
             case "BANG_EQUAL":
+                this.checkExpr(expr.left);
+                this.checkExpr(expr.right);
                 // TODO detect disjoint types and warn of constant result
                 return types.Boolean;
         }
@@ -742,11 +750,10 @@ implements ExprVisitor<Type>, StmtVisitor<ControlFlow>, TypeExprVisitor<Type> {
         return memberType ?? types.PreviousTypeError;
     }
 
-    private checkGroupingExprWithNarrowing(
+    private visitGroupingExprWithNarrowing(
         expr: GroupingExpr,
-        expectedType: Type | null = null,
     ): TypeWithNarrowings {
-        return this.checkExprWithNarrowing(expr.expression, expectedType);
+        return this.checkExprWithNarrowing(expr.expression);
     }
 
     visitGroupingExpr(expr: GroupingExpr): Type {
@@ -821,10 +828,7 @@ implements ExprVisitor<Type>, StmtVisitor<ControlFlow>, TypeExprVisitor<Type> {
         }
     }
 
-    private checkUnaryExprWithNarrowing(
-        expr: UnaryExpr,
-        expectedType: Type | null = null,
-    ): TypeWithNarrowings {
+    private visitUnaryExprWithNarrowing(expr: UnaryExpr): TypeWithNarrowings {
         if (expr.operator.type === "BANG") {
             const {narrowings} = this.checkExprWithNarrowing(expr.right);
             return {
@@ -833,7 +837,7 @@ implements ExprVisitor<Type>, StmtVisitor<ControlFlow>, TypeExprVisitor<Type> {
             };
         }
         return {
-            type: this.checkExpr(expr, expectedType),
+            type: this.checkExpr(expr),
             narrowings: [],
         };
     }
