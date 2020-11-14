@@ -169,6 +169,8 @@ function intersection(left: Type, right: Type): Type | null {
  * This is a relative complement in set theory.
  */
 function complement(left: Type, right: Type): Type {
+    // TODO introduce Never type where this currently returns PreviousTypeError
+
     if (left.tag === "UNION") {
         const childrenNotInRight =
             left.children.filter(child => !isCompatible(child, right));
@@ -179,6 +181,10 @@ function complement(left: Type, right: Type): Type {
             return childrenNotInRight[0];
         }
         return new UnionType(childrenNotInRight);
+    }
+
+    if (isCompatible(left, right)) {
+        return types.PreviousTypeError;
     }
 
     return left;

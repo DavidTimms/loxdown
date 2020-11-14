@@ -1,0 +1,7 @@
+var greeting: String | Nil = "Good morning";
+
+if (greeting != nil or greeting != nil) {
+    print(greeting + ", Paris!");
+}
+-- OUTPUT --
+Good morning, Paris!

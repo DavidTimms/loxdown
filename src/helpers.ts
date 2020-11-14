@@ -42,3 +42,17 @@ export function comparator<Item>(
         return ComparisonResult.Equal;
     };
 }
+
+export function groupBy<Item, Key>(
+    items: Item[],
+    getKey: (item: Item) => Key,
+): Map<Key, Item[]> {
+    const grouped = new Map<Key, Item[]>();
+    for (const item of items) {
+        const key = getKey(item);
+        const group = grouped.get(key) ?? [];
+        group.push(item);
+        grouped.set(key, group);
+    }
+    return grouped;
+}

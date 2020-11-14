@@ -39,7 +39,7 @@ import {
     CallableTypeExpr,
     UnionTypeExpr,
 } from "../TypeExpr";
-import { zip, comparator } from "../helpers";
+import { zip, comparator, groupBy } from "../helpers";
 import CallableType from "./CallableType";
 import { default as types } from "./builtinTypes";
 import globalsTypes from "./globalsTypes";
@@ -190,6 +190,8 @@ implements ExprVisitor<Type>, StmtVisitor<ControlFlow>, TypeExprVisitor<Type> {
             ({type, narrowings} = this.visitBinaryExprWithNarrowing(expr));
         } else if (expr instanceof GroupingExpr) {
             ({type, narrowings} = this.visitGroupingExprWithNarrowing(expr));
+        } else if (expr instanceof LogicalExpr) {
+            ({type, narrowings} = this.visitLogicalExprWithNarrowing(expr));
         } else if (expr instanceof UnaryExpr) {
             ({type, narrowings} = this.visitUnaryExprWithNarrowing(expr));
         } else {
@@ -218,7 +220,54 @@ implements ExprVisitor<Type>, StmtVisitor<ControlFlow>, TypeExprVisitor<Type> {
         });
     }
 
-    private withNarrowings<T>(narrowings: TypeNarrowing[], body: () => T): T {
+    /**
+     * Given two arrays of type narrowings, this combines them by calculating
+     * the intersection of the types for any variables which appear in both
+     * arrays. Any variables which only appear in one of the arrays will be
+     * included unchanged.
+     */
+    private intersectNarrowings(
+        leftNarrowings: TypeNarrowing[],
+        rightNarrowings: TypeNarrowing[],
+    ): TypeNarrowing[] {
+        const narrowingsByName = groupBy(
+            leftNarrowings.concat(rightNarrowings),
+            n => n.name,
+        );
+        return (
+            Array.from(narrowingsByName)
+                .map(([name, narrowingsForName]) => {
+                    const type =
+                        narrowingsForName
+                            .map(n => n.type)
+                            .reduce((typeA, typeB) =>
+                                Type.intersection(typeA, typeB) ??
+                                types.PreviousTypeError);
+                    return {name, type};
+                })
+        );
+    }
+
+    /**
+     * Given two arrays of type narrowings, this combines them by omitting
+     * any variables which only appear in one of the arrays and taking the
+     * union of the types for any variables which appear in both.
+     */
+    private unionNarrowings(
+        leftNarrowings: TypeNarrowing[],
+        rightNarrowings: TypeNarrowing[],
+    ): TypeNarrowing[] {
+        const rightNarrowingsByName = groupBy(rightNarrowings, n => n.name);
+        return leftNarrowings.flatMap(({name, type: leftType}) => {
+            const rightNarrowingsForName = rightNarrowingsByName.get(name);
+            if (!rightNarrowingsForName) return [];
+            const rightTypes = rightNarrowingsForName.map(n => n.type);
+            const type = rightTypes.reduce(Type.union, leftType);
+            return [{name, type}];
+        });
+    }
+
+    private usingNarrowings<T>(narrowings: TypeNarrowing[], body: () => T): T {
         const oldScopes = this.scopes;
         const newScopes = oldScopes.slice();
         for (const {name, type} of narrowings) {
@@ -515,7 +564,7 @@ implements ExprVisitor<Type>, StmtVisitor<ControlFlow>, TypeExprVisitor<Type> {
 
         const {narrowings} = this.checkExprWithNarrowing(stmt.condition);
 
-        const {passable: thenIsPassable} = this.withNarrowings(
+        const {passable: thenIsPassable} = this.usingNarrowings(
             narrowings,
             () => this.checkStmt(stmt.thenBranch),
         );
@@ -523,7 +572,7 @@ implements ExprVisitor<Type>, StmtVisitor<ControlFlow>, TypeExprVisitor<Type> {
         if (stmt.elseBranch) {
             const invertedNarrowings = this.invertNarrowings(narrowings);
 
-            const {passable: elseIsPassable} = this.withNarrowings(
+            const {passable: elseIsPassable} = this.usingNarrowings(
                 invertedNarrowings,
                 () => this.checkStmt(stmt.elseBranch ?? new BlockStmt([])),
             );
@@ -645,6 +694,11 @@ implements ExprVisitor<Type>, StmtVisitor<ControlFlow>, TypeExprVisitor<Type> {
         switch (expr.operator.type) {
             case "PLUS": {
                 const leftType = this.checkExpr(expr.left);
+
+                if (leftType === types.PreviousTypeError) {
+                    this.checkExpr(expr.right);
+                    return types.PreviousTypeError;
+                }
 
                 for (const candidate of [types.Number, types.String]) {
                     if (Type.isCompatible(leftType, candidate)) {
@@ -770,20 +824,46 @@ implements ExprVisitor<Type>, StmtVisitor<ControlFlow>, TypeExprVisitor<Type> {
         throw new ImplementationError("Unexpected literal type.");
     }
 
-    visitLogicalExpr(expr: LogicalExpr): Type {
+    private visitLogicalExprWithNarrowing(
+        expr: LogicalExpr,
+    ): TypeWithNarrowings {
         const left = this.checkExprWithNarrowing(expr.left);
+        let right: TypeWithNarrowings;
+        let narrowings: TypeNarrowing[];
 
-        const narrowings =
-            expr.operator.type === "AND" ?
-                left.narrowings :
-                expr.operator.type === "OR" ?
-                    this.invertNarrowings(left.narrowings) :
-                    [];
+        switch (expr.operator.type) {
+            case "AND": {
+                right = this.usingNarrowings(
+                    left.narrowings,
+                    () => this.checkExprWithNarrowing(expr.right),
+                );
+                narrowings = this.intersectNarrowings(
+                    left.narrowings,
+                    right.narrowings,
+                );
+                break;
+            }
+            case "OR": {
+                right = this.usingNarrowings(
+                    this.invertNarrowings(left.narrowings),
+                    () => this.checkExprWithNarrowing(expr.right),
+                );
+                narrowings = this.unionNarrowings(
+                    left.narrowings,
+                    right.narrowings,
+                );
+                break;
+            }
+            default:
+                throw new ImplementationError(
+                    `Unexpected logical operator: ${expr.operator.type}.`);
+        }
 
-        const rightType =
-            this.withNarrowings(narrowings, () => this.checkExpr(expr.right));
+        return {type: Type.union(left.type, right.type), narrowings};
+    }
 
-        return Type.union(left.type, rightType);
+    visitLogicalExpr(expr: LogicalExpr): Type {
+        return this.visitLogicalExprWithNarrowing(expr).type;
     }
 
     visitSetExpr(expr: SetExpr): Type {

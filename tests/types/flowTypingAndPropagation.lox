@@ -5,4 +5,4 @@ if (greeting != nil and place != nil) {
     print(greeting + ", " + place + "!");
 }
 -- OUTPUT --
-Goodbye, world!
+Howdy, Texas!
