@@ -1,0 +1,10 @@
+var n: Number | Nil = 1;
+
+while (n != nil and n <= 3) {
+    print("Number " + String(n));
+    n = n + 1;
+}
+-- OUTPUT --
+Number 1
+Number 2
+Number 3

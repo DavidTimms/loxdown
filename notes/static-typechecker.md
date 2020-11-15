@@ -40,12 +40,13 @@
     - [X] Implement callable unions.
   - [X] Add type aliases.
   - [ ] Add control-flow type refinement.
-    - [ ] Use narrowings in while statements.
+    - [X] Use narrowings in while statements.
     - [X] Use narrowings in logical expressions.
     - [X] Propagate narrowings through not operator.
     - [X] Propagate narrowings through logical expressions.
     - [ ] Add a way for `isInstance` to provide narrowings.
     - [ ] Combine passability with narrowings.
     - [ ] Fix unsoundness from narrowing applying to functions which may be called after reassignment.
+    - [ ] Allow assignment to unnarrowed type.
   - [ ] Add a `Never` type to allow expression statements to be impassable and reflect impossible narrowings.
   - [ ] Add generics.

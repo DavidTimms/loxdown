@@ -635,8 +635,11 @@ implements ExprVisitor<Type>, StmtVisitor<ControlFlow>, TypeExprVisitor<Type> {
     }
 
     visitWhileStmt(stmt: WhileStmt): ControlFlow {
-        this.checkExpr(stmt.condition);
-        return this.checkStmt(stmt.body);
+        const {narrowings} = this.checkExprWithNarrowing(stmt.condition);
+        return this.usingNarrowings(
+            narrowings,
+            () => this.checkStmt(stmt.body),
+        );
     }
 
     visitAssignExpr(expr: AssignExpr): Type {
