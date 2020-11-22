@@ -30,7 +30,7 @@
   - [X] Rollback typechecker state after type error in the REPL, so it correctly reflects interpreter state.
   - [X] Add types for builtin type constructors (Boolean, Number, String).
   - [X] Ensure all code paths in a function return.
-  - [ ] Add support for union types.
+  - [X] Add support for union types.
     - [X] Add syntax for unions.
     - [X] Add basic class for unions.
     - [X] Move union and type compatibility methods out of type checker class.
@@ -45,8 +45,8 @@
     - [X] Propagate narrowings through not operator.
     - [X] Propagate narrowings through logical expressions.
     - [X] Make comparisons to nil provide narrowings.
-    - [ ] Make variable expressions in boolean context provide narrowings e.g. `if (x}`
-    - [ ] Add a way for `isInstance` to provide narrowings.
+    - [X] Make variable expressions in boolean context provide narrowings e.g. `if (x}`
+    - [X] Add a way for `isInstance` to provide narrowings.
     - [ ] Allow narrowing object fields as well as variables (can this be done in a sound way?).
     - [ ] Combine passability with narrowings.
     - [ ] Fix unsoundness from narrowing applying to functions which may be called after reassignment.

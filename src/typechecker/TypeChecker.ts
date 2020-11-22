@@ -196,6 +196,8 @@ implements ExprVisitor<Type>, StmtVisitor<ControlFlow>, TypeExprVisitor<Type> {
             ({type, narrowings} = this.visitLogicalExprWithNarrowing(expr));
         } else if (expr instanceof UnaryExpr) {
             ({type, narrowings} = this.visitUnaryExprWithNarrowing(expr));
+        } else if (expr instanceof VariableExpr) {
+            ({type, narrowings} = this.visitVariableExprWithNarrowing(expr));
         } else {
             type = expr.accept(this);
             narrowings = [];
@@ -964,6 +966,19 @@ implements ExprVisitor<Type>, StmtVisitor<ControlFlow>, TypeExprVisitor<Type> {
         // Unreachable
         throw new ImplementationError(
             `Unexpected unary operator: ${expr.operator.lexeme}`);
+    }
+
+    visitVariableExprWithNarrowing(expr: VariableExpr): TypeWithNarrowings {
+        const type = this.visitVariableExpr(expr);
+
+        const nonNilType = Type.complement(type, types.Nil);
+
+        const narrowings =
+            nonNilType === type
+                ? []
+                : [new TypeNarrowing(expr.name.lexeme, nonNilType)];
+
+        return {type, narrowings};
     }
 
     visitVariableExpr(expr: VariableExpr): Type {
