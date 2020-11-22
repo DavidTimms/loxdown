@@ -1,5 +1,7 @@
 import Type from "./Type";
 
+export type CallableNarrowingProducer = (argTypes: Type[]) => Map<number, Type>;
+
 export default class CallableType {
     readonly tag = "CALLABLE";
     readonly classType = null;
@@ -7,6 +9,7 @@ export default class CallableType {
     constructor(
         readonly params: Type[],
         readonly returns: Type | null = null,
+        readonly produceNarrowings: CallableNarrowingProducer | null = null,
     ) {}
 
     get callable(): CallableType {

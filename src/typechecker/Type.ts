@@ -5,7 +5,6 @@ import AnyType from "./AnyType";
 import UnionType from "./UnionType";
 import types from "./builtinTypes";
 import { zip } from "../helpers";
-import { type } from "os";
 
 // TODO add FunctionType (combination of InstanceType and CallableType)
 

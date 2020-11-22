@@ -188,6 +188,8 @@ implements ExprVisitor<Type>, StmtVisitor<ControlFlow>, TypeExprVisitor<Type> {
 
         if (expr instanceof BinaryExpr) {
             ({type, narrowings} = this.visitBinaryExprWithNarrowing(expr));
+        } else if (expr instanceof CallExpr) {
+            ({type, narrowings} = this.visitCallExprWithNarrowing(expr));
         } else if (expr instanceof GroupingExpr) {
             ({type, narrowings} = this.visitGroupingExprWithNarrowing(expr));
         } else if (expr instanceof LogicalExpr) {
@@ -741,7 +743,21 @@ implements ExprVisitor<Type>, StmtVisitor<ControlFlow>, TypeExprVisitor<Type> {
             `Unexpected binary operator: ${expr.operator.lexeme}`);
     }
 
-    visitCallExpr(expr: CallExpr): Type {
+    visitGetExpr(expr: GetExpr): Type {
+        const objectType = this.checkExpr(expr.object);
+        const memberType = objectType.get(expr.name.lexeme);
+
+        if (memberType === null && objectType !== types.PreviousTypeError) {
+            this.error(
+                `Type '${objectType}' has no property '${expr.name.lexeme}'.`,
+                expr.name,
+            );
+        }
+
+        return memberType ?? types.PreviousTypeError;
+    }
+
+    visitCallExprWithNarrowing(expr: CallExpr): TypeWithNarrowings {
         const calleeType = this.checkExpr(expr.callee);
 
         const callable = calleeType.callable;
@@ -754,7 +770,10 @@ implements ExprVisitor<Type>, StmtVisitor<ControlFlow>, TypeExprVisitor<Type> {
             for (const arg of expr.args) {
                 this.checkExpr(arg);
             }
-            return types.PreviousTypeError;
+            return {
+                type: types.PreviousTypeError,
+                narrowings: [],
+            };
         }
 
         const args = expr.args;
@@ -785,26 +804,33 @@ implements ExprVisitor<Type>, StmtVisitor<ControlFlow>, TypeExprVisitor<Type> {
             );
         }
 
-        for (const [arg, paramType] of zip(args, params)) {
-            this.checkExpr(arg, paramType);
+        const argTypes =
+            zip(args, params).map(
+                ([arg, paramType]) => this.checkExpr(arg, paramType));
+
+        const narrowings: TypeNarrowing[] = [];
+
+        if (callable.produceNarrowings) {
+            const argNarrowings = callable.produceNarrowings(argTypes);
+
+            for (const [index, type] of argNarrowings.entries()) {
+                const arg = expr.args[index];
+                if (arg instanceof VariableExpr) {
+                    narrowings.push(new TypeNarrowing(arg.name.lexeme, type));
+                }
+            }
         }
 
-        return callable.returns ?? types.Nil;
+        const returnType = callable.returns ?? types.Nil;
 
+        return {
+            type: returnType,
+            narrowings,
+        };
     }
 
-    visitGetExpr(expr: GetExpr): Type {
-        const objectType = this.checkExpr(expr.object);
-        const memberType = objectType.get(expr.name.lexeme);
-
-        if (memberType === null && objectType !== types.PreviousTypeError) {
-            this.error(
-                `Type '${objectType}' has no property '${expr.name.lexeme}'.`,
-                expr.name,
-            );
-        }
-
-        return memberType ?? types.PreviousTypeError;
+    visitCallExpr(expr: CallExpr): Type {
+        return this.visitCallExprWithNarrowing(expr).type;
     }
 
     private visitGroupingExprWithNarrowing(

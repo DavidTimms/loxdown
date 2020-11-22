@@ -44,7 +44,10 @@
     - [X] Use narrowings in logical expressions.
     - [X] Propagate narrowings through not operator.
     - [X] Propagate narrowings through logical expressions.
+    - [X] Make comparisons to nil provide narrowings.
+    - [ ] Make variable expressions in boolean context provide narrowings e.g. `if (x}`
     - [ ] Add a way for `isInstance` to provide narrowings.
+    - [ ] Allow narrowing object fields as well as variables (can this be done in a sound way?).
     - [ ] Combine passability with narrowings.
     - [ ] Fix unsoundness from narrowing applying to functions which may be called after reassignment.
     - [ ] Allow assignment to unnarrowed type.
