@@ -50,6 +50,6 @@
     - [ ] Allow narrowing object fields as well as variables (can this be done in a sound way?).
     - [ ] Combine passability with narrowings.
     - [X] Fix unsoundness from narrowing applying to functions which may be called after reassignment.
-    - [ ] Allow assignment to unnarrowed type.
+    - [X] Allow assignment to unnarrowed type.
   - [ ] Add a `Never` type to allow expression statements to be impassable and reflect impossible narrowings.
   - [ ] Add generics.

@@ -1,0 +1,11 @@
+var x: Number | Nil = nil;
+
+if (false) {
+    x = 3;
+}
+print x - 1;
+-- ERROR --
+6:7 - error: Incorrect type. Expected 'Number', but found 'Number | Nil'.
+
+6     print x - 1;
+            ^

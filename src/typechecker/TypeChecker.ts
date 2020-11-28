@@ -107,6 +107,12 @@ interface ControlFlow {
     passable: boolean;
 }
 
+interface VariableSite {
+    wideType: Type;
+    narrowType: Type;
+    depth: number | null;
+}
+
 export default class TypeChecker
 implements ExprVisitor<Type>, StmtVisitor<ControlFlow>, TypeExprVisitor<Type> {
     private scopes: Scope[] = [this.globalScope()];
@@ -125,8 +131,34 @@ implements ExprVisitor<Type>, StmtVisitor<ControlFlow>, TypeExprVisitor<Type> {
         });
     }
 
+    private cloneScopes(): Scope[] {
+        return this.scopes.map(scope => scope.clone());
+    }
+
+    private beginScope(suspendNarrowings = false): Scope[] {
+        const previousScopes = this.scopes;
+        this.scopes = this.cloneScopes();
+        if (suspendNarrowings) {
+            for (const scope of this.scopes) {
+                scope.narrowedValueNamespace.clear();
+            }
+        }
+        this.scopes.unshift(new Scope());
+        return previousScopes;
+    }
+
+    private endScope(previousScopes: Scope[]): void {
+        this.checkDeferredFunctionBodies();
+        this.debugScope();
+        this.scopes = previousScopes;
+    }
+
+    private isInGlobalScope(): boolean {
+        return this.scopes.length === 1;
+    }
+
     checkProgram(stmts: Stmt[]): StaticError[] {
-        const scopesSnapshot = this.scopes.map(scope => scope.clone());
+        const scopesSnapshot = this.cloneScopes();
         this.errors = [];
         this.checkStmts(stmts);
         this.checkDeferredFunctionBodies();
@@ -168,21 +200,22 @@ implements ExprVisitor<Type>, StmtVisitor<ControlFlow>, TypeExprVisitor<Type> {
         expr: Expr,
         exprType: Type,
         expectedType: Type,
-    ): void {
-        if (expectedType && !Type.isCompatible(exprType, expectedType)) {
+    ): boolean {
+        if (Type.isCompatible(exprType, expectedType)) {
+            return true;
+        } else {
             this.error(
                 "Incorrect type. " +
                 `Expected '${expectedType}', but found '${exprType}'.`,
                 expr,
             );
+            return false;
         }
     }
 
     private checkExpr(expr: Expr, expectedType: Type | null = null): Type {
         const exprType = expr.accept(this);
         if (expectedType) this.validateExprType(expr, exprType, expectedType);
-
-        // Should this return the expected type instead of the actual type?
         return exprType;
     }
 
@@ -226,7 +259,7 @@ implements ExprVisitor<Type>, StmtVisitor<ControlFlow>, TypeExprVisitor<Type> {
             }
             return new TypeNarrowing(
                 name,
-                Type.complement(unnarrowedVariable.type, narrowedType),
+                Type.complement(unnarrowedVariable.narrowType, narrowedType),
             );
         });
     }
@@ -296,26 +329,6 @@ implements ExprVisitor<Type>, StmtVisitor<ControlFlow>, TypeExprVisitor<Type> {
         return result;
     }
 
-    private suspendNarrowings(): Scope[] {
-        const scopesWithNarrowings = this.scopes;
-
-        const scopesWithoutNarrowings = this.scopes.map(scope => {
-            if (scope.narrowedValueNamespace.size > 0) {
-                const newScope = scope.clone();
-                newScope.narrowedValueNamespace.clear();
-                return newScope;
-            }
-            return scope;
-        });
-
-        this.scopes = scopesWithoutNarrowings;
-        return scopesWithNarrowings;
-    }
-
-    private resumeSuspendedNarrowings(scopesWithNarrowings: Scope[]): void {
-        this.scopes = scopesWithNarrowings;
-    }
-
     private getFunctionType(func: FunctionStmt): CallableType {
         const paramTypes =
             func.params.map(param => this.evaluateTypeExpr(param.type));
@@ -333,8 +346,8 @@ implements ExprVisitor<Type>, StmtVisitor<ControlFlow>, TypeExprVisitor<Type> {
         const enclosingFunction = this.currentFunction;
         this.currentFunction = context;
 
-        const scopesWithNarrowings = this.suspendNarrowings();
-        this.beginScope();
+        const suspendNarrowings = true;
+        const previousScope = this.beginScope(suspendNarrowings);
 
         for (const [param, type] of zip(func.params, context.type.params)) {
             this.declareValue(param.name);
@@ -350,8 +363,7 @@ implements ExprVisitor<Type>, StmtVisitor<ControlFlow>, TypeExprVisitor<Type> {
             );
         }
 
-        this.endScope();
-        this.resumeSuspendedNarrowings(scopesWithNarrowings);
+        this.endScope(previousScope);
 
         this.currentFunction = enclosingFunction;
     }
@@ -379,20 +391,6 @@ implements ExprVisitor<Type>, StmtVisitor<ControlFlow>, TypeExprVisitor<Type> {
         }
     }
 
-    private beginScope(): void {
-        this.scopes.unshift(new Scope());
-    }
-
-    private endScope(): void {
-        this.checkDeferredFunctionBodies();
-        this.debugScope();
-        this.scopes.shift();
-    }
-
-    private isInGlobalScope(): boolean {
-        return this.scopes.length === 1;
-    }
-
     private declareValue(name: Token): void {
         const {valueNamespace} = this.scopes[0];
 
@@ -414,27 +412,43 @@ implements ExprVisitor<Type>, StmtVisitor<ControlFlow>, TypeExprVisitor<Type> {
         this.scopes[0].typeNamespace.set(name.lexeme, type);
     }
 
-    private lookupValue(name: string): {type: Type; depth: number} | null {
+    private lookupValue(name: string): VariableSite | null {
         for (const [depth, scope] of this.scopes.entries()) {
-            const type =
-                scope.narrowedValueNamespace.get(name) ??
+
+            const wideType =
                 scope.valueNamespace.get(name);
 
-            if (type) return {type, depth};
+            const narrowType =
+                scope.narrowedValueNamespace.get(name);
+
+            if (wideType) {
+                return {
+                    wideType,
+                    narrowType: narrowType ?? wideType,
+                    depth,
+                };
+            }
         }
         return null;
     }
 
-    private resolveName(expr: Expr, name: Token): Type {
-        const variable = this.lookupValue(name.lexeme);
+    private resolveName(expr: Expr, name: Token): VariableSite {
+        const variableSite = this.lookupValue(name.lexeme);
 
-        if (variable === null) {
-            return this.error(
+        if (variableSite === null) {
+            this.error(
                 `The name '${name.lexeme}' is not defined.`, name);
+            return {
+                wideType: types.PreviousTypeError,
+                narrowType: types.PreviousTypeError,
+                depth: null,
+            };
         }
 
-        this.interpreter.resolve(expr, variable.depth);
-        return variable.type;
+        if (variableSite.depth !== null) {
+            this.interpreter.resolve(expr, variableSite.depth);
+        }
+        return variableSite;
     }
 
     private evaluateTypeExpr(typeExpr: TypeExpr): Type {
@@ -471,9 +485,9 @@ implements ExprVisitor<Type>, StmtVisitor<ControlFlow>, TypeExprVisitor<Type> {
     }
 
     visitBlockStmt(stmt: BlockStmt): ControlFlow {
-        this.beginScope();
+        const previousScopes = this.beginScope();
         const controlFlow = this.checkStmts(stmt.statements);
-        this.endScope();
+        this.endScope(previousScopes);
         return controlFlow;
     }
 
@@ -517,19 +531,21 @@ implements ExprVisitor<Type>, StmtVisitor<ControlFlow>, TypeExprVisitor<Type> {
         classType.fields = this.getFieldTypes(stmt.fields);
         classType.methods = this.getMethodTypes(stmt.methods);
 
+        let superPreviousScopes: Scope[] | null = null;
+
         if (superType) {
-            this.beginScope();
+            superPreviousScopes = this.beginScope();
             this.scopes[0].valueNamespace.set("super", superType.instance());
         }
 
-        this.beginScope();
+        const previousScopes = this.beginScope();
         this.scopes[0].valueNamespace.set("this", classType.instance());
 
         this.checkMethods(stmt.methods, classType);
 
-        this.endScope();
+        this.endScope(previousScopes);
 
-        if (superType) this.endScope();
+        if (superPreviousScopes) this.endScope(superPreviousScopes);
 
         this.currentClass = enclosingClass;
 
@@ -681,9 +697,22 @@ implements ExprVisitor<Type>, StmtVisitor<ControlFlow>, TypeExprVisitor<Type> {
     }
 
     visitAssignExpr(expr: AssignExpr): Type {
-        const expectedType = this.resolveName(expr, expr.name);
-        this.checkExpr(expr.value, expectedType);
-        return expectedType;
+        const variable = this.resolveName(expr, expr.name);
+        const assignedType = this.checkExpr(expr.value);
+
+        // Allow assigning to the original type of the variable, not the
+        // narrowed type.
+        const isValid =
+            this.validateExprType(expr.value, assignedType, variable.wideType);
+
+        // Alter the narrowed type for the remainder of this scope to reflect
+        // the assigned value.
+        if (isValid && variable.depth !== null) {
+            const scope = this.scopes[variable.depth];
+            scope.narrowedValueNamespace.set(expr.name.lexeme, assignedType);
+        }
+
+        return isValid ? assignedType : variable.wideType;
     }
 
     private visitBinaryExprWithNarrowing(expr: BinaryExpr): TypeWithNarrowings {
@@ -702,7 +731,7 @@ implements ExprVisitor<Type>, StmtVisitor<ControlFlow>, TypeExprVisitor<Type> {
                 narrowings = [
                     new TypeNarrowing(
                         name,
-                        Type.complement(variable.type, types.Nil),
+                        Type.complement(variable.narrowType, types.Nil),
                     ),
                 ];
             }
@@ -954,7 +983,8 @@ implements ExprVisitor<Type>, StmtVisitor<ControlFlow>, TypeExprVisitor<Type> {
             );
         }
 
-        const superType = this.resolveName(expr, expr.keyword) as InstanceType;
+        const superType =
+            this.resolveName(expr, expr.keyword).narrowType as InstanceType;
         const methodType = superType.classType.findMethod(expr.method.lexeme);
 
         return methodType ?? this.error(
@@ -969,7 +999,7 @@ implements ExprVisitor<Type>, StmtVisitor<ControlFlow>, TypeExprVisitor<Type> {
             return this.error(
                 "Cannot use 'this' outside of a class.", expr.keyword);
         } else {
-            return this.resolveName(expr, expr.keyword);
+            return this.resolveName(expr, expr.keyword).narrowType;
         }
     }
 
@@ -1022,7 +1052,7 @@ implements ExprVisitor<Type>, StmtVisitor<ControlFlow>, TypeExprVisitor<Type> {
                 expr.name,
             );
         }
-        return this.resolveName(expr, expr.name);
+        return this.resolveName(expr, expr.name).narrowType;
     }
 
     // Records an error when it is possible to continue typechecking

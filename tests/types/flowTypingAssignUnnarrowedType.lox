@@ -1,0 +1,9 @@
+var n: Number | Nil = nil;
+
+if (!n) {
+    n = 123;
+    print(n + 1);
+}
+
+-- OUTPUT --
+124
