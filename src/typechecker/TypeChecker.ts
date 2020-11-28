@@ -61,17 +61,24 @@ class StaticError {
 class Scope {
     readonly typeNamespace: Map<string, Type>;
     readonly valueNamespace: Map<string, Type | null>;
+    readonly narrowedValueNamespace: Map<string, Type>;
     readonly functions: FunctionStmt[];
     constructor(initialProps: Partial<Scope> = {}) {
-        this.typeNamespace = initialProps.typeNamespace ?? new Map();
-        this.valueNamespace = initialProps.valueNamespace ?? new Map();
-        this.functions = initialProps.functions ?? [];
+        this.typeNamespace =
+            initialProps.typeNamespace ?? new Map();
+        this.valueNamespace =
+            initialProps.valueNamespace ?? new Map();
+        this.narrowedValueNamespace =
+            initialProps.narrowedValueNamespace ?? new Map();
+        this.functions =
+            initialProps.functions ?? [];
     }
 
     clone(): Scope {
         return new Scope({
-            typeNamespace: new Map(this.typeNamespace.entries()),
-            valueNamespace: new Map(this.valueNamespace.entries()),
+            typeNamespace: new Map(this.typeNamespace),
+            valueNamespace: new Map(this.valueNamespace),
+            narrowedValueNamespace: new Map(this.narrowedValueNamespace),
             functions: [...this.functions],
         });
     }
@@ -278,7 +285,7 @@ implements ExprVisitor<Type>, StmtVisitor<ControlFlow>, TypeExprVisitor<Type> {
             for (const [i, scope] of newScopes.entries()) {
                 if (scope.valueNamespace.has(name)) {
                     newScopes[i] = scope.clone();
-                    newScopes[i].valueNamespace.set(name, type);
+                    newScopes[i].narrowedValueNamespace.set(name, type);
                     break;
                 }
             }
@@ -287,6 +294,26 @@ implements ExprVisitor<Type>, StmtVisitor<ControlFlow>, TypeExprVisitor<Type> {
         const result = body();
         this.scopes = oldScopes;
         return result;
+    }
+
+    private suspendNarrowings(): Scope[] {
+        const scopesWithNarrowings = this.scopes;
+
+        const scopesWithoutNarrowings = this.scopes.map(scope => {
+            if (scope.narrowedValueNamespace.size > 0) {
+                const newScope = scope.clone();
+                newScope.narrowedValueNamespace.clear();
+                return newScope;
+            }
+            return scope;
+        });
+
+        this.scopes = scopesWithoutNarrowings;
+        return scopesWithNarrowings;
+    }
+
+    private resumeSuspendedNarrowings(scopesWithNarrowings: Scope[]): void {
+        this.scopes = scopesWithNarrowings;
     }
 
     private getFunctionType(func: FunctionStmt): CallableType {
@@ -306,7 +333,9 @@ implements ExprVisitor<Type>, StmtVisitor<ControlFlow>, TypeExprVisitor<Type> {
         const enclosingFunction = this.currentFunction;
         this.currentFunction = context;
 
+        const scopesWithNarrowings = this.suspendNarrowings();
         this.beginScope();
+
         for (const [param, type] of zip(func.params, context.type.params)) {
             this.declareValue(param.name);
             this.defineValue(param.name, type);
@@ -322,6 +351,8 @@ implements ExprVisitor<Type>, StmtVisitor<ControlFlow>, TypeExprVisitor<Type> {
         }
 
         this.endScope();
+        this.resumeSuspendedNarrowings(scopesWithNarrowings);
+
         this.currentFunction = enclosingFunction;
     }
 
@@ -384,9 +415,12 @@ implements ExprVisitor<Type>, StmtVisitor<ControlFlow>, TypeExprVisitor<Type> {
     }
 
     private lookupValue(name: string): {type: Type; depth: number} | null {
-        for (const [i, scope] of this.scopes.entries()) {
-            const type = scope.valueNamespace.get(name);
-            if (type) return {type, depth: i};
+        for (const [depth, scope] of this.scopes.entries()) {
+            const type =
+                scope.narrowedValueNamespace.get(name) ??
+                scope.valueNamespace.get(name);
+
+            if (type) return {type, depth};
         }
         return null;
     }

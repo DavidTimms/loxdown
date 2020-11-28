@@ -1,0 +1,15 @@
+// This should cause an error because xPlusOne could stored an called
+// later when x has been reassigned to a boolean.
+var x: Number | Boolean = 123;
+
+if (isInstance(x, Number)) {
+    fun xPlusOne(): Number {
+        return x + 1;
+    }
+    print x + 1;
+}
+-- ERROR --
+7:16 - error: Incorrect type for the left operand of '+'. Expected 'String' or 'Number', but found 'Number | Boolean'.
+
+7             return x + 1;
+                     ^
