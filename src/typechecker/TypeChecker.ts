@@ -82,6 +82,21 @@ class Scope {
             functions: [...this.functions],
         });
     }
+
+    static unionNarrowedTypes(left: Scope, right: Scope): Scope {
+        const combinedScope = left.clone();
+        combinedScope.narrowedValueNamespace.clear();
+
+        for (const [name, leftType] of left.narrowedValueNamespace) {
+            const rightType = right.narrowedValueNamespace.get(name);
+            if (rightType) {
+                const union = Type.union(leftType, rightType);
+                combinedScope.narrowedValueNamespace.set(name, union);
+            }
+        }
+
+        return combinedScope;
+    }
 }
 
 class TypeNarrowing {
@@ -112,24 +127,16 @@ const ControlFlow = {
         if (left.passable && right.passable) {
             const combinedScopes =
                 zip(left.scopes, right.scopes)
-                    .map(([leftScope, rightScope]) => {
-                        const combinedScope = leftScope.clone();
-                        combinedScope.narrowedValueNamespace.clear();
-                        for (const [name, leftType] of leftScope.narrowedValueNamespace) {
-                            const rightType = rightScope.narrowedValueNamespace.get(name);
-                            if (rightType) {
-                                combinedScope.narrowedValueNamespace.set(name, Type.union(leftType, rightType));
-                            }
-                        }
-
-                        return combinedScope;
-                    });
+                    .map(scopes => Scope.unionNarrowedTypes(...scopes));
             return {passable: true, scopes: combinedScopes};
+
         } else if (left.passable) {
             return {passable: true, scopes: left.scopes};
+
         } else if (right.passable) {
             return {passable: true, scopes: right.scopes};
         }
+
         return {passable: false};
     },
 };

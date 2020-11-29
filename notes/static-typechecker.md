@@ -48,7 +48,9 @@
     - [X] Make variable expressions in boolean context provide narrowings e.g. `if (x}`
     - [X] Add a way for `isInstance` to provide narrowings.
     - [ ] Combine passability with narrowings.
-    - [ ] Change scope cloning to happen at every branch point.
+      - [ ] Change scope cloning to happen at every branch point.
+      - [ ] Apply control flow union for logical operators.
+      - [ ] Apply control flow union for while loops.
     - [X] Fix unsoundness from narrowing applying to functions which may be called after reassignment.
     - [X] Allow assignment to unnarrowed type.
   - [ ] Add a `Never` type to allow expression statements to be impassable and reflect impossible narrowings.
