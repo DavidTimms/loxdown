@@ -103,9 +103,36 @@ interface FunctionContext {
 
 type ClassContext = "NONE" | "CLASS" | "SUBCLASS";
 
-interface ControlFlow {
-    passable: boolean;
-}
+type ControlFlow =
+    | {passable: true; scopes: Scope[]}
+    | {passable: false};
+
+const ControlFlow = {
+    union(left: ControlFlow, right: ControlFlow): ControlFlow {
+        if (left.passable && right.passable) {
+            const combinedScopes =
+                zip(left.scopes, right.scopes)
+                    .map(([leftScope, rightScope]) => {
+                        const combinedScope = leftScope.clone();
+                        combinedScope.narrowedValueNamespace.clear();
+                        for (const [name, leftType] of leftScope.narrowedValueNamespace) {
+                            const rightType = rightScope.narrowedValueNamespace.get(name);
+                            if (rightType) {
+                                combinedScope.narrowedValueNamespace.set(name, Type.union(leftType, rightType));
+                            }
+                        }
+
+                        return combinedScope;
+                    });
+            return {passable: true, scopes: combinedScopes};
+        } else if (left.passable) {
+            return {passable: true, scopes: left.scopes};
+        } else if (right.passable) {
+            return {passable: true, scopes: right.scopes};
+        }
+        return {passable: false};
+    },
+};
 
 interface VariableSite {
     wideType: Type;
@@ -189,7 +216,7 @@ implements ExprVisitor<Type>, StmtVisitor<ControlFlow>, TypeExprVisitor<Type> {
             const stmtControlFlow = this.checkStmt(stmt);
             passable = passable && stmtControlFlow.passable;
         }
-        return {passable};
+        return {passable, scopes: this.scopes};
     }
 
     private checkStmt(stmt: Stmt): ControlFlow {
@@ -484,11 +511,16 @@ implements ExprVisitor<Type>, StmtVisitor<ControlFlow>, TypeExprVisitor<Type> {
         return Type.union(left, right) ?? types.Any;
     }
 
+
     visitBlockStmt(stmt: BlockStmt): ControlFlow {
         const previousScopes = this.beginScope();
         const controlFlow = this.checkStmts(stmt.statements);
         this.endScope(previousScopes);
-        return controlFlow;
+        if (controlFlow.passable) {
+            return {passable: true, scopes: controlFlow.scopes.slice(1)};
+        } else  {
+            return controlFlow;
+        }
     }
 
     visitClassStmt(stmt: ClassStmt): ControlFlow {
@@ -549,7 +581,7 @@ implements ExprVisitor<Type>, StmtVisitor<ControlFlow>, TypeExprVisitor<Type> {
 
         this.currentClass = enclosingClass;
 
-        return {passable: true};
+        return {passable: true, scopes: this.scopes};
     }
 
     private getFieldTypes(fields: Field[]): Map<string, Type> {
@@ -594,7 +626,7 @@ implements ExprVisitor<Type>, StmtVisitor<ControlFlow>, TypeExprVisitor<Type> {
 
     visitExpressionStmt(stmt: ExpressionStmt): ControlFlow {
         this.checkExpr(stmt.expression);
-        return {passable: true};
+        return {passable: true, scopes: this.scopes};
     }
 
     visitFunctionStmt(stmt: FunctionStmt): ControlFlow {
@@ -609,36 +641,36 @@ implements ExprVisitor<Type>, StmtVisitor<ControlFlow>, TypeExprVisitor<Type> {
         } else {
             this.checkFunctionBody(stmt, {tag: "FUNCTION", type});
         }
-        return {passable: true};
+        return {passable: true, scopes: this.scopes};
     }
 
     visitIfStmt(stmt: IfStmt): ControlFlow {
-        // TODO keep narrowing applied for subsequent statements based on
-        //      passability.
-
         const {narrowings} = this.checkExprWithNarrowing(stmt.condition);
 
-        const {passable: thenIsPassable} = this.usingNarrowings(
+        const thenControlFlow = this.usingNarrowings(
             narrowings,
             () => this.checkStmt(stmt.thenBranch),
         );
 
-        if (stmt.elseBranch) {
-            const invertedNarrowings = this.invertNarrowings(narrowings);
+        const invertedNarrowings = this.invertNarrowings(narrowings);
 
-            const {passable: elseIsPassable} = this.usingNarrowings(
-                invertedNarrowings,
-                () => this.checkStmt(stmt.elseBranch ?? new BlockStmt([])),
-            );
-            return {passable: thenIsPassable || elseIsPassable};
-        } else {
-            return {passable: true};
+        const elseControlFlow = this.usingNarrowings(
+            invertedNarrowings,
+            () => this.checkStmt(stmt.elseBranch ?? new BlockStmt([])),
+        );
+
+        const controlFlow = ControlFlow.union(thenControlFlow, elseControlFlow);
+
+        if (controlFlow.passable) {
+            this.scopes = controlFlow.scopes;
         }
+
+        return controlFlow;
     }
 
     visitPrintStmt(stmt: PrintStmt): ControlFlow {
         this.checkExpr(stmt.expression);
-        return {passable: true};
+        return {passable: true, scopes: this.scopes};
     }
 
     visitReturnStmt(stmt: ReturnStmt): ControlFlow {
@@ -668,7 +700,7 @@ implements ExprVisitor<Type>, StmtVisitor<ControlFlow>, TypeExprVisitor<Type> {
     visitTypeStmt(stmt: TypeStmt): ControlFlow {
         const type = this.evaluateTypeExpr(stmt.type);
         this.defineType(stmt.name, type);
-        return {passable: true};
+        return {passable: true, scopes: this.scopes};
     }
 
     visitVarStmt(stmt: VarStmt): ControlFlow {
@@ -685,15 +717,17 @@ implements ExprVisitor<Type>, StmtVisitor<ControlFlow>, TypeExprVisitor<Type> {
 
         this.defineValue(stmt.name, type);
 
-        return {passable: true};
+        return {passable: true, scopes: this.scopes};
     }
 
     visitWhileStmt(stmt: WhileStmt): ControlFlow {
         const {narrowings} = this.checkExprWithNarrowing(stmt.condition);
-        return this.usingNarrowings(
+        this.usingNarrowings(
             narrowings,
             () => this.checkStmt(stmt.body),
         );
+        // TODO more accurate control flow narrowing
+        return {passable: true, scopes: this.scopes};
     }
 
     visitAssignExpr(expr: AssignExpr): Type {

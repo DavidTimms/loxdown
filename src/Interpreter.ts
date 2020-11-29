@@ -246,7 +246,7 @@ implements ExprVisitor<LoxValue>, StmtVisitor<void> {
     visitUnaryExpr(expr: UnaryExpr): LoxValue {
         const right = this.evaluate(expr.right);
 
-        // TODO add specific UnaryOperator type to detech totality
+        // TODO add specific UnaryOperator type to detect exhaustiveness
         switch (expr.operator.type) {
             case "BANG":
                 return isTruthy(right) ? loxFalse : loxTrue;
