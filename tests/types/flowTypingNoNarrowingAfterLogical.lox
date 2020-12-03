@@ -5,7 +5,7 @@ x and (x = nil);
 print x + 1;
 
 -- ERROR --
-5:7 - error: Incorrect type for the left operand of '+'. Expected 'String' or 'Number', but found 'Number | Nil'.
+5:7 - error: Incorrect type for the left operand of '+'. Expected 'String' or 'Number', but found 'Nil | Number'.
 
 5     print x + 1;
             ^

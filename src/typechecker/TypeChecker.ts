@@ -1002,14 +1002,23 @@ implements ExprVisitor<Type>, StmtVisitor<ControlFlow>, TypeExprVisitor<Type> {
         expr: LogicalExpr,
     ): TypeWithNarrowings {
         const left = this.checkExprWithNarrowing(expr.left);
-        let right: TypeWithNarrowings;
+        let right: TypeWithNarrowings = {
+            type: types.PreviousTypeError,
+            narrowings: [],
+        };
         let narrowings: TypeNarrowing[];
 
         switch (expr.operator.type) {
             case "AND": {
-                right = this.usingNarrowings(
+                this.branch(
                     left.narrowings,
-                    () => this.checkExprWithNarrowing(expr.right),
+                    () => {
+                        right = this.checkExprWithNarrowing(expr.right);
+                        return {passable: true, scopes: this.scopes};
+                    },
+                    () => {
+                        return {passable: true, scopes: this.scopes};
+                    },
                 );
                 narrowings = this.intersectNarrowings(
                     left.narrowings,
@@ -1018,9 +1027,15 @@ implements ExprVisitor<Type>, StmtVisitor<ControlFlow>, TypeExprVisitor<Type> {
                 break;
             }
             case "OR": {
-                right = this.usingNarrowings(
-                    this.invertNarrowings(left.narrowings),
-                    () => this.checkExprWithNarrowing(expr.right),
+                this.branch(
+                    left.narrowings,
+                    () => {
+                        return {passable: true, scopes: this.scopes};
+                    },
+                    () => {
+                        right = this.checkExprWithNarrowing(expr.right);
+                        return {passable: true, scopes: this.scopes};
+                    },
                 );
                 narrowings = this.unionNarrowings(
                     left.narrowings,

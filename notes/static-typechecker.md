@@ -47,8 +47,9 @@
     - [X] Make comparisons to nil provide narrowings.
     - [X] Make variable expressions in boolean context provide narrowings e.g. `if (x}`
     - [X] Add a way for `isInstance` to provide narrowings.
-    - [ ] Combine passability with narrowings.
-      - [ ] Change scope cloning to happen at every branch point.
+    - [X] Combine passability with narrowings.
+      - [X] Change scope cloning to happen at every branch point.
+      - [X] Apply control flow union for logical operators.
       - [X] Apply control flow union for while loops.
     - [X] Fix unsoundness from narrowing applying to functions which may be called after reassignment.
     - [X] Allow assignment to unnarrowed type.
