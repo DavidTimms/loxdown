@@ -1,6 +1,6 @@
-var x: Number | Nil = nil;
+var x: Number | Nil = 123;
 
-x and (x = 123);
+x and (x = nil);
 
 print x + 1;
 

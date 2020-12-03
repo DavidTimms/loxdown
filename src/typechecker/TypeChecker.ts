@@ -249,7 +249,10 @@ implements ExprVisitor<Type>, StmtVisitor<ControlFlow>, TypeExprVisitor<Type> {
 
     private checkExpr(expr: Expr, expectedType: Type | null = null): Type {
         const exprType = expr.accept(this);
-        if (expectedType) this.validateExprType(expr, exprType, expectedType);
+        if (expectedType) {
+            const isValid = this.validateExprType(expr, exprType, expectedType);
+            if (!isValid) return types.PreviousTypeError;
+        }
         return exprType;
     }
 
@@ -437,8 +440,15 @@ implements ExprVisitor<Type>, StmtVisitor<ControlFlow>, TypeExprVisitor<Type> {
         valueNamespace.set(name.lexeme, null);
     }
 
-    private defineValue(name: Token, type: Type): void {
+    private defineValue(
+        name: Token,
+        type: Type,
+        initialType: Type | null = null,
+    ): void {
         this.scopes[0].valueNamespace.set(name.lexeme, type);
+        if (initialType) {
+            this.scopes[0].narrowedValueNamespace.set(name.lexeme, initialType);
+        }
     }
 
     private defineType(name: Token, type: Type): void {
@@ -721,7 +731,10 @@ implements ExprVisitor<Type>, StmtVisitor<ControlFlow>, TypeExprVisitor<Type> {
 
         const type = declaredType ?? initializerType ?? types.Any;
 
-        this.defineValue(stmt.name, type);
+        const initialNarrowedType =
+            declaredType === types.PreviousTypeError ? null : initializerType;
+
+        this.defineValue(stmt.name, type, initialNarrowedType);
 
         return {passable: true, scopes: this.scopes};
     }

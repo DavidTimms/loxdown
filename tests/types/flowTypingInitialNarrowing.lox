@@ -1,0 +1,13 @@
+var greeting: String | Nil = "hello";
+
+assert(greeting + " world" == "hello world", "greeting is known to initially be a string.");
+
+greeting = nil;
+
+assert(greeting + " world" == "hello world", "greeting is now known to be nil.");
+
+-- ERROR --
+7:8 - error: Incorrect type for the left operand of '+'. Expected 'String' or 'Number', but found 'Nil'.
+
+7     assert(greeting + " world" == "hello world", "greeting is now known to be nil.");
+             ^^^^^^^^
