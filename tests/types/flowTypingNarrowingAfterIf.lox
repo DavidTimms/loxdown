@@ -1,4 +1,5 @@
 var x: Number | Nil = nil;
 
 if (x == nil) x = 3;
+
 assert(x - 1 == 2, "The typechecker knows that x must now be a number.");

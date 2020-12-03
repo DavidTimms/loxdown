@@ -1,0 +1,11 @@
+var x: Number | Nil = nil;
+
+x and (x = 123);
+
+print x + 1;
+
+-- ERROR --
+5:7 - error: Incorrect type for the left operand of '+'. Expected 'String' or 'Number', but found 'Number | Nil'.
+
+5     print x + 1;
+            ^

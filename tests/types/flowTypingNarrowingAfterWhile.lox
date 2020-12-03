@@ -1,0 +1,7 @@
+var x: Number | Nil = 3;
+
+while (x != nil) {
+    x = nil;
+}
+
+var y: Nil = x;

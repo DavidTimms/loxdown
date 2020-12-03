@@ -347,12 +347,11 @@ implements ExprVisitor<Type>, StmtVisitor<ControlFlow>, TypeExprVisitor<Type> {
 
     private usingNarrowings<T>(narrowings: TypeNarrowing[], body: () => T): T {
         const oldScopes = this.scopes;
-        const newScopes = oldScopes.slice();
+        const newScopes = this.cloneScopes();
         for (const {name, type} of narrowings) {
-            for (const [i, scope] of newScopes.entries()) {
+            for (const scope of newScopes) {
                 if (scope.valueNamespace.has(name)) {
-                    newScopes[i] = scope.clone();
-                    newScopes[i].narrowedValueNamespace.set(name, type);
+                    scope.narrowedValueNamespace.set(name, type);
                     break;
                 }
             }
@@ -729,12 +728,26 @@ implements ExprVisitor<Type>, StmtVisitor<ControlFlow>, TypeExprVisitor<Type> {
 
     visitWhileStmt(stmt: WhileStmt): ControlFlow {
         const {narrowings} = this.checkExprWithNarrowing(stmt.condition);
-        this.usingNarrowings(
+
+        const controlFlowIfExecuted = this.usingNarrowings(
             narrowings,
             () => this.checkStmt(stmt.body),
         );
-        // TODO more accurate control flow narrowing
-        return {passable: true, scopes: this.scopes};
+
+        const controlFlowIfSkipped = this.usingNarrowings(
+            this.invertNarrowings(narrowings),
+            () => ({passable: true, scopes: this.scopes}),
+        );
+
+        const controlFlow = ControlFlow.union(
+            controlFlowIfExecuted,
+            controlFlowIfSkipped,
+        );
+        if (controlFlow.passable) {
+            this.scopes = controlFlow.scopes;
+        }
+        return controlFlow;
+
     }
 
     visitAssignExpr(expr: AssignExpr): Type {
