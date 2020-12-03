@@ -365,6 +365,45 @@ implements ExprVisitor<Type>, StmtVisitor<ControlFlow>, TypeExprVisitor<Type> {
         return result;
     }
 
+    private cloneScopesWithNarrowings(narrowings: TypeNarrowing[]): Scope[] {
+        const scopes = this.cloneScopes();
+        for (const {name, type} of narrowings) {
+            for (const scope of scopes) {
+                if (scope.valueNamespace.has(name)) {
+                    scope.narrowedValueNamespace.set(name, type);
+                    break;
+                }
+            }
+        }
+        return scopes;
+    }
+
+    private branch(
+        narrowings: TypeNarrowing[],
+        leftBranch: () => ControlFlow,
+        rightBranch: () => ControlFlow,
+    ): ControlFlow {
+        const originalScopes = this.scopes;
+        const invertedNarrowings = this.invertNarrowings(narrowings);
+
+        const leftControlFlow =
+            this.usingNarrowings(narrowings, leftBranch);
+
+        const rightControlFlow =
+            this.usingNarrowings(invertedNarrowings, rightBranch);
+
+        const controlFlow =
+            ControlFlow.union(leftControlFlow, rightControlFlow);
+
+        if (controlFlow.passable) {
+            this.scopes = controlFlow.scopes;
+        } else {
+            this.scopes = originalScopes;
+        }
+
+        return controlFlow;
+    }
+
     private getFunctionType(func: FunctionStmt): CallableType {
         const paramTypes =
             func.params.map(param => this.evaluateTypeExpr(param.type));
@@ -663,25 +702,13 @@ implements ExprVisitor<Type>, StmtVisitor<ControlFlow>, TypeExprVisitor<Type> {
     visitIfStmt(stmt: IfStmt): ControlFlow {
         const {narrowings} = this.checkExprWithNarrowing(stmt.condition);
 
-        const thenControlFlow = this.usingNarrowings(
+        return this.branch(
             narrowings,
             () => this.checkStmt(stmt.thenBranch),
+            () => stmt.elseBranch
+                ? this.checkStmt(stmt.elseBranch)
+                : {passable: true, scopes: this.scopes},
         );
-
-        const invertedNarrowings = this.invertNarrowings(narrowings);
-
-        const elseControlFlow = this.usingNarrowings(
-            invertedNarrowings,
-            () => this.checkStmt(stmt.elseBranch ?? new BlockStmt([])),
-        );
-
-        const controlFlow = ControlFlow.union(thenControlFlow, elseControlFlow);
-
-        if (controlFlow.passable) {
-            this.scopes = controlFlow.scopes;
-        }
-
-        return controlFlow;
     }
 
     visitPrintStmt(stmt: PrintStmt): ControlFlow {
@@ -742,25 +769,11 @@ implements ExprVisitor<Type>, StmtVisitor<ControlFlow>, TypeExprVisitor<Type> {
     visitWhileStmt(stmt: WhileStmt): ControlFlow {
         const {narrowings} = this.checkExprWithNarrowing(stmt.condition);
 
-        const controlFlowIfExecuted = this.usingNarrowings(
+        return this.branch(
             narrowings,
             () => this.checkStmt(stmt.body),
-        );
-
-        const controlFlowIfSkipped = this.usingNarrowings(
-            this.invertNarrowings(narrowings),
             () => ({passable: true, scopes: this.scopes}),
         );
-
-        const controlFlow = ControlFlow.union(
-            controlFlowIfExecuted,
-            controlFlowIfSkipped,
-        );
-        if (controlFlow.passable) {
-            this.scopes = controlFlow.scopes;
-        }
-        return controlFlow;
-
     }
 
     visitAssignExpr(expr: AssignExpr): Type {
