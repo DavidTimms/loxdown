@@ -39,7 +39,7 @@
     - [X] Implement `.get` for unions.
     - [X] Implement callable unions.
   - [X] Add type aliases.
-  - [ ] Add control-flow type refinement.
+  - [X] Add control-flow type refinement.
     - [X] Use narrowings in while statements.
     - [X] Use narrowings in logical expressions.
     - [X] Propagate narrowings through not operator.

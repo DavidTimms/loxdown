@@ -123,6 +123,9 @@ type ControlFlow =
     | {passable: false};
 
 const ControlFlow = {
+    /**
+     * Combines two branches of control flow.
+     */
     union(left: ControlFlow, right: ControlFlow): ControlFlow {
         if (left.passable && right.passable) {
             const combinedScopes =
@@ -131,10 +134,10 @@ const ControlFlow = {
             return {passable: true, scopes: combinedScopes};
 
         } else if (left.passable) {
-            return {passable: true, scopes: left.scopes};
+            return left;
 
         } else if (right.passable) {
-            return {passable: true, scopes: right.scopes};
+            return right;
         }
 
         return {passable: false};
@@ -181,6 +184,10 @@ implements ExprVisitor<Type>, StmtVisitor<ControlFlow>, TypeExprVisitor<Type> {
 
     private isInGlobalScope(): boolean {
         return this.scopes.length === 1;
+    }
+
+    private passable(): ControlFlow {
+        return {passable: true, scopes: this.scopes};
     }
 
     checkProgram(stmts: Stmt[]): StaticError[] {
@@ -620,7 +627,7 @@ implements ExprVisitor<Type>, StmtVisitor<ControlFlow>, TypeExprVisitor<Type> {
 
         this.currentClass = enclosingClass;
 
-        return {passable: true, scopes: this.scopes};
+        return this.passable();
     }
 
     private getFieldTypes(fields: Field[]): Map<string, Type> {
@@ -665,7 +672,7 @@ implements ExprVisitor<Type>, StmtVisitor<ControlFlow>, TypeExprVisitor<Type> {
 
     visitExpressionStmt(stmt: ExpressionStmt): ControlFlow {
         this.checkExpr(stmt.expression);
-        return {passable: true, scopes: this.scopes};
+        return this.passable();
     }
 
     visitFunctionStmt(stmt: FunctionStmt): ControlFlow {
@@ -680,7 +687,7 @@ implements ExprVisitor<Type>, StmtVisitor<ControlFlow>, TypeExprVisitor<Type> {
         } else {
             this.checkFunctionBody(stmt, {tag: "FUNCTION", type});
         }
-        return {passable: true, scopes: this.scopes};
+        return this.passable();
     }
 
     visitIfStmt(stmt: IfStmt): ControlFlow {
@@ -691,13 +698,13 @@ implements ExprVisitor<Type>, StmtVisitor<ControlFlow>, TypeExprVisitor<Type> {
             () => this.checkStmt(stmt.thenBranch),
             () => stmt.elseBranch
                 ? this.checkStmt(stmt.elseBranch)
-                : {passable: true, scopes: this.scopes},
+                : this.passable(),
         );
     }
 
     visitPrintStmt(stmt: PrintStmt): ControlFlow {
         this.checkExpr(stmt.expression);
-        return {passable: true, scopes: this.scopes};
+        return this.passable();
     }
 
     visitReturnStmt(stmt: ReturnStmt): ControlFlow {
@@ -727,7 +734,7 @@ implements ExprVisitor<Type>, StmtVisitor<ControlFlow>, TypeExprVisitor<Type> {
     visitTypeStmt(stmt: TypeStmt): ControlFlow {
         const type = this.evaluateTypeExpr(stmt.type);
         this.defineType(stmt.name, type);
-        return {passable: true, scopes: this.scopes};
+        return this.passable();
     }
 
     visitVarStmt(stmt: VarStmt): ControlFlow {
@@ -747,7 +754,7 @@ implements ExprVisitor<Type>, StmtVisitor<ControlFlow>, TypeExprVisitor<Type> {
 
         this.defineValue(stmt.name, type, initialNarrowedType);
 
-        return {passable: true, scopes: this.scopes};
+        return this.passable();
     }
 
     visitWhileStmt(stmt: WhileStmt): ControlFlow {
@@ -756,7 +763,7 @@ implements ExprVisitor<Type>, StmtVisitor<ControlFlow>, TypeExprVisitor<Type> {
         return this.branch(
             narrowings,
             () => this.checkStmt(stmt.body),
-            () => ({passable: true, scopes: this.scopes}),
+            () => (this.passable()),
         );
     }
 
@@ -998,10 +1005,10 @@ implements ExprVisitor<Type>, StmtVisitor<ControlFlow>, TypeExprVisitor<Type> {
                     left.narrowings,
                     () => {
                         right = this.checkExprWithNarrowing(expr.right);
-                        return {passable: true, scopes: this.scopes};
+                        return this.passable();
                     },
                     () => {
-                        return {passable: true, scopes: this.scopes};
+                        return this.passable();
                     },
                 );
                 narrowings = this.intersectNarrowings(
@@ -1014,11 +1021,11 @@ implements ExprVisitor<Type>, StmtVisitor<ControlFlow>, TypeExprVisitor<Type> {
                 this.branch(
                     left.narrowings,
                     () => {
-                        return {passable: true, scopes: this.scopes};
+                        return this.passable();
                     },
                     () => {
                         right = this.checkExprWithNarrowing(expr.right);
-                        return {passable: true, scopes: this.scopes};
+                        return this.passable();
                     },
                 );
                 narrowings = this.unionNarrowings(
