@@ -1,0 +1,33 @@
+
+class LinkedList {
+    head: Number;
+    tail: LinkedList | Nil;
+
+    init(head: Number, tail: LinkedList | Nil) {
+        this.head = head;
+        this.tail = tail;
+    }
+
+    printAll() {
+        print this.head;
+        var tail = this.tail;
+        if (tail != nil) tail.printAll();
+    }
+
+    map(f: fun (Number): Number): LinkedList {
+        var tail = this.tail;
+        if (tail == nil) {
+            return LinkedList(f(this.head), nil);
+        } else {
+            return LinkedList(f(this.head), tail.map(f));
+        }
+    }
+}
+
+fun inc(x: Number): Number {
+    return x + 1;
+}
+
+var nums = LinkedList(1, LinkedList(2, LinkedList(3, nil)));
+
+nums.map(inc).printAll();
