@@ -7,7 +7,7 @@
   - Functions which do not declare a return type must not return a value.
   - The types of variables will be inferred, but not parameters or return types.
   - If a subclass overrides a method, the type of each parameter must match or be a superclass of the parameter's type in the original method.
-  - Eventually, type guards using `isInstance` will allow narrowing union types.
+  -Type guards using `isInstance` will allow narrowing union types.
 
 - Roadmap:
   - [X] Add syntax support for type declarations for parameters, return types and variable declarations.
@@ -55,3 +55,14 @@
     - [X] Allow assignment to unnarrowed type.
   - [ ] Add a `Never` type to allow expression statements to be impassable and reflect impossible narrowings.
   - [ ] Add generics.
+    - [X] Extend grammar definitions.
+    - [ ] Add generics to AST.
+    - [ ] Implement parsing.
+    - [ ] Represent generics in typechecker classes.
+    - [ ] Error if type parameters are not provided when a generic type is used.
+    - [ ] Implement type checking within generic functions.
+    - [ ] Implement type checking within generic classes.
+    - [ ] Implement calls to generics with explicitly provided type parameters.
+    - [ ] Integrate generic types with type algebra.
+    - [ ] Add type inference for calls to generics.
+    - [ ] Add subtype constraints for generics.

@@ -7,10 +7,10 @@ declaration    → classDecl
                | typeDecl
                | statement ;
 
-classDecl      → "class" IDENTIFIER ( "<" IDENTIFIER )?
-                 "{" (function | field)* "}" ;
+classDecl      → "class" IDENTIFIER ( "[" genericParams "]" )?
+                 ( "<" genericType )? "{" ( function | field )* "}" ;
 funDecl        → "fun" function ;
-typeDecl       → "type" IDENTIFIER "=" typeExpr ;
+typeDecl       → "type" IDENTIFIER ( "[" genericParams "]" )? "=" typeExpr ;
 varDecl        → "var" IDENTIFIER (":" typeExpr)? ( "=" expression )? ";" ;
 
 
@@ -46,21 +46,29 @@ addition       → multiplication ( ( "-" | "+" ) multiplication )* ;
 multiplication → unary ( ( "/" | "*" ) unary )* ;
 
 unary          → ( "!" | "-" ) unary | call ;
-call           → primary ( "(" arguments? ")" | "." IDENTIFIER )* ;
+call           → primary (
+                   ( "[" genericArgs "]" )? "(" arguments? ")" | "." IDENTIFIER
+                 )* ;
 primary        → "true" | "false" | "nil" | "this"
                | NUMBER | STRING | IDENTIFIER | "(" expression ")"
                | "super" "." IDENTIFIER ;
 
 
 typeExpr       → typePrimary ( "|" typePrimary )* ;
-typePrimary    → IDENTIFIER | funType;
+nonUnionType   → funType | genericType ;
+genericType    → IDENTIFIER ( "[" genericArgs "]" )? ;
 funType        → "fun" "(" typeParameters ")" ( ":" typeExpr )? ;
 funTypeParams  → typeExpr ( "," typeExpr )* ;
 
 
 field          → IDENTIFIER ":" typeExpr ;
 
-function       → IDENTIFIER "(" parameters? ")" (":" typeExpr)? block ;
+function       → IDENTIFIER ( "[" genericParams "]" )?
+                 "(" parameters? ")" (":" typeExpr)? block ;
 parameters     → parameter ( "," parameter )* ;
 parameter      → IDENTIFIER ":" typeExpr ;
 arguments      → expression ( "," expression )* ;
+
+genericParams  → genericParam ( "," genericParam )* ;
+genericParam   → IDENTIFIER ( "<" typeExpr )? ;
+genericArgs    → typeExpr ( "," typeExpr )* ;
