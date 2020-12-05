@@ -169,22 +169,14 @@ implements ExprVisitor<Type>, StmtVisitor<ControlFlow>, TypeExprVisitor<Type> {
         return this.scopes.map(scope => scope.clone());
     }
 
-    private beginScope(suspendNarrowings = false): Scope[] {
-        const previousScopes = this.scopes;
-        this.scopes = this.cloneScopes();
-        if (suspendNarrowings) {
-            for (const scope of this.scopes) {
-                scope.narrowedValueNamespace.clear();
-            }
-        }
+    private beginScope(): void {
         this.scopes.unshift(new Scope());
-        return previousScopes;
     }
 
-    private endScope(previousScopes: Scope[]): void {
+    private endScope(): void {
         this.checkDeferredFunctionBodies();
         this.debugScope();
-        this.scopes = previousScopes;
+        this.scopes.shift();
     }
 
     private isInGlobalScope(): boolean {
@@ -227,7 +219,8 @@ implements ExprVisitor<Type>, StmtVisitor<ControlFlow>, TypeExprVisitor<Type> {
     }
 
     private checkStmt(stmt: Stmt): ControlFlow {
-        return stmt.accept(this);
+        const controlFlow = stmt.accept(this);
+        return controlFlow;
     }
 
     private validateExprType(
@@ -365,19 +358,6 @@ implements ExprVisitor<Type>, StmtVisitor<ControlFlow>, TypeExprVisitor<Type> {
         return result;
     }
 
-    private cloneScopesWithNarrowings(narrowings: TypeNarrowing[]): Scope[] {
-        const scopes = this.cloneScopes();
-        for (const {name, type} of narrowings) {
-            for (const scope of scopes) {
-                if (scope.valueNamespace.has(name)) {
-                    scope.narrowedValueNamespace.set(name, type);
-                    break;
-                }
-            }
-        }
-        return scopes;
-    }
-
     private branch(
         narrowings: TypeNarrowing[],
         leftBranch: () => ControlFlow,
@@ -421,8 +401,17 @@ implements ExprVisitor<Type>, StmtVisitor<ControlFlow>, TypeExprVisitor<Type> {
         const enclosingFunction = this.currentFunction;
         this.currentFunction = context;
 
-        const suspendNarrowings = true;
-        const previousScope = this.beginScope(suspendNarrowings);
+        // Because the function may be called long after it is defined,
+        // the narrowed types that are currently inferred may no longer
+        // apply when it is called. To maintain soundness, we suspend all
+        // narrowed types from outer scopes while checking the function
+        // body, then restore them afterwards.
+        const enclosingScopes = this.scopes;
+        this.scopes = this.cloneScopes();
+        for (const scope of this.scopes) {
+            scope.narrowedValueNamespace.clear();
+        }
+        this.beginScope();
 
         for (const [param, type] of zip(func.params, context.type.params)) {
             this.declareValue(param.name);
@@ -438,7 +427,8 @@ implements ExprVisitor<Type>, StmtVisitor<ControlFlow>, TypeExprVisitor<Type> {
             );
         }
 
-        this.endScope(previousScope);
+        this.endScope();
+        this.scopes = enclosingScopes;
 
         this.currentFunction = enclosingFunction;
     }
@@ -568,14 +558,10 @@ implements ExprVisitor<Type>, StmtVisitor<ControlFlow>, TypeExprVisitor<Type> {
 
 
     visitBlockStmt(stmt: BlockStmt): ControlFlow {
-        const previousScopes = this.beginScope();
+        this.beginScope();
         const controlFlow = this.checkStmts(stmt.statements);
-        this.endScope(previousScopes);
-        if (controlFlow.passable) {
-            return {passable: true, scopes: controlFlow.scopes.slice(1)};
-        } else  {
-            return controlFlow;
-        }
+        this.endScope();
+        return controlFlow;
     }
 
     visitClassStmt(stmt: ClassStmt): ControlFlow {
@@ -618,21 +604,19 @@ implements ExprVisitor<Type>, StmtVisitor<ControlFlow>, TypeExprVisitor<Type> {
         classType.fields = this.getFieldTypes(stmt.fields);
         classType.methods = this.getMethodTypes(stmt.methods);
 
-        let superPreviousScopes: Scope[] | null = null;
-
         if (superType) {
-            superPreviousScopes = this.beginScope();
+            this.beginScope();
             this.scopes[0].valueNamespace.set("super", superType.instance());
         }
 
-        const previousScopes = this.beginScope();
+        this.beginScope();
         this.scopes[0].valueNamespace.set("this", classType.instance());
 
         this.checkMethods(stmt.methods, classType);
 
-        this.endScope(previousScopes);
+        this.endScope();
 
-        if (superPreviousScopes) this.endScope(superPreviousScopes);
+        if (superType) this.endScope();
 
         this.currentClass = enclosingClass;
 
