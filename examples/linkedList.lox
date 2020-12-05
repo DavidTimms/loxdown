@@ -1,0 +1,31 @@
+class Cons {
+    head: Number;
+    tail: Cons | Nil;
+
+    init(head: Number, tail: Cons | Nil) {
+        this.head = head;
+        this.tail = tail;
+    }
+}
+
+type LinkedList = Cons | Nil;
+
+
+fun printAll(list: LinkedList) {
+	if (list != nil) {
+        print list.head;
+        printAll(list.tail);
+    }
+}
+
+fun map(f: fun (Number): Number, list: LinkedList): LinkedList {
+    return list and Cons(f(list.head), map(f, list.tail));
+}
+
+fun inc(x: Number): Number {
+    return x + 1;
+}
+
+var numbers = Cons(1, Cons(2, Cons(3, nil)));
+
+printAll(map(inc, numbers));
