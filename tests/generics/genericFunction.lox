@@ -1,0 +1,5 @@
+
+fun map[A, B](value: A | Nil, func: fun(A): B): B | Nil {
+    if (value == nil) return nil;
+    return func(value);
+}

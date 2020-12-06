@@ -56,8 +56,8 @@
   - [ ] Add a `Never` type to allow expression statements to be impassable and reflect impossible narrowings.
   - [ ] Add generics.
     - [X] Extend grammar definitions.
-    - [ ] Add generics to AST.
-    - [ ] Implement parsing.
+    - [X] Add generics to AST.
+    - [X] Implement parsing.
     - [ ] Represent generics in typechecker classes.
     - [ ] Error if type parameters are not provided when a generic type is used.
     - [ ] Implement type checking within generic functions.

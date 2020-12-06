@@ -1,6 +1,7 @@
-// This file is programatically generated. Do not edit it directly.
+// This file is programmatically generated. Do not edit it directly.
 
 import Token from "./Token";
+import TypeExpr from "./TypeExpr";
 import LoxValue from "./LoxValue";
 import SourceRange from "./SourceRange";
 
@@ -42,6 +43,7 @@ export class BinaryExpr {
 export class CallExpr {
     constructor(
         readonly callee: Expr,
+        readonly genericArgs: TypeExpr[],
         readonly args: Expr[],
         readonly closingParen: Token,
     ) {}

@@ -1,4 +1,4 @@
-// This file is programatically generated. Do not edit it directly.
+// This file is programmatically generated. Do not edit it directly.
 
 import Token from "./Token";
 
@@ -35,10 +35,22 @@ export class VariableTypeExpr {
     }
 }
 
+export class GenericTypeExpr {
+    constructor(
+        readonly name: Token,
+        readonly genericArgs: TypeExpr[],
+    ) {}
+
+    accept<R>(visitor: TypeExprVisitor<R>): R {
+        return visitor.visitGenericTypeExpr(this);
+    }
+}
+
 export type TypeExpr =
     CallableTypeExpr |
     UnionTypeExpr |
-    VariableTypeExpr;
+    VariableTypeExpr |
+    GenericTypeExpr;
 
 export default TypeExpr;
 
@@ -46,4 +58,5 @@ export interface TypeExprVisitor<R> {
     visitCallableTypeExpr(typeExpr: CallableTypeExpr): R;
     visitUnionTypeExpr(typeExpr: UnionTypeExpr): R;
     visitVariableTypeExpr(typeExpr: VariableTypeExpr): R;
+    visitGenericTypeExpr(typeExpr: GenericTypeExpr): R;
 }

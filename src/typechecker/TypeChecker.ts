@@ -38,6 +38,7 @@ import {
     VariableTypeExpr,
     CallableTypeExpr,
     UnionTypeExpr,
+    GenericTypeExpr,
 } from "../TypeExpr";
 import { zip, comparator, groupBy } from "../helpers";
 import CallableType from "./CallableType";
@@ -543,6 +544,10 @@ implements ExprVisitor<Type>, StmtVisitor<ControlFlow>, TypeExprVisitor<Type> {
         }
 
         return this.error(`The type '${name.lexeme}' is not defined.`, name);
+    }
+
+    visitGenericTypeExpr(typeExpr: GenericTypeExpr): Type {
+        throw new ImplementationError("Not yet implemented");
     }
 
     visitCallableTypeExpr(typeExpr: CallableTypeExpr): Type {

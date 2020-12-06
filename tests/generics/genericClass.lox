@@ -1,0 +1,12 @@
+
+class Labelled[T] {
+    value: T;
+    label: String;
+
+    init(value: T, label: String) {
+        this.value = value;
+        this.label = label;
+    }
+}
+
+var labelledNumber: Labelled[Number] = Labelled[Number](46, "age");

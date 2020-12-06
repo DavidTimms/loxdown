@@ -31,10 +31,17 @@ import {
 import LoxValue from "./LoxValue";
 import { loxTrue, loxFalse } from "./LoxBool";
 import Parameter from "./Parameter";
-import { TypeExpr, VariableTypeExpr, CallableTypeExpr, UnionTypeExpr } from "./TypeExpr";
+import {
+    TypeExpr,
+    VariableTypeExpr,
+    CallableTypeExpr,
+    UnionTypeExpr,
+    GenericTypeExpr,
+} from "./TypeExpr";
 import Field from "./Field";
 import SyntaxError from "./SyntaxError";
 import SourceRange from "./SourceRange";
+import GenericParameter from "./GenericParameter";
 
 type Associativity = "LEFT" | "RIGHT";
 
@@ -117,6 +124,8 @@ export default class Parser {
     private classDeclaration(): Stmt {
         const name = this.consume("IDENTIFIER", "Expect class name.");
 
+        const genericParams = this.genericParameters();
+
         let superclass = null;
         if (this.match("LESS")) {
             this.consume("IDENTIFIER", "Expect superclass name.");
@@ -141,7 +150,7 @@ export default class Parser {
 
         this.consume("RIGHT_BRACE", "Expect '}' after class body.");
 
-        return new ClassStmt(name, superclass, fields, methods);
+        return new ClassStmt(name, genericParams, superclass, fields, methods);
     }
 
     private field(name: Token): Parameter {
@@ -208,7 +217,7 @@ export default class Parser {
     private ifStatement(): Stmt {
         this.consume("LEFT_PAREN", "Expect '(' after 'if'.");
         const condition = this.expression();
-        this.consume("RIGHT_PAREN", "Exepct ')' after if condition.");
+        this.consume("RIGHT_PAREN", "Expect ')' after if condition.");
 
         const thenBranch = this.statement();
         const elseBranch = this.match("ELSE") ? this.statement() : null;
@@ -233,13 +242,15 @@ export default class Parser {
     private typeDeclaration(): Stmt {
         const name = this.consume("IDENTIFIER", "Expect type name.");
 
+        const genericParams = this.genericParameters();
+
         this.consume("EQUAL", "Expect '=' after type name.");
 
         const type = this.typeExpr();
 
         this.consume("SEMICOLON", "Expect ';' after type declaration.");
 
-        return new TypeStmt(name, type);
+        return new TypeStmt(name, genericParams, type);
     }
 
     private varDeclaration(): Stmt {
@@ -270,20 +281,25 @@ export default class Parser {
     }
 
     private func(kind: string, name: Token): FunctionStmt {
-        this.consume("LEFT_PAREN", `Expect '(' after ${kind} name.`);
+        const genericParams = this.genericParameters();
 
-        const parameters: Parameter[] = [];
+        const previousComponent =
+            genericParams.length > 0 ? "generic parameters" : `${kind} name.`;
+
+        this.consume("LEFT_PAREN", `Expect '(' after ${previousComponent}.`);
+
+        const params: Parameter[] = [];
 
         if (!this.check("RIGHT_PAREN")) {
             do {
-                if (parameters.length >= 255) {
+                if (params.length >= 255) {
                     this.error(
                         "Cannot have more than 255 parameters.",
                         this.peek(),
                     );
                 }
 
-                parameters.push(this.parameter());
+                params.push(this.parameter());
             } while (this.match("COMMA"));
         }
 
@@ -295,7 +311,7 @@ export default class Parser {
 
         const body = this.block();
 
-        return new FunctionStmt(name, parameters, returnType, body);
+        return new FunctionStmt(name, genericParams, params, returnType, body);
     }
 
     private parameter(): Parameter {
@@ -305,12 +321,35 @@ export default class Parser {
         return new Parameter(name, type);
     }
 
+    private genericParameters(): GenericParameter[] {
+        const genericParams = [];
+
+        if (this.match("LEFT_BRACKET") && !this.match("RIGHT_BRACKET")) {
+            do {
+                genericParams.push(this.genericParameter());
+            } while (this.match("COMMA"));
+
+            this.consume(
+                "RIGHT_BRACKET", "expect ']' after generic parameters.");
+        }
+
+        return genericParams;
+    }
+
+    private genericParameter(): GenericParameter {
+        const name =
+            this.consume("IDENTIFIER", "Expect generic parameter name.");
+
+        const superType = this.match("LESS") ? this.typeExpr() : null;
+        return new GenericParameter(name, superType);
+    }
+
     private typeExpr(): TypeExpr {
-        let typeExpr = this.typePrimary();
+        let typeExpr = this.nonUnionTypeExpr();
 
         while (this.match("PIPE")) {
             const operator = this.previous();
-            const right = this.typePrimary();
+            const right = this.nonUnionTypeExpr();
 
             typeExpr = new UnionTypeExpr(typeExpr, operator, right);
         }
@@ -318,9 +357,24 @@ export default class Parser {
         return typeExpr;
     }
 
-    private typePrimary(): TypeExpr {
+    private nonUnionTypeExpr(): TypeExpr {
         if (this.match("FUN")) return this.callableTypeExpr();
+
         const name = this.consume("IDENTIFIER", "Expect type.");
+
+        if (this.match("LEFT_BRACKET") && !this.match("RIGHT_BRACKET")) {
+            const genericArgs = [];
+
+            do {
+                genericArgs.push(this.typeExpr());
+            } while (this.match("COMMA"));
+
+            this.consume(
+                "RIGHT_BRACKET", "expect ']' after generic arguments.");
+
+            return new GenericTypeExpr(name, genericArgs);
+        }
+
         return new VariableTypeExpr(name);
     }
 
@@ -416,7 +470,7 @@ export default class Parser {
         let expr = this.primary();
 
         for (;;) {
-            if (this.match("LEFT_PAREN")) {
+            if (this.check("LEFT_BRACKET") || this.check("LEFT_PAREN")) {
                 expr = this.finishCall(expr);
             } else if (this.match("DOT")) {
                 const name = this.consume(
@@ -433,7 +487,20 @@ export default class Parser {
     }
 
     private finishCall(callee: Expr): Expr {
+        const genericArgs = [];
+
+        if (this.match("LEFT_BRACKET") && !this.match("RIGHT_BRACKET")) {
+            do {
+                genericArgs.push(this.typeExpr());
+            } while (this.match("COMMA"));
+
+            this.consume(
+                "RIGHT_BRACKET", "expect ']' after generic arguments.");
+        }
+
         const args: Expr[] = [];
+
+        this.consume("LEFT_PAREN", "Expect '(' after generic arguments.");
 
         if (!this.check("RIGHT_PAREN")) {
             do {
@@ -450,7 +517,7 @@ export default class Parser {
         const paren =
             this.consume("RIGHT_PAREN", "Expect ')' after arguments.");
 
-        return new CallExpr(callee, args, paren);
+        return new CallExpr(callee, genericArgs, args, paren);
     }
 
     private primary(): Expr {

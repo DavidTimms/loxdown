@@ -1,6 +1,7 @@
-// This file is programatically generated. Do not edit it directly.
+// This file is programmatically generated. Do not edit it directly.
 
 import Token from "./Token";
+import GenericParameter from "./GenericParameter";
 import VariableExpr from "./VariableExpr";
 import Field from "./Field";
 import Expr from "./Expr";
@@ -20,6 +21,7 @@ export class BlockStmt {
 export class ClassStmt {
     constructor(
         readonly name: Token,
+        readonly genericParams: GenericParameter[],
         readonly superclass: VariableExpr | null,
         readonly fields: Field[],
         readonly methods: FunctionStmt[],
@@ -43,6 +45,7 @@ export class ExpressionStmt {
 export class FunctionStmt {
     constructor(
         readonly name: Token,
+        readonly genericParams: GenericParameter[],
         readonly params: Parameter[],
         readonly returnType: TypeExpr | null,
         readonly body: Stmt[],
@@ -89,6 +92,7 @@ export class ReturnStmt {
 export class TypeStmt {
     constructor(
         readonly name: Token,
+        readonly genericParams: GenericParameter[],
         readonly type: TypeExpr,
     ) {}
 
