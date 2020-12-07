@@ -6,7 +6,7 @@ export default class ClassType {
     readonly tag = "CLASS";
     fields: Map<string, Type>;
     methods: Map<string, Type>;
-    readonly superclass: ClassType | null;
+    superclass: ClassType | null;
 
     // Because classes are themselves instances of the class 'Class',
     // we have to create an instance of the type to be the class type

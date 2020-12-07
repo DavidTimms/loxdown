@@ -598,10 +598,22 @@ implements ExprVisitor<Type>, StmtVisitor<ControlFlow>, TypeExprVisitor<Type> {
         const enclosingClass = this.currentClass;
         this.currentClass = "CLASS";
 
-        this.declareValue(stmt.name);
+        const classType = new ClassType(stmt.name.lexeme);
+        this.defineValue(stmt.name, classType);
+        this.defineType(stmt.name, classType.instance());
+
+        // Create an outer scope to contain the generic parameters and "super".
+        // At runtime, this scope will be created when the class is defined.
+        this.beginScope();
+
+        for (const {name} of stmt.genericParams) {
+            const type = new GenericParamType(name.lexeme);
+            this.defineType(name, type);
+        }
 
         let superType: ClassType | null = null;
 
+        // TODO change superclass from a VariableExpr to a GenericTypeExpr
         if (stmt.superclass) {
             this.currentClass = "SUBCLASS";
 
@@ -626,27 +638,23 @@ implements ExprVisitor<Type>, StmtVisitor<ControlFlow>, TypeExprVisitor<Type> {
             }
         }
 
-        const classType = new ClassType(
-            stmt.name.lexeme, {superclass: superType});
-        this.defineValue(stmt.name, classType);
-        this.defineType(stmt.name, classType.instance());
-
+        classType.superclass = superType;
         classType.fields = this.getFieldTypes(stmt.fields);
         classType.methods = this.getMethodTypes(stmt.methods);
 
         if (superType) {
-            this.beginScope();
             this.scopes[0].valueNamespace.set("super", superType.instance());
         }
 
+        // Create an inner scope to contain "this". At runtime, this scope
+        // will be created when the method is bound.
         this.beginScope();
         this.scopes[0].valueNamespace.set("this", classType.instance());
 
         this.checkMethods(stmt.methods, classType);
 
         this.endScope();
-
-        if (superType) this.endScope();
+        this.endScope();
 
         this.currentClass = enclosingClass;
 

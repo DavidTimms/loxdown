@@ -93,17 +93,15 @@ implements ExprVisitor<LoxValue>, StmtVisitor<void> {
     visitClassStmt(stmt: ClassStmt): void {
         let superclass = null;
 
+        this.environment.define(stmt.name.lexeme, nil);
+
+        this.environment = new Environment(this.environment);
+
         if (stmt.superclass) {
             superclass = this.evaluate(stmt.superclass);
             if (!(superclass instanceof LoxClass)) {
                 throw new ImplementationError("Superclass must be a class.");
             }
-        }
-
-        this.environment.define(stmt.name.lexeme, nil);
-
-        if (superclass) {
-            this.environment = new Environment(this.environment);
             this.environment.define("super", superclass);
         }
 
@@ -117,9 +115,8 @@ implements ExprVisitor<LoxValue>, StmtVisitor<void> {
 
         const loxClass = new LoxClass(stmt.name.lexeme, methods, superclass);
 
-        if (stmt.superclass) {
-            this.environment = this.environment.enclosing as Environment;
-        }
+        this.environment = this.environment.enclosing as Environment;
+
         this.environment.assign(stmt.name, loxClass);
     }
 
