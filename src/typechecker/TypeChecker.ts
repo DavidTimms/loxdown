@@ -50,6 +50,7 @@ import SourceRange from "../SourceRange";
 import InstanceType from "./InstanceType";
 import { nil } from "../LoxNil";
 import GenericParamType from "./GenericArgumentType";
+import GenericParameter from "../GenericParameter";
 
 const DEBUG_SCOPE = false;
 
@@ -605,11 +606,7 @@ implements ExprVisitor<Type>, StmtVisitor<ControlFlow>, TypeExprVisitor<Type> {
         // Create an outer scope to contain the generic parameters and "super".
         // At runtime, this scope will be created when the class is defined.
         this.beginScope();
-
-        for (const {name} of stmt.genericParams) {
-            const type = new GenericParamType(name.lexeme);
-            this.defineType(name, type);
-        }
+        this.defineGenericParams(stmt.genericParams);
 
         let superType: ClassType | null = null;
 
@@ -659,6 +656,13 @@ implements ExprVisitor<Type>, StmtVisitor<ControlFlow>, TypeExprVisitor<Type> {
         this.currentClass = enclosingClass;
 
         return this.passable();
+    }
+
+    private defineGenericParams(genericParams: GenericParameter[]): void {
+        for (const {name} of genericParams) {
+            const type = new GenericParamType(name.lexeme);
+            this.defineType(name, type);
+        }
     }
 
     private getFieldTypes(fields: Field[]): Map<string, Type> {
@@ -763,8 +767,12 @@ implements ExprVisitor<Type>, StmtVisitor<ControlFlow>, TypeExprVisitor<Type> {
     }
 
     visitTypeStmt(stmt: TypeStmt): ControlFlow {
+        this.beginScope();
+        this.defineGenericParams(stmt.genericParams);
         const type = this.evaluateTypeExpr(stmt.type);
+        this.endScope();
         this.defineType(stmt.name, type);
+
         return this.passable();
     }
 

@@ -59,10 +59,11 @@
     - [X] Add generics to AST.
     - [X] Implement parsing.
     - [ ] Add generic parameters to callable type expressions.
-    - [ ] Represent generics in typechecker classes.
+    - [X] Represent generics in typechecker classes.
     - [ ] Error if type parameters are not provided when a generic type is used.
     - [X] Implement type checking within generic functions.
-    - [ ] Implement type checking within generic classes.
+    - [X] Implement type checking within generic classes.
+    - [X] Implement type checking within generic types.
     - [ ] Implement calls to generics with explicitly provided type parameters.
     - [ ] Integrate generic types with type algebra.
     - [ ] Add type inference for calls to generics.
