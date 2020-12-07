@@ -58,9 +58,10 @@
     - [X] Extend grammar definitions.
     - [X] Add generics to AST.
     - [X] Implement parsing.
+    - [ ] Add generic parameters to callable type expressions.
     - [ ] Represent generics in typechecker classes.
     - [ ] Error if type parameters are not provided when a generic type is used.
-    - [ ] Implement type checking within generic functions.
+    - [X] Implement type checking within generic functions.
     - [ ] Implement type checking within generic classes.
     - [ ] Implement calls to generics with explicitly provided type parameters.
     - [ ] Integrate generic types with type algebra.

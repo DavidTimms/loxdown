@@ -49,6 +49,7 @@ import Field from "../Field";
 import SourceRange from "../SourceRange";
 import InstanceType from "./InstanceType";
 import { nil } from "../LoxNil";
+import GenericParamType from "./GenericArgumentType";
 
 const DEBUG_SCOPE = false;
 
@@ -393,13 +394,23 @@ implements ExprVisitor<Type>, StmtVisitor<ControlFlow>, TypeExprVisitor<Type> {
     }
 
     private getFunctionType(func: FunctionStmt): CallableType {
+        this.beginScope();
+
+        const genericParams = func.genericParams.map(({name}) => {
+            const genericParamType = new GenericParamType(name.lexeme);
+            this.defineType(name, genericParamType);
+            return genericParamType;
+        });
+
         const paramTypes =
             func.params.map(param => this.evaluateTypeExpr(param.type));
 
         const returnType =
             func.returnType ? this.evaluateTypeExpr(func.returnType) : null;
 
-        return new CallableType(paramTypes, returnType);
+        this.endScope();
+
+        return new CallableType(genericParams, paramTypes, returnType);
     }
 
     private checkFunctionBody(
@@ -420,6 +431,13 @@ implements ExprVisitor<Type>, StmtVisitor<ControlFlow>, TypeExprVisitor<Type> {
             scope.narrowedValueNamespace.clear();
         }
         this.beginScope();
+
+        const zippedGenericParams =
+            zip(func.genericParams, context.type.genericParams);
+
+        for (const [genericParam, type] of zippedGenericParams) {
+            this.defineType(genericParam.name, type);
+        }
 
         for (const [param, type] of zip(func.params, context.type.params)) {
             this.declareValue(param.name);
@@ -558,7 +576,7 @@ implements ExprVisitor<Type>, StmtVisitor<ControlFlow>, TypeExprVisitor<Type> {
             typeExpr.returnType ?
                 this.evaluateTypeExpr(typeExpr.returnType) : null;
 
-        return new CallableType(params, returns);
+        return new CallableType([], params, returns);
     }
 
     visitUnionTypeExpr(typeExpr: UnionTypeExpr): Type {

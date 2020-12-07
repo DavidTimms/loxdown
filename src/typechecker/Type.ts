@@ -5,10 +5,17 @@ import AnyType from "./AnyType";
 import UnionType from "./UnionType";
 import types from "./builtinTypes";
 import { zip } from "../helpers";
+import GenericParamType from "./GenericArgumentType";
 
 // TODO add FunctionType (combination of InstanceType and CallableType)
 
-type Type = ClassType | InstanceType | CallableType | AnyType | UnionType;
+type Type =
+    | ClassType
+    | InstanceType
+    | CallableType
+    | AnyType
+    | UnionType
+    | GenericParamType;
 
 const Type = {
     isCompatible,
@@ -53,6 +60,7 @@ function isCompatible(candidate: Type, target: Type): boolean {
                 target.children.some(child => isCompatible(candidate, child)),
             );
         }
+        case "GENERIC_PARAM":
         case "CLASS": {
             return candidate === target;
         }
@@ -148,7 +156,7 @@ function attemptUnionOfCallables(
     const returnType =
         union(left.returns ?? types.Nil, right.returns ?? types.Nil);
 
-    return new CallableType(paramTypes, returnType);
+    return new CallableType([], paramTypes, returnType);
 }
 
 /**

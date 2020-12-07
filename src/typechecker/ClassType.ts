@@ -40,7 +40,8 @@ export default class ClassType {
 
     get callable(): CallableType {
         const initializer = this.findMethod("init")?.callable ?? null;
-        return new CallableType(initializer?.params ?? [], this.instance());
+        // Pass generic params on to callable
+        return new CallableType([], initializer?.params ?? [], this.instance());
     }
 
     get(name: string): Type | null {
@@ -71,5 +72,5 @@ export default class ClassType {
 
 ClassType.metaClass.methods.set(
     "getSuperclass",
-    new CallableType([], ClassType.metaClass.instance()),
+    new CallableType([], [], ClassType.metaClass.instance()),
 );
