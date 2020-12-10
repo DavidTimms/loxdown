@@ -60,11 +60,12 @@
     - [X] Implement parsing.
     - [ ] Add generic parameters to callable type expressions.
     - [X] Represent generics in typechecker classes.
-    - [ ] Error if type parameters are not provided when a generic type is used.
     - [X] Implement type checking within generic functions.
     - [X] Implement type checking within generic classes.
     - [X] Implement type checking within generic types.
     - [ ] Implement calls to generics with explicitly provided type parameters.
+    - [ ] Error if type parameters are not provided when a generic type is used.
     - [ ] Integrate generic types with type algebra.
+    - [ ] Support inheriting from a generic class.
     - [ ] Add type inference for calls to generics.
     - [ ] Add subtype constraints for generics.

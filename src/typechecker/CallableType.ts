@@ -26,4 +26,9 @@ export default class CallableType {
         const params = this.params.join(", ");
         return `fun (${params})` + (this.returns ? `: ${this.returns}` : "");
     }
+
+    populateGenerics(genericArgs: Type[]): CallableType {
+        // TODO
+        return this;
+    }
 }

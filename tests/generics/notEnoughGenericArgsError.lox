@@ -1,0 +1,11 @@
+fun twoGenericParams[A, B](a: A): A {
+    return a;
+}
+
+twoGenericParams[Boolean](false);
+
+-- ERROR --
+5:1 - error: Not enough generic type arguments provided. Expected 2, but received 1.
+
+5     twoGenericParams[Boolean](false);
+      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^

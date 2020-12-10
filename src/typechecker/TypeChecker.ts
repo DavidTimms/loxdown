@@ -939,7 +939,7 @@ implements ExprVisitor<Type>, StmtVisitor<ControlFlow>, TypeExprVisitor<Type> {
     visitCallExprWithNarrowing(expr: CallExpr): TypeWithNarrowings {
         const calleeType = this.checkExpr(expr.callee);
 
-        const callable = calleeType.callable;
+        let callable = calleeType.callable;
 
         if (callable === null) {
             if (calleeType !== types.PreviousTypeError) {
@@ -953,6 +953,37 @@ implements ExprVisitor<Type>, StmtVisitor<ControlFlow>, TypeExprVisitor<Type> {
                 type: types.PreviousTypeError,
                 narrowings: [],
             };
+        }
+
+        const genericParams = callable.genericParams;
+        const genericArgs =
+            expr.genericArgs.map(arg => this.evaluateTypeExpr(arg));
+
+        if (genericArgs.length > genericParams.length) {
+            this.error(
+                "Too many generic type arguments provided. " +
+                `Expected ${genericParams.length}, ` +
+                `but received ${genericArgs.length}.`,
+                expr,
+            );
+            genericArgs.length = genericParams.length;
+        }
+
+        if (genericParams.length > 0) {
+            if (genericArgs.length < genericParams.length) {
+                this.error(
+                    "Not enough generic type arguments provided. " +
+                    `Expected ${genericParams.length}, ` +
+                    `but received ${genericArgs.length}.`,
+                    expr,
+                );
+                // pad the arguments to the required length with error types
+                const argsLength = genericArgs.length;
+                genericArgs.length = genericParams.length;
+                genericArgs.fill(types.PreviousTypeError, argsLength);
+            }
+
+            callable = callable.populateGenerics(genericArgs);
         }
 
         const args = expr.args;
