@@ -47,7 +47,7 @@ export default class GenericType<BodyType extends Type = Type> {
 
     instantiate(genericArgs: Type[]): {
         errors: string[];
-        type: BodyType;
+        type: Type;
     } {
         const genericParams = this.params;
         const errors = [];

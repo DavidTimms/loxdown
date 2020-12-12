@@ -10,10 +10,10 @@ nonGeneric[Number](123);
 oneGenericParam[String, String, Boolean]("hello");
 
 -- ERROR --
-9:1 - error: Too many generic type arguments provided. Expected 0, but received 1.
+9:1 - error: The type 'fun (Number): Number' is not generic.
 
 9     nonGeneric[Number](123);
-      ^^^^^^^^^^^^^^^^^^^^^^^
+      ^^^^^^^^^^
 10:1 - error: Too many generic type arguments provided. Expected 1, but received 3.
 
 10    oneGenericParam[String, String, Boolean]("hello");

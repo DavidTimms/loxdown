@@ -1,4 +1,3 @@
-
 class Labelled[T] {
     value: T;
     label: String;

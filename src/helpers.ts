@@ -57,6 +57,17 @@ export function groupBy<Item, Key>(
     return grouped;
 }
 
+export function mapValues<Key, InVal, OutVal>(
+    map: Map<Key, InVal>,
+    func: (value: InVal, key: Key, map: Map<Key, InVal>) => OutVal,
+): Map<Key, OutVal> {
+    const mapped = new Map<Key, OutVal>();
+    for (const [key, value] of map.entries()) {
+        mapped.set(key, func(value, key, map));
+    }
+    return mapped;
+}
+
 /**
  * For correctly forming plurals in messages.
  */

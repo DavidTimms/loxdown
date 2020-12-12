@@ -2,6 +2,7 @@ import Type from "./Type";
 import InstanceType from "./InstanceType";
 import CallableType from "./CallableType";
 import { GenericParamMap } from "./GenericParamMap";
+import { mapValues } from "../helpers";
 
 export default class ClassType {
     readonly tag = "CLASS";
@@ -71,10 +72,20 @@ export default class ClassType {
     }
 
     instantiateGenerics(generics: GenericParamMap): ClassType {
-        // TODO
-        const fields = this.fields;
-        const methods = this.methods;
-        const superclass = this.superclass;
+        // TODO cache instantiations to ensure different instantiations
+        //      with the same types given the same object.
+
+        const fields = mapValues(
+            this.fields,
+            fieldType => fieldType.instantiateGenerics(generics),
+        );
+        const methods = mapValues(
+            this.methods,
+            methodType => methodType.instantiateGenerics(generics),
+        );
+        const superclass =
+            this.superclass && this.superclass.instantiateGenerics(generics);
+
         return new ClassType(
             this.name,
             {fields, methods, superclass},
