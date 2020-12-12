@@ -1,0 +1,9 @@
+type Nilable[T] = T | Nil;
+
+type Foo = Nilable;
+
+-- ERROR --
+3:12 - error: Generic type 'Nilable' requires 1 type argument.
+
+3     type Foo = Nilable;
+                 ^^^^^^^

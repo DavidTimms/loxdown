@@ -1,3 +1,4 @@
+import { GenericParamMap } from "./GenericParamMap";
 import Type from "./Type";
 
 export default class AnyType {
@@ -14,5 +15,9 @@ export default class AnyType {
 
     toString(): string {
         return "Any";
+    }
+
+    instantiateGenerics(generics: GenericParamMap): Type {
+        return this;
     }
 }

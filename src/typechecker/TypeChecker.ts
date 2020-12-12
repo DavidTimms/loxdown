@@ -40,7 +40,7 @@ import {
     UnionTypeExpr,
     GenericTypeExpr,
 } from "../TypeExpr";
-import { zip, comparator, groupBy } from "../helpers";
+import { zip, comparator, groupBy, s } from "../helpers";
 import CallableType from "./CallableType";
 import { default as types } from "./builtinTypes";
 import globalsTypes from "./globalsTypes";
@@ -563,7 +563,18 @@ implements ExprVisitor<Type>, StmtVisitor<ControlFlow>, TypeExprVisitor<Type> {
     }
 
     visitVariableTypeExpr(typeExpr: VariableTypeExpr): Type {
-        return this.resolveTypeName(typeExpr.name);
+        const type = this.resolveTypeName(typeExpr.name);
+
+        if (type instanceof GenericType) {
+            const argCount = type.params.length;
+            return this.error(
+                `Generic type '${typeExpr.name.lexeme}' requires ` +
+                `${argCount} type argument${s(argCount)}.`,
+                typeExpr,
+            );
+        }
+
+        return type;
     }
 
     visitGenericTypeExpr(typeExpr: GenericTypeExpr): Type {
@@ -573,9 +584,7 @@ implements ExprVisitor<Type>, StmtVisitor<ControlFlow>, TypeExprVisitor<Type> {
             return types.PreviousTypeError;
         }
 
-        const callable = genericType.callable;
-
-        if (callable === null) {
+        if (!(genericType instanceof GenericType)) {
             return this.error(
                 `The type '${typeExpr.name.lexeme}' is not generic.`,
                 typeExpr,
@@ -585,8 +594,13 @@ implements ExprVisitor<Type>, StmtVisitor<ControlFlow>, TypeExprVisitor<Type> {
         const genericArgs =
             typeExpr.genericArgs.map(arg => this.evaluateTypeExpr(arg));
 
+        const {errors, type} = genericType.instantiate(genericArgs);
 
-        throw new ImplementationError("Not yet implemented");
+        for (const error of errors) {
+            this.error(error, typeExpr);
+        }
+
+        return type;
     }
 
     visitCallableTypeExpr(typeExpr: CallableTypeExpr): Type {
@@ -736,7 +750,6 @@ implements ExprVisitor<Type>, StmtVisitor<ControlFlow>, TypeExprVisitor<Type> {
             const wrappedType = classType.findMember(name);
             const methodType = wrappedType && GenericType.unwrap(wrappedType);
 
-            // TODO support checking generic methods
             if (!(methodType instanceof CallableType)) {
                 throw new ImplementationError(
                     `Unable to find callable type for method '${name}' ` +

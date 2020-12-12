@@ -1,0 +1,7 @@
+type Foo = String[Boolean];
+
+-- ERROR --
+1:12 - error: The type 'String' is not generic.
+
+1     type Foo = String[Boolean];
+                 ^^^^^^^^^^^^^^^

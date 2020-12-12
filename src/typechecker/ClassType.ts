@@ -1,6 +1,7 @@
 import Type from "./Type";
 import InstanceType from "./InstanceType";
 import CallableType from "./CallableType";
+import { GenericParamMap } from "./GenericParamMap";
 
 export default class ClassType {
     readonly tag = "CLASS";
@@ -67,6 +68,17 @@ export default class ClassType {
 
     instance(): InstanceType {
         return new InstanceType(this);
+    }
+
+    instantiateGenerics(generics: GenericParamMap): ClassType {
+        // TODO
+        const fields = this.fields;
+        const methods = this.methods;
+        const superclass = this.superclass;
+        return new ClassType(
+            this.name,
+            {fields, methods, superclass},
+        );
     }
 }
 

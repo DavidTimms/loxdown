@@ -1,4 +1,5 @@
 import ClassType from "./ClassType";
+import { GenericParamMap } from "./GenericParamMap";
 import Type from "./Type";
 
 export default class InstanceType {
@@ -30,5 +31,11 @@ export default class InstanceType {
             chain.unshift(current);
         }
         return chain;
+    }
+
+    instantiateGenerics(generics: GenericParamMap): Type {
+        return new InstanceType(
+            this.classType.instantiateGenerics(generics),
+        );
     }
 }

@@ -1,3 +1,4 @@
+import { GenericParamMap } from "./GenericParamMap";
 import GenericParamType from "./GenericParamType";
 import Type from "./Type";
 // import { default as types } from "./builtinTypes";
@@ -9,7 +10,7 @@ export default class CallableType {
     readonly classType = null;
 
     constructor(
-        readonly genericParams: GenericParamType[],
+        readonly genericParams: GenericParamType[], // TODO remove this property
         readonly params: Type[],
         readonly returns: Type | null = null,
         readonly produceNarrowings: CallableNarrowingProducer | null = null,
@@ -28,43 +29,17 @@ export default class CallableType {
         return `fun (${params})` + (this.returns ? `: ${this.returns}` : "");
     }
 
-    // instantiateGenerics(genericArgs: Type[]): {
-    //     errors: string[];
-    //     type: CallableType;
-    // } {
-    //     const genericParams = this.genericParams;
-    //     const errors = [];
+    instantiateGenerics(generics: GenericParamMap): Type {
+        const params =
+            this.params.map(param => param.instantiateGenerics(generics));
+        const returns =
+            this.returns && this.returns.instantiateGenerics(generics);
 
-    //     if (genericArgs.length > genericParams.length) {
-    //         errors.push(
-    //             "Too many generic type arguments provided. " +
-    //             `Expected ${genericParams.length}, ` +
-    //             `but received ${genericArgs.length}.`,
-    //         );
-    //         genericArgs.length = genericParams.length;
-    //     }
-
-    //     if (genericParams.length > 0) {
-    //         if (genericArgs.length < genericParams.length) {
-    //             errors.push(
-    //                 "Not enough generic type arguments provided. " +
-    //                 `Expected ${genericParams.length}, ` +
-    //                 `but received ${genericArgs.length}.`,
-    //             );
-    //             // pad the arguments to the required length with error types
-    //             const argsLength = genericArgs.length;
-    //             genericArgs.length = genericParams.length;
-    //             genericArgs.fill(types.PreviousTypeError, argsLength);
-    //         }
-    //     } else {
-    //         return {errors, type: this};
-    //     }
-
-    //     return {errors, type: this};
-    // }
-
-    // populateGenerics(genericArgs: Type[]): CallableType {
-    //     // TODO
-    //     return this;
-    // }
+        return new CallableType(
+            this.genericParams,
+            params,
+            returns,
+            this.produceNarrowings,
+        );
+    }
 }

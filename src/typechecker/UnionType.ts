@@ -1,3 +1,4 @@
+import { GenericParamMap } from "./GenericParamMap";
 import Type from "./Type";
 
 export default class UnionType {
@@ -25,5 +26,11 @@ export default class UnionType {
 
     toString(): string {
         return this.children.join(" | ");
+    }
+
+    instantiateGenerics(generics: GenericParamMap): Type {
+        const children =
+            this.children.map(child => child.instantiateGenerics(generics));
+        return children.reduce(Type.union);
     }
 }

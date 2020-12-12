@@ -56,3 +56,10 @@ export function groupBy<Item, Key>(
     }
     return grouped;
 }
+
+/**
+ * For correctly forming plurals in messages.
+ */
+export function s(count: number): string {
+    return count === 1 ? "" : "s";
+}

@@ -1,0 +1,6 @@
+
+class Foo {
+    bar[T](t: T): Foo | T {
+        return t or this;
+    }
+}
