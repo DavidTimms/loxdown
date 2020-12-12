@@ -54,7 +54,7 @@ primary        → "true" | "false" | "nil" | "this"
                | "super" "." IDENTIFIER ;
 
 
-typeExpr       → typePrimary ( "|" typePrimary )* ;
+typeExpr       → nonUnionType ( "|" nonUnionType )* ;
 nonUnionType   → funType | genericType ;
 genericType    → IDENTIFIER ( "[" genericArgs "]" )? ;
 funType        → "fun" "(" typeParameters ")" ( ":" typeExpr )? ;

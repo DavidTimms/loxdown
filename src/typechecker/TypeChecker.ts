@@ -49,8 +49,9 @@ import Field from "../Field";
 import SourceRange from "../SourceRange";
 import InstanceType from "./InstanceType";
 import { nil } from "../LoxNil";
-import GenericParamType from "./GenericArgumentType";
+import GenericParamType from "./GenericParamType";
 import GenericParameter from "../GenericParameter";
+import GenericType from "./GenericType";
 
 const DEBUG_SCOPE = false;
 
@@ -65,7 +66,7 @@ class Scope {
     readonly typeNamespace: Map<string, Type>;
     readonly valueNamespace: Map<string, Type | null>;
     readonly narrowedValueNamespace: Map<string, Type>;
-    readonly functions: FunctionStmt[];
+    readonly functions: [FunctionStmt, FunctionContext][];
     constructor(initialProps: Partial<Scope> = {}) {
         this.typeNamespace =
             initialProps.typeNamespace ?? new Map();
@@ -394,14 +395,12 @@ implements ExprVisitor<Type>, StmtVisitor<ControlFlow>, TypeExprVisitor<Type> {
         return controlFlow;
     }
 
-    private getFunctionType(func: FunctionStmt): CallableType {
+    private getFunctionType(
+        func: FunctionStmt,
+    ): CallableType | GenericType<CallableType> {
         this.beginScope();
 
-        const genericParams = func.genericParams.map(({name}) => {
-            const genericParamType = new GenericParamType(name.lexeme);
-            this.defineType(name, genericParamType);
-            return genericParamType;
-        });
+        const genericParams = this.defineGenericParams(func.genericParams);
 
         const paramTypes =
             func.params.map(param => this.evaluateTypeExpr(param.type));
@@ -411,7 +410,9 @@ implements ExprVisitor<Type>, StmtVisitor<ControlFlow>, TypeExprVisitor<Type> {
 
         this.endScope();
 
-        return new CallableType(genericParams, paramTypes, returnType);
+        const callable = new CallableType([], paramTypes, returnType);
+
+        return GenericType.wrap(genericParams, callable);
     }
 
     private checkFunctionBody(
@@ -462,29 +463,25 @@ implements ExprVisitor<Type>, StmtVisitor<ControlFlow>, TypeExprVisitor<Type> {
 
     // Adds a function to a list to be checked at the end of the scope.
     // Checking function bodies is deferred to allow mutual recursion.
-    deferCheckingFunctionBody(functionStmt: FunctionStmt): void {
-        this.scopes[0].functions.push(functionStmt);
+    deferCheckingFunctionBody(
+        stmt: FunctionStmt,
+        context: FunctionContext,
+    ): void {
+        this.scopes[0].functions.push([stmt, context]);
     }
 
     private checkDeferredFunctionBodies(): void {
         const scope = this.scopes[0];
 
         while (scope.functions.length > 0) {
-            const func = scope.functions.shift() as FunctionStmt;
-            const name = func.name.lexeme;
-            const type = scope.valueNamespace.get(name);
-            if (!(type instanceof CallableType)) {
-                throw new ImplementationError(
-                    `Unable to find callable type for function '${name}' ` +
-                    "in scope.",
-                );
-            }
-            this.checkFunctionBody(func, {tag: "FUNCTION", type});
+            const [func, context] =
+                scope.functions.shift() as [FunctionStmt, FunctionContext];
+            this.checkFunctionBody(func, context);
         }
     }
 
-    private declareValue(name: Token): void {
-        const {valueNamespace} = this.scopes[0];
+    private declareValue(name: Token, depth = 0): void {
+        const {valueNamespace} = this.scopes[depth];
 
         if (valueNamespace.has(name.lexeme)) {
             this.error(
@@ -500,15 +497,17 @@ implements ExprVisitor<Type>, StmtVisitor<ControlFlow>, TypeExprVisitor<Type> {
         name: Token,
         type: Type,
         initialType: Type | null = null,
+        depth = 0,
     ): void {
-        this.scopes[0].valueNamespace.set(name.lexeme, type);
+        const scope = this.scopes[depth];
+        scope.valueNamespace.set(name.lexeme, type);
         if (initialType) {
-            this.scopes[0].narrowedValueNamespace.set(name.lexeme, initialType);
+            scope.narrowedValueNamespace.set(name.lexeme, initialType);
         }
     }
 
-    private defineType(name: Token, type: Type): void {
-        this.scopes[0].typeNamespace.set(name.lexeme, type);
+    private defineType(name: Token, type: Type, depth = 0): void {
+        this.scopes[depth].typeNamespace.set(name.lexeme, type);
     }
 
     private lookupValue(name: string): VariableSite | null {
@@ -550,13 +549,7 @@ implements ExprVisitor<Type>, StmtVisitor<ControlFlow>, TypeExprVisitor<Type> {
         return variableSite;
     }
 
-    private evaluateTypeExpr(typeExpr: TypeExpr): Type {
-        return typeExpr.accept(this);
-    }
-
-    visitVariableTypeExpr(typeExpr: VariableTypeExpr): Type {
-        const name = typeExpr.name;
-
+    private resolveTypeName(name: Token): Type {
         for (const scope of this.scopes) {
             const type = scope.typeNamespace.get(name.lexeme);
             if (type) return type;
@@ -565,7 +558,34 @@ implements ExprVisitor<Type>, StmtVisitor<ControlFlow>, TypeExprVisitor<Type> {
         return this.error(`The type '${name.lexeme}' is not defined.`, name);
     }
 
+    private evaluateTypeExpr(typeExpr: TypeExpr): Type {
+        return typeExpr.accept(this);
+    }
+
+    visitVariableTypeExpr(typeExpr: VariableTypeExpr): Type {
+        return this.resolveTypeName(typeExpr.name);
+    }
+
     visitGenericTypeExpr(typeExpr: GenericTypeExpr): Type {
+        const genericType = this.resolveTypeName(typeExpr.name);
+
+        if (genericType === types.PreviousTypeError) {
+            return types.PreviousTypeError;
+        }
+
+        const callable = genericType.callable;
+
+        if (callable === null) {
+            return this.error(
+                `The type '${typeExpr.name.lexeme}' is not generic.`,
+                typeExpr,
+            );
+        }
+
+        const genericArgs =
+            typeExpr.genericArgs.map(arg => this.evaluateTypeExpr(arg));
+
+
         throw new ImplementationError("Not yet implemented");
     }
 
@@ -599,14 +619,12 @@ implements ExprVisitor<Type>, StmtVisitor<ControlFlow>, TypeExprVisitor<Type> {
         const enclosingClass = this.currentClass;
         this.currentClass = "CLASS";
 
-        const classType = new ClassType(stmt.name.lexeme);
-        this.defineValue(stmt.name, classType);
-        this.defineType(stmt.name, classType.instance());
+        this.declareValue(stmt.name);
 
-        // Create an outer scope to contain the generic parameters and "super".
+        // Create a scope to contain the generic parameters and "super".
         // At runtime, this scope will be created when the class is defined.
         this.beginScope();
-        this.defineGenericParams(stmt.genericParams);
+        const genericParams = this.defineGenericParams(stmt.genericParams);
 
         let superType: ClassType | null = null;
 
@@ -635,6 +653,24 @@ implements ExprVisitor<Type>, StmtVisitor<ControlFlow>, TypeExprVisitor<Type> {
             }
         }
 
+        const classType = new ClassType(stmt.name.lexeme);
+
+        // The class needs to be defined in the parent scope, not the current
+        // local class scope, so we use a depth of 1 instead of 0.
+        const depth = 1;
+
+        this.defineValue(
+            stmt.name,
+            GenericType.wrap(genericParams, classType),
+            null,
+            depth,
+        );
+        this.defineType(
+            stmt.name,
+            GenericType.wrap(genericParams, classType.instance()),
+            depth,
+        );
+
         classType.superclass = superType;
         classType.fields = this.getFieldTypes(stmt.fields);
         classType.methods = this.getMethodTypes(stmt.methods);
@@ -658,11 +694,18 @@ implements ExprVisitor<Type>, StmtVisitor<ControlFlow>, TypeExprVisitor<Type> {
         return this.passable();
     }
 
-    private defineGenericParams(genericParams: GenericParameter[]): void {
+    private defineGenericParams(
+        genericParams: GenericParameter[],
+    ): GenericParamType[] {
+        const genericParamTypes = [];
+
         for (const {name} of genericParams) {
             const type = new GenericParamType(name.lexeme);
             this.defineType(name, type);
+            genericParamTypes.push(type);
         }
+
+        return genericParamTypes;
     }
 
     private getFieldTypes(fields: Field[]): Map<string, Type> {
@@ -690,9 +733,11 @@ implements ExprVisitor<Type>, StmtVisitor<ControlFlow>, TypeExprVisitor<Type> {
         for (const method of methods) {
             const name = method.name.lexeme;
 
-            const type = classType.findMember(name);
+            const wrappedType = classType.findMember(name);
+            const methodType = wrappedType && GenericType.unwrap(wrappedType);
 
-            if (!(type instanceof CallableType)) {
+            // TODO support checking generic methods
+            if (!(methodType instanceof CallableType)) {
                 throw new ImplementationError(
                     `Unable to find callable type for method '${name}' ` +
                     "in class.",
@@ -701,7 +746,7 @@ implements ExprVisitor<Type>, StmtVisitor<ControlFlow>, TypeExprVisitor<Type> {
 
             const contextTag = name === "init" ? "INITIALIZER" : "METHOD";
 
-            this.checkFunctionBody(method, {tag: contextTag, type});
+            this.checkFunctionBody(method, {tag: contextTag, type: methodType});
         }
     }
 
@@ -715,12 +760,17 @@ implements ExprVisitor<Type>, StmtVisitor<ControlFlow>, TypeExprVisitor<Type> {
         this.declareValue(stmt.name);
         this.defineValue(stmt.name, type);
 
+        const context: FunctionContext =  {
+            tag: "FUNCTION",
+            type: GenericType.unwrap(type),
+        };
+
         // functions in the global scope can be mutually recursive,
         // so we defer checking their bodies until the end of the file.
         if (this.isInGlobalScope()) {
-            this.deferCheckingFunctionBody(stmt);
+            this.deferCheckingFunctionBody(stmt, context);
         } else {
-            this.checkFunctionBody(stmt, {tag: "FUNCTION", type});
+            this.checkFunctionBody(stmt, context);
         }
         return this.passable();
     }
@@ -768,9 +818,11 @@ implements ExprVisitor<Type>, StmtVisitor<ControlFlow>, TypeExprVisitor<Type> {
 
     visitTypeStmt(stmt: TypeStmt): ControlFlow {
         this.beginScope();
-        this.defineGenericParams(stmt.genericParams);
-        const type = this.evaluateTypeExpr(stmt.type);
+        const genericParams = this.defineGenericParams(stmt.genericParams);
+        const body = this.evaluateTypeExpr(stmt.type);
+        const type = GenericType.wrap(genericParams, body);
         this.endScope();
+
         this.defineType(stmt.name, type);
 
         return this.passable();
@@ -939,7 +991,7 @@ implements ExprVisitor<Type>, StmtVisitor<ControlFlow>, TypeExprVisitor<Type> {
     visitCallExprWithNarrowing(expr: CallExpr): TypeWithNarrowings {
         const calleeType = this.checkExpr(expr.callee);
 
-        let callable = calleeType.callable;
+        const callable = calleeType.callable;
 
         if (callable === null) {
             if (calleeType !== types.PreviousTypeError) {
@@ -955,36 +1007,36 @@ implements ExprVisitor<Type>, StmtVisitor<ControlFlow>, TypeExprVisitor<Type> {
             };
         }
 
-        const genericParams = callable.genericParams;
-        const genericArgs =
-            expr.genericArgs.map(arg => this.evaluateTypeExpr(arg));
+        // const genericParams = callable.genericParams;
+        // const genericArgs =
+        //     expr.genericArgs.map(arg => this.evaluateTypeExpr(arg));
 
-        if (genericArgs.length > genericParams.length) {
-            this.error(
-                "Too many generic type arguments provided. " +
-                `Expected ${genericParams.length}, ` +
-                `but received ${genericArgs.length}.`,
-                expr,
-            );
-            genericArgs.length = genericParams.length;
-        }
+        // if (genericArgs.length > genericParams.length) {
+        //     this.error(
+        //         "Too many generic type arguments provided. " +
+        //         `Expected ${genericParams.length}, ` +
+        //         `but received ${genericArgs.length}.`,
+        //         expr,
+        //     );
+        //     genericArgs.length = genericParams.length;
+        // }
 
-        if (genericParams.length > 0) {
-            if (genericArgs.length < genericParams.length) {
-                this.error(
-                    "Not enough generic type arguments provided. " +
-                    `Expected ${genericParams.length}, ` +
-                    `but received ${genericArgs.length}.`,
-                    expr,
-                );
-                // pad the arguments to the required length with error types
-                const argsLength = genericArgs.length;
-                genericArgs.length = genericParams.length;
-                genericArgs.fill(types.PreviousTypeError, argsLength);
-            }
+        // if (genericParams.length > 0) {
+        //     if (genericArgs.length < genericParams.length) {
+        //         this.error(
+        //             "Not enough generic type arguments provided. " +
+        //             `Expected ${genericParams.length}, ` +
+        //             `but received ${genericArgs.length}.`,
+        //             expr,
+        //         );
+        //         // pad the arguments to the required length with error types
+        //         const argsLength = genericArgs.length;
+        //         genericArgs.length = genericParams.length;
+        //         genericArgs.fill(types.PreviousTypeError, argsLength);
+        //     }
 
-            callable = callable.populateGenerics(genericArgs);
-        }
+        //     callable = callable.populateGenerics(genericArgs);
+        // }
 
         const args = expr.args;
         let params = callable.params;

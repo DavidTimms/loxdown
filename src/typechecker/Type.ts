@@ -3,9 +3,10 @@ import InstanceType from "./InstanceType";
 import CallableType from "./CallableType";
 import AnyType from "./AnyType";
 import UnionType from "./UnionType";
+import GenericType from "./GenericType";
+import GenericParamType from "./GenericParamType";
 import types from "./builtinTypes";
 import { zip } from "../helpers";
-import GenericParamType from "./GenericArgumentType";
 
 // TODO add FunctionType (combination of InstanceType and CallableType)
 
@@ -15,6 +16,7 @@ type Type =
     | CallableType
     | AnyType
     | UnionType
+    | GenericType
     | GenericParamType;
 
 const Type = {
@@ -61,6 +63,7 @@ function isCompatible(candidate: Type, target: Type): boolean {
             );
         }
         case "GENERIC_PARAM":
+        case "GENERIC":
         case "CLASS": {
             return candidate === target;
         }

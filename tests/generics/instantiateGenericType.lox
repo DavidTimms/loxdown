@@ -1,0 +1,7 @@
+type Convert[From, To] = fun(From): To;
+
+fun stringToNumber(s: String): Number {
+    return Number(s);
+}
+
+var converter: Convert[String, Number] = stringToNumber;
