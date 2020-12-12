@@ -91,15 +91,19 @@ function main(args: string[]): void {
     defineAst({
         outputDir,
         baseName: "TypeExpr",
+        withSourceRange: true,
         classes: [
-            `Callable   -> paramTypes: TypeExpr[],
+            `Callable   -> fun: Token,
+                           paramTypes: TypeExpr[],
+                           closingParen: Token,
                            returnType: TypeExpr | null`,
             `Union      -> left: TypeExpr,
                            operator: Token,
                            right: TypeExpr`,
             "Variable   -> name: Token",
             `Generic    -> name: Token,
-                           genericArgs: TypeExpr[]`,
+                           genericArgs: TypeExpr[],
+                           closingBracket: Token`,
         ],
     });
 }
@@ -217,12 +221,26 @@ function sourceRange(baseName: string, {fields}: ClassDefinition): string {
     const typesWithSourceRange = new Set(["TypeExpr", "Expr", "Token"]);
     const fieldsWithSourceRange =
         fields.filter(f => typesWithSourceRange.has(f.types[0]));
-    const firstField = fieldsWithSourceRange[0];
-    const lastField = fieldsWithSourceRange[fieldsWithSourceRange.length - 1];
+
+    const firstNonNullableFieldIndex =
+        fieldsWithSourceRange.findIndex(f => !f.types.includes("null"));
+    const startingFields =
+        fieldsWithSourceRange.slice(0, firstNonNullableFieldIndex + 1);
+
+    fieldsWithSourceRange.reverse();
+
+    const lastNonNullableFieldIndex =
+        fieldsWithSourceRange.findIndex(f => !f.types.includes("null"));
+    const endingFields =
+        fieldsWithSourceRange.slice(0, lastNonNullableFieldIndex + 1);
+
+    const firstField = startingFields.map(f => `this.${f.name}`).join(" ?? ");
+    const lastField = endingFields.map(f => `this.${f.name}`).join(" ?? ");
+
     return [
         "    sourceRange(): SourceRange {",
-        `        const start = this.${firstField?.name}.sourceRange().start;`,
-        `        const end = this.${lastField?.name}.sourceRange().end;`,
+        `        const start = (${firstField}).sourceRange().start;`,
+        `        const end = (${lastField}).sourceRange().end;`,
         "        return new SourceRange(start, end);",
         "    }",
     ].join("\n");

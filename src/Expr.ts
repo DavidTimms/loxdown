@@ -16,8 +16,8 @@ export class AssignExpr {
     }
 
     sourceRange(): SourceRange {
-        const start = this.name.sourceRange().start;
-        const end = this.value.sourceRange().end;
+        const start = (this.name).sourceRange().start;
+        const end = (this.value).sourceRange().end;
         return new SourceRange(start, end);
     }
 }
@@ -34,8 +34,8 @@ export class BinaryExpr {
     }
 
     sourceRange(): SourceRange {
-        const start = this.left.sourceRange().start;
-        const end = this.right.sourceRange().end;
+        const start = (this.left).sourceRange().start;
+        const end = (this.right).sourceRange().end;
         return new SourceRange(start, end);
     }
 }
@@ -53,8 +53,8 @@ export class CallExpr {
     }
 
     sourceRange(): SourceRange {
-        const start = this.callee.sourceRange().start;
-        const end = this.closingParen.sourceRange().end;
+        const start = (this.callee).sourceRange().start;
+        const end = (this.closingParen).sourceRange().end;
         return new SourceRange(start, end);
     }
 }
@@ -70,8 +70,8 @@ export class GetExpr {
     }
 
     sourceRange(): SourceRange {
-        const start = this.object.sourceRange().start;
-        const end = this.name.sourceRange().end;
+        const start = (this.object).sourceRange().start;
+        const end = (this.name).sourceRange().end;
         return new SourceRange(start, end);
     }
 }
@@ -86,8 +86,8 @@ export class GroupingExpr {
     }
 
     sourceRange(): SourceRange {
-        const start = this.expression.sourceRange().start;
-        const end = this.expression.sourceRange().end;
+        const start = (this.expression).sourceRange().start;
+        const end = (this.expression).sourceRange().end;
         return new SourceRange(start, end);
     }
 }
@@ -103,8 +103,8 @@ export class LiteralExpr {
     }
 
     sourceRange(): SourceRange {
-        const start = this.token.sourceRange().start;
-        const end = this.token.sourceRange().end;
+        const start = (this.token).sourceRange().start;
+        const end = (this.token).sourceRange().end;
         return new SourceRange(start, end);
     }
 }
@@ -121,8 +121,8 @@ export class LogicalExpr {
     }
 
     sourceRange(): SourceRange {
-        const start = this.left.sourceRange().start;
-        const end = this.right.sourceRange().end;
+        const start = (this.left).sourceRange().start;
+        const end = (this.right).sourceRange().end;
         return new SourceRange(start, end);
     }
 }
@@ -139,8 +139,8 @@ export class SetExpr {
     }
 
     sourceRange(): SourceRange {
-        const start = this.object.sourceRange().start;
-        const end = this.value.sourceRange().end;
+        const start = (this.object).sourceRange().start;
+        const end = (this.value).sourceRange().end;
         return new SourceRange(start, end);
     }
 }
@@ -156,8 +156,8 @@ export class SuperExpr {
     }
 
     sourceRange(): SourceRange {
-        const start = this.keyword.sourceRange().start;
-        const end = this.method.sourceRange().end;
+        const start = (this.keyword).sourceRange().start;
+        const end = (this.method).sourceRange().end;
         return new SourceRange(start, end);
     }
 }
@@ -172,8 +172,8 @@ export class ThisExpr {
     }
 
     sourceRange(): SourceRange {
-        const start = this.keyword.sourceRange().start;
-        const end = this.keyword.sourceRange().end;
+        const start = (this.keyword).sourceRange().start;
+        const end = (this.keyword).sourceRange().end;
         return new SourceRange(start, end);
     }
 }
@@ -189,8 +189,8 @@ export class UnaryExpr {
     }
 
     sourceRange(): SourceRange {
-        const start = this.operator.sourceRange().start;
-        const end = this.right.sourceRange().end;
+        const start = (this.operator).sourceRange().start;
+        const end = (this.right).sourceRange().end;
         return new SourceRange(start, end);
     }
 }
@@ -205,8 +205,8 @@ export class VariableExpr {
     }
 
     sourceRange(): SourceRange {
-        const start = this.name.sourceRange().start;
-        const end = this.name.sourceRange().end;
+        const start = (this.name).sourceRange().start;
+        const end = (this.name).sourceRange().end;
         return new SourceRange(start, end);
     }
 }

@@ -369,16 +369,18 @@ export default class Parser {
                 genericArgs.push(this.typeExpr());
             } while (this.match("COMMA"));
 
-            this.consume(
+            const closingBracket = this.consume(
                 "RIGHT_BRACKET", "expect ']' after generic arguments.");
 
-            return new GenericTypeExpr(name, genericArgs);
+            return new GenericTypeExpr(name, genericArgs, closingBracket);
         }
 
         return new VariableTypeExpr(name);
     }
 
     private callableTypeExpr(): TypeExpr {
+        const fun = this.previous();
+
         this.consume("LEFT_PAREN", "Expect '(' after 'fun'.");
 
         const paramTypes: TypeExpr[] = [];
@@ -389,11 +391,12 @@ export default class Parser {
             } while (this.match("COMMA"));
         }
 
-        this.consume("RIGHT_PAREN", "Expect ')' after parameter types.");
+        const closingParen =
+            this.consume("RIGHT_PAREN", "Expect ')' after parameter types.");
 
         const returnType = this.match("COLON") ? this.typeExpr() : null;
 
-        return new CallableTypeExpr(paramTypes, returnType);
+        return new CallableTypeExpr(fun, paramTypes, closingParen, returnType);
     }
 
     private block(): Stmt[] {
