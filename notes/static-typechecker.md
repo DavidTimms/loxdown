@@ -69,3 +69,4 @@
     - [ ] Support inheriting from a generic class.
     - [ ] Add type inference for calls to generics.
     - [ ] Add subtype constraints for generics.
+  - [ ] Check object field exists when setting.

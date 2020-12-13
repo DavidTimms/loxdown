@@ -36,8 +36,8 @@ export function comparator<Item>(
         const aKey = key(a);
         const bKey = key(b);
         for (let i = 0; i < aKey.length; i++) {
-            if (aKey[i] < bKey[0]) return ComparisonResult.Lower;
-            if (aKey[i] > bKey[0]) return ComparisonResult.Higher;
+            if (aKey[i] < bKey[i]) return ComparisonResult.Lower;
+            if (aKey[i] > bKey[i]) return ComparisonResult.Higher;
         }
         return ComparisonResult.Equal;
     };

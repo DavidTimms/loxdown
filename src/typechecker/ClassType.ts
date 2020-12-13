@@ -102,22 +102,9 @@ export default class ClassType {
         const superclass =
             this.superclass && this.superclass.instantiateGenerics(generics);
 
-        const genericArgs = this.genericArgs.map(arg => {
-            if (!(arg instanceof GenericParamType)) {
-                throw new ImplementationError(
-                    "Instantiated generic class type " +
-                    `'${this.instanceString()}' cannot be instantiated again.`,
-                );
-            }
-            const instantiatedType = generics.get(arg);
-            if (!instantiatedType) {
-                throw new ImplementationError(
-                    `Class type '${this.instanceString()}' instantiated with ` +
-                    "generic arguments which are not its own.",
-                );
-            }
-            return instantiatedType;
-        });
+        const genericArgs = this.genericArgs.map(
+            argType => argType.instantiateGenerics(generics),
+        );
 
         const genericRoot = this.genericRoot;
 
