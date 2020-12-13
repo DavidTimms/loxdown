@@ -83,9 +83,9 @@ describe("Type.union", () => {
          "identical callable type",
     () => {
         const callable1 =
-            new CallableType([], [types.String, types.Number], types.Boolean);
+            new CallableType([types.String, types.Number], types.Boolean);
         const callable2 =
-            new CallableType([], [types.String, types.Number], types.Boolean);
+            new CallableType([types.String, types.Number], types.Boolean);
 
         expect(Type.union(callable1, callable2)).toEqual(callable1);
     });
@@ -96,12 +96,10 @@ describe("Type.union", () => {
         const Animal = new ClassType("Animal");
         const Platypus = new ClassType("Platypus", {superclass: Animal});
         const wider = new CallableType(
-            [],
             [Animal.instance(), types.Number],
             types.String,
         );
         const narrower = new CallableType(
-            [],
             [Platypus.instance(), types.Number],
             types.String,
         );
@@ -115,9 +113,9 @@ describe("Type.union", () => {
         const stringOrBoolean =
             new UnionType([types.String, types.Boolean]);
         const wider =
-            new CallableType([], [types.Number, stringOrBoolean], types.String);
+            new CallableType([types.Number, stringOrBoolean], types.String);
         const narrower =
-            new CallableType([], [types.Number, types.String], types.String);
+            new CallableType([types.Number, types.String], types.String);
 
         expect(Type.union(wider, narrower)).toEqual(narrower);
     });
@@ -130,13 +128,12 @@ describe("Type.union", () => {
         const stringOrNumber =
             new UnionType([types.String, types.Number]);
         const wider =
-            new CallableType([], [types.Number, stringOrBoolean], types.String);
+            new CallableType([types.Number, stringOrBoolean], types.String);
         const narrower =
-            new CallableType([], [stringOrNumber, types.String], types.String);
+            new CallableType([stringOrNumber, types.String], types.String);
 
         expect(Type.union(wider, narrower))
             .toEqual(new CallableType(
-                [],
                 [types.Number, types.String],
                 types.String,
             ));
@@ -146,13 +143,12 @@ describe("Type.union", () => {
          "but different return types is a callable with a union return type",
     () => {
         const returnsString =
-            new CallableType([], [types.Number], types.String);
+            new CallableType([types.Number], types.String);
         const returnsNumber =
-            new CallableType([], [types.Number], types.Number);
+            new CallableType([types.Number], types.Number);
 
         expect(Type.union(returnsString, returnsNumber))
             .toEqual(new CallableType(
-                [],
                 [types.Number],
                 new UnionType([types.String, types.Number]),
             ));

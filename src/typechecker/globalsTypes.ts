@@ -22,10 +22,9 @@ export default {
     String: types.String.classType,
     Function: types.Function.classType,
     Class: types.Class.classType,
-    clock: new CallableType([], [], types.Number),
-    assert: new CallableType([], [types.Any, types.String]),
+    clock: new CallableType([], types.Number),
+    assert: new CallableType([types.Any, types.String]),
     isInstance: new CallableType(
-        [],
         [types.Any, types.Class],
         types.Boolean,
         isInstanceNarrowingsProducer,

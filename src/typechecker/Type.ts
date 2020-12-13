@@ -39,13 +39,10 @@ function isCompatible(candidate: Type, target: Type): boolean {
             return true;
         }
         case "INSTANCE": {
-            // An instance is compatible with its superclass.
-            let currentClassType: ClassType | null = candidate.classType;
-            while (currentClassType) {
-                if (currentClassType === target.classType) return true;
-                currentClassType = currentClassType.superclass;
-            }
-            return false;
+            return (
+                candidate.classType !== null &&
+                isClassCompatible(candidate.classType, target.classType)
+            );
         }
         case "CALLABLE": {
             const callable = candidate.callable;
@@ -62,12 +59,36 @@ function isCompatible(candidate: Type, target: Type): boolean {
                 target.children.some(child => isCompatible(candidate, child)),
             );
         }
+        case "CLASS":
+            return isClassCompatible(candidate, target);
         case "GENERIC_PARAM":
-        case "GENERIC":
-        case "CLASS": {
+        case "GENERIC":{
             return candidate === target;
         }
     }
+}
+
+function isClassCompatible(
+    candidate: Type,
+    target: ClassType,
+): boolean {
+    if (!(candidate instanceof ClassType)) return false;
+
+    let current: ClassType | null = candidate;
+    while (current) {
+        if (current.genericRoot === target.genericRoot) {
+            // At the moment, all generic classes are treated as covariant.
+            // This will lead to unsoundness, so could be changed later.
+            return (
+                zip(current.genericArgs, target.genericArgs)
+                    .every(([candidateArg, targetArg]) =>
+                        isCompatible(candidateArg, targetArg),
+                    )
+            );
+        }
+        current = current.superclass;
+    }
+    return false;
 }
 
 function isCallableCompatible(
@@ -159,7 +180,7 @@ function attemptUnionOfCallables(
     const returnType =
         union(left.returns ?? types.Nil, right.returns ?? types.Nil);
 
-    return new CallableType([], paramTypes, returnType);
+    return new CallableType(paramTypes, returnType);
 }
 
 /**

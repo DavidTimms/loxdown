@@ -8,4 +8,4 @@ class Labelled[T] {
     }
 }
 
-var labelledNumber: Labelled[Number] = Labelled[Number](46, "age");
+var labelled: Labelled[Number | String] = Labelled[Number](46, "age");

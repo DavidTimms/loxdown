@@ -1,7 +1,5 @@
 import { GenericParamMap } from "./GenericParamMap";
-import GenericParamType from "./GenericParamType";
 import Type from "./Type";
-// import { default as types } from "./builtinTypes";
 
 export type CallableNarrowingProducer = (argTypes: Type[]) => Map<number, Type>;
 
@@ -10,7 +8,6 @@ export default class CallableType {
     readonly classType = null;
 
     constructor(
-        readonly genericParams: GenericParamType[], // TODO remove this property
         readonly params: Type[],
         readonly returns: Type | null = null,
         readonly produceNarrowings: CallableNarrowingProducer | null = null,
@@ -36,7 +33,6 @@ export default class CallableType {
             this.returns && this.returns.instantiateGenerics(generics);
 
         return new CallableType(
-            this.genericParams,
             params,
             returns,
             this.produceNarrowings,

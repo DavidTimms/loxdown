@@ -1,31 +1,32 @@
-class Cons {
-    head: Number;
-    tail: Cons | Nil;
+class Cons[T] {
+    head: T;
+    tail: Cons[T] | Nil;
 
-    init(head: Number, tail: Cons | Nil) {
+    init(head: T, tail: Cons[T] | Nil) {
         this.head = head;
         this.tail = tail;
     }
 }
 
-type LinkedList = Cons | Nil;
+type LinkedList[T] = Cons[T] | Nil;
 
 
-fun printAll(list: LinkedList) {
+fun printAll[T](list: LinkedList[T]) {
 	if (list != nil) {
         print list.head;
-        printAll(list.tail);
+        printAll[T](list.tail);
     }
 }
 
-fun map(f: fun (Number): Number, list: LinkedList): LinkedList {
-    return list and Cons(f(list.head), map(f, list.tail));
+fun map[In, Out](f: fun (In): Out, list: LinkedList[In]): LinkedList[Out] {
+	if (list == nil) return nil;
+    return Cons[Out](f(list.head), map[In, Out](f, list.tail));
 }
 
-fun inc(x: Number): Number {
-    return x + 1;
+fun isGreaterThan2(x: Number): Boolean {
+    return x > 2;
 }
 
-var numbers = Cons(1, Cons(2, Cons(3, nil)));
+var numbers = Cons[Number](1, Cons[Number](2, Cons[Number](3, nil)));
 
-printAll(map(inc, numbers));
+printAll[Boolean](map[Number, Boolean](isGreaterThan2, numbers));

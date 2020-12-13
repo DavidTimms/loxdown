@@ -410,7 +410,7 @@ implements ExprVisitor<Type>, StmtVisitor<ControlFlow>, TypeExprVisitor<Type> {
 
         this.endScope();
 
-        const callable = new CallableType([], paramTypes, returnType);
+        const callable = new CallableType(paramTypes, returnType);
 
         return GenericType.wrap(genericParams, callable);
     }
@@ -621,7 +621,7 @@ implements ExprVisitor<Type>, StmtVisitor<ControlFlow>, TypeExprVisitor<Type> {
         this.endScope();
 
         return GenericType.wrap(
-            genericParams, new CallableType([], params, returns));
+            genericParams, new CallableType(params, returns));
     }
 
     visitUnionTypeExpr(typeExpr: UnionTypeExpr): Type {
@@ -677,7 +677,10 @@ implements ExprVisitor<Type>, StmtVisitor<ControlFlow>, TypeExprVisitor<Type> {
             }
         }
 
-        const classType = new ClassType(stmt.name.lexeme);
+        const classType = new ClassType(stmt.name.lexeme, {
+            genericArgs: genericParams,
+            superclass: superType,
+        });
 
         // The class needs to be defined in the parent scope, not the current
         // local class scope, so we use a depth of 1 instead of 0.
@@ -695,7 +698,6 @@ implements ExprVisitor<Type>, StmtVisitor<ControlFlow>, TypeExprVisitor<Type> {
             depth,
         );
 
-        classType.superclass = superType;
         classType.fields = this.getFieldTypes(stmt.fields);
         classType.methods = this.getMethodTypes(stmt.methods);
 
@@ -982,13 +984,17 @@ implements ExprVisitor<Type>, StmtVisitor<ControlFlow>, TypeExprVisitor<Type> {
             case "MINUS":
             case "SLASH":
             case "STAR":
+                this.checkExpr(expr.left, types.Number);
+                this.checkExpr(expr.right, types.Number);
+                return types.Number;
+
             case "GREATER":
             case "GREATER_EQUAL":
             case "LESS":
             case "LESS_EQUAL":
                 this.checkExpr(expr.left, types.Number);
                 this.checkExpr(expr.right, types.Number);
-                return types.Number;
+                return types.Boolean;
 
             case "EQUAL_EQUAL":
             case "BANG_EQUAL":

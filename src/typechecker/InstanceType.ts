@@ -17,7 +17,7 @@ export default class InstanceType {
     }
 
     toString(): string {
-        return this.classType.name;
+        return this.classType.instanceString();
     }
 
     inheritanceChain(): ClassType[] {
