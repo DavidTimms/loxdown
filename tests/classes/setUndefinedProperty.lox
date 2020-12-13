@@ -1,0 +1,8 @@
+class Person {}
+var jane = Person();
+jane.name = "Jane";
+-- ERROR --
+3:6 - error: Type 'Person' has no property 'name'.
+
+3     jane.name = "Jane";
+           ^^^^

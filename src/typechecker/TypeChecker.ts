@@ -879,7 +879,7 @@ implements ExprVisitor<Type>, StmtVisitor<ControlFlow>, TypeExprVisitor<Type> {
             `Unexpected binary operator: ${expr.operator.lexeme}`);
     }
 
-    visitGetExpr(expr: GetExpr): Type {
+    private lookupMemberType(expr: GetExpr | SetExpr): Type {
         const objectType = this.checkExpr(expr.object);
         const memberType = objectType.get(expr.name.lexeme);
 
@@ -891,6 +891,10 @@ implements ExprVisitor<Type>, StmtVisitor<ControlFlow>, TypeExprVisitor<Type> {
         }
 
         return memberType ?? types.PreviousTypeError;
+    }
+
+    visitGetExpr(expr: GetExpr): Type {
+        return this.lookupMemberType(expr);
     }
 
     visitCallExprWithNarrowing(expr: CallExpr): TypeWithNarrowings {
@@ -1047,12 +1051,8 @@ implements ExprVisitor<Type>, StmtVisitor<ControlFlow>, TypeExprVisitor<Type> {
     }
 
     visitSetExpr(expr: SetExpr): Type {
-        const objectType = this.checkExpr(expr.object);
-        const memberType =
-            objectType.get(expr.name.lexeme) ?? types.PreviousTypeError;
-
+        const memberType = this.lookupMemberType(expr);
         this.checkExpr(expr.value, memberType);
-
         return memberType;
     }
 
