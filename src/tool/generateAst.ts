@@ -94,6 +94,7 @@ function main(args: string[]): void {
         withSourceRange: true,
         classes: [
             `Callable   -> fun: Token,
+                           genericParams: GenericParameter[],
                            paramTypes: TypeExpr[],
                            closingParen: Token,
                            returnType: TypeExpr | null`,

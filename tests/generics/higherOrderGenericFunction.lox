@@ -1,0 +1,8 @@
+fun coalesce[A](a: A): fun[B](B): A | B {
+    fun inner[B](b: B): A | B {
+        return b or a;
+    }
+    return inner;
+}
+
+var coalesced: Number | Boolean = coalesce[Number](12)[Boolean](true);

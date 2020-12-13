@@ -117,7 +117,7 @@ interface TypeWithNarrowings {
 
 interface FunctionContext {
     tag: "FUNCTION" | "INITIALIZER" | "METHOD";
-    type: CallableType;
+    type: CallableType | GenericType<CallableType>;
 }
 
 type ClassContext = "NONE" | "CLASS" | "SUBCLASS";
@@ -434,20 +434,23 @@ implements ExprVisitor<Type>, StmtVisitor<ControlFlow>, TypeExprVisitor<Type> {
         }
         this.beginScope();
 
-        const zippedGenericParams =
-            zip(func.genericParams, context.type.genericParams);
-
-        for (const [genericParam, type] of zippedGenericParams) {
-            this.defineType(genericParam.name, type);
+        if (context.type instanceof GenericType) {
+            const genericParamTypePairs =
+                zip(func.genericParams, context.type.params);
+            for (const [genericParam, type] of genericParamTypePairs) {
+                this.defineType(genericParam.name, type);
+            }
         }
 
-        for (const [param, type] of zip(func.params, context.type.params)) {
+        const functionType = GenericType.unwrap(context.type);
+
+        for (const [param, type] of zip(func.params, functionType.params)) {
             this.declareValue(param.name);
             this.defineValue(param.name, type);
         }
         const controlFlow = this.checkStmts(func.body);
 
-        if (controlFlow.passable && context.type.returns !== null) {
+        if (controlFlow.passable && functionType.returns !== null) {
             const name = func.name.lexeme;
             this.error(
                 `Not all code paths return in the function '${name}'.`,
@@ -604,6 +607,10 @@ implements ExprVisitor<Type>, StmtVisitor<ControlFlow>, TypeExprVisitor<Type> {
     }
 
     visitCallableTypeExpr(typeExpr: CallableTypeExpr): Type {
+        this.beginScope();
+
+        const genericParams = this.defineGenericParams(typeExpr.genericParams);
+
         const params =
             typeExpr.paramTypes.map(param => this.evaluateTypeExpr(param));
 
@@ -611,7 +618,10 @@ implements ExprVisitor<Type>, StmtVisitor<ControlFlow>, TypeExprVisitor<Type> {
             typeExpr.returnType ?
                 this.evaluateTypeExpr(typeExpr.returnType) : null;
 
-        return new CallableType([], params, returns);
+        this.endScope();
+
+        return GenericType.wrap(
+            genericParams, new CallableType([], params, returns));
     }
 
     visitUnionTypeExpr(typeExpr: UnionTypeExpr): Type {
@@ -747,19 +757,25 @@ implements ExprVisitor<Type>, StmtVisitor<ControlFlow>, TypeExprVisitor<Type> {
         for (const method of methods) {
             const name = method.name.lexeme;
 
-            const wrappedType = classType.findMember(name);
-            const methodType = wrappedType && GenericType.unwrap(wrappedType);
+            const methodType = classType.findMember(name);
 
-            if (!(methodType instanceof CallableType)) {
+            if (
+                methodType &&
+                GenericType.unwrap(methodType) instanceof CallableType
+            ) {
+                const contextTag = name === "init" ? "INITIALIZER" : "METHOD";
+
+                const context: FunctionContext = {
+                    tag: contextTag,
+                    type: methodType as CallableType | GenericType<CallableType>,
+                };
+                this.checkFunctionBody(method, context);
+            } else {
                 throw new ImplementationError(
                     `Unable to find callable type for method '${name}' ` +
                     "in class.",
                 );
             }
-
-            const contextTag = name === "init" ? "INITIALIZER" : "METHOD";
-
-            this.checkFunctionBody(method, {tag: contextTag, type: methodType});
         }
     }
 
@@ -775,7 +791,7 @@ implements ExprVisitor<Type>, StmtVisitor<ControlFlow>, TypeExprVisitor<Type> {
 
         const context: FunctionContext =  {
             tag: "FUNCTION",
-            type: GenericType.unwrap(type),
+            type: type,
         };
 
         // functions in the global scope can be mutually recursive,
@@ -806,21 +822,25 @@ implements ExprVisitor<Type>, StmtVisitor<ControlFlow>, TypeExprVisitor<Type> {
     }
 
     visitReturnStmt(stmt: ReturnStmt): ControlFlow {
-        if (this.currentFunction === null) {
+        const functionType =
+            this.currentFunction &&
+            GenericType.unwrap(this.currentFunction.type);
+
+        if (functionType === null) {
             this.error("Cannot return from top-level code.", stmt.keyword);
         } else if (stmt.value) {
-            if (this.currentFunction.tag === "INITIALIZER") {
+            if (this.currentFunction?.tag === "INITIALIZER") {
                 this.error(
                     "Cannot return a value from an initializer.", stmt.keyword);
-            } else if (this.currentFunction.type.returns === null) {
+            } else if (functionType.returns === null) {
                 this.error(
-                    "Cannot return a value from this function because there " +
-                    "is no declared return type.",
+                    "Cannot return a value from this function because " +
+                    "there is no declared return type.",
                     stmt.value,
                 );
             }
-            this.checkExpr(stmt.value, this.currentFunction.type.returns);
-        } else if (this.currentFunction.type.returns !== null) {
+            this.checkExpr(stmt.value, functionType.returns);
+        } else if (functionType.returns !== null) {
             this.error(
                 "This function cannot return without a value.",
                 stmt.keyword,

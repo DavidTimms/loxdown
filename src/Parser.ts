@@ -381,6 +381,8 @@ export default class Parser {
     private callableTypeExpr(): TypeExpr {
         const fun = this.previous();
 
+        const genericParams = this.genericParameters();
+
         this.consume("LEFT_PAREN", "Expect '(' after 'fun'.");
 
         const paramTypes: TypeExpr[] = [];
@@ -396,7 +398,8 @@ export default class Parser {
 
         const returnType = this.match("COLON") ? this.typeExpr() : null;
 
-        return new CallableTypeExpr(fun, paramTypes, closingParen, returnType);
+        return new CallableTypeExpr(
+            fun, genericParams, paramTypes, closingParen, returnType);
     }
 
     private block(): Stmt[] {

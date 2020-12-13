@@ -1,11 +1,13 @@
 // This file is programmatically generated. Do not edit it directly.
 
 import Token from "./Token";
+import GenericParameter from "./GenericParameter";
 import SourceRange from "./SourceRange";
 
 export class CallableTypeExpr {
     constructor(
         readonly fun: Token,
+        readonly genericParams: GenericParameter[],
         readonly paramTypes: TypeExpr[],
         readonly closingParen: Token,
         readonly returnType: TypeExpr | null,
