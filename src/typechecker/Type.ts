@@ -7,6 +7,7 @@ import GenericType from "./GenericType";
 import GenericParamType from "./GenericParamType";
 import types from "./builtinTypes";
 import { zip } from "../helpers";
+import ImplementationError from "../ImplementationError";
 
 // TODO add FunctionType (combination of InstanceType and CallableType)
 
@@ -59,10 +60,33 @@ function isCompatible(candidate: Type, target: Type): boolean {
                 target.children.some(child => isCompatible(candidate, child)),
             );
         }
-        case "CLASS":
+        case "CLASS": {
             return isClassCompatible(candidate, target);
-        case "GENERIC_PARAM":
-        case "GENERIC":{
+        }
+        case "GENERIC": {
+            // To test whether two generic type are compatible, we instantiate
+            // one of them with the generic param types of the other. This
+            // means the same type objects represent each type parameter in
+            // both types, allowing a normal compatibility check to be used.
+            if (
+                candidate instanceof GenericType &&
+                target.params.length === target.params.length
+            ) {
+                const instantiatedCandidate =
+                    candidate.instantiate(target.params);
+
+                if (instantiatedCandidate.errors.length > 0) {
+                    throw new ImplementationError(
+                        "Errors while instantiating candidate for generic " +
+                        "compatibility check. " +
+                        instantiatedCandidate.errors.join(" "),
+                    );
+                }
+                return isCompatible(instantiatedCandidate.type, target.body);
+            }
+            return false;
+        }
+        case "GENERIC_PARAM": {
             return candidate === target;
         }
     }
