@@ -52,6 +52,7 @@ import { nil } from "../LoxNil";
 import GenericParamType from "./GenericParamType";
 import GenericParameter from "../GenericParameter";
 import GenericType from "./GenericType";
+import Superclass from "../Superclass";
 
 const DEBUG_SCOPE = false;
 
@@ -594,13 +595,19 @@ implements ExprVisitor<Type>, StmtVisitor<ControlFlow>, TypeExprVisitor<Type> {
             );
         }
 
-        const genericArgs =
-            typeExpr.genericArgs.map(arg => this.evaluateTypeExpr(arg));
+        return this.instantiateGenericType(genericType, typeExpr);
+    }
 
-        const {errors, type} = genericType.instantiate(genericArgs);
+    private instantiateGenericType(
+        genericType: GenericType,
+        node: GenericTypeExpr | Superclass | CallExpr,
+    ): Type {
+        const args = node.genericArgs.map(arg => this.evaluateTypeExpr(arg));
+
+        const {errors, type} = genericType.instantiate(args);
 
         for (const error of errors) {
-            this.error(error, typeExpr);
+            this.error(error, node);
         }
 
         return type;
@@ -661,24 +668,17 @@ implements ExprVisitor<Type>, StmtVisitor<ControlFlow>, TypeExprVisitor<Type> {
                     stmt.superclass,
                 );
             } else {
-                let superclassType = this.checkExpr(stmt.superclass.expr);
+                let potentialSuperType = this.checkExpr(stmt.superclass.expr);
 
-                if (superclassType instanceof GenericType) {
-                    const genericArgs = stmt.superclass.genericArgs.map(
-                        arg => this.evaluateTypeExpr(arg),
+                if (potentialSuperType instanceof GenericType) {
+                    potentialSuperType = this.instantiateGenericType(
+                        potentialSuperType,
+                        stmt.superclass,
                     );
-                    const {errors, type} =
-                        superclassType.instantiate(genericArgs);
-
-                    for (const error of errors) {
-                        this.error(error, stmt.superclass);
-                    }
-
-                    superclassType = type;
                 }
 
-                if (superclassType instanceof ClassType) {
-                    superType = superclassType;
+                if (potentialSuperType instanceof ClassType) {
+                    superType = potentialSuperType;
                 } else {
                     const superclassName = stmt.superclass.expr.name.lexeme;
                     this.error(
@@ -1044,17 +1044,7 @@ implements ExprVisitor<Type>, StmtVisitor<ControlFlow>, TypeExprVisitor<Type> {
         let calleeType = this.checkExpr(expr.callee);
 
         if (calleeType instanceof GenericType) {
-            const genericArgs =
-                expr.genericArgs.map(arg => this.evaluateTypeExpr(arg));
-
-            const {errors, type: instantiatedType} =
-                calleeType.instantiate(genericArgs);
-
-            for (const error of errors) {
-                this.error(error, expr);
-            }
-
-            calleeType = instantiatedType;
+            calleeType = this.instantiateGenericType(calleeType, expr);
 
         } else if (expr.genericArgs.length > 0) {
             this.error(

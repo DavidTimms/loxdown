@@ -66,7 +66,7 @@
     - [X] Implement calls to generics with explicitly provided type parameters.
     - [X] Error if type parameters are not provided when a generic type is used.
     - [X] Integrate generic types with type algebra.
-    - [ ] Support inheriting from a generic class.
+    - [X] Support inheriting from a generic class.
     - [ ] Add type inference for calls to generics.
     - [ ] Add subtype constraints for generics.
   - [X] Check object field exists when setting.
