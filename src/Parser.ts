@@ -42,6 +42,7 @@ import Field from "./Field";
 import SyntaxError from "./SyntaxError";
 import SourceRange from "./SourceRange";
 import GenericParameter from "./GenericParameter";
+import Superclass from "./Superclass";
 
 type Associativity = "LEFT" | "RIGHT";
 
@@ -127,9 +128,20 @@ export default class Parser {
         const genericParams = this.genericParameters();
 
         let superclass = null;
+
         if (this.match("LESS")) {
-            this.consume("IDENTIFIER", "Expect superclass name.");
-            superclass = new VariableExpr(this.previous());
+            const superclassName =
+                this.consume("IDENTIFIER", "Expect superclass name.");
+            const superclassGenericArgs =
+                this.genericArguments();
+            const superclassFinalToken =
+                this.previous();
+
+            superclass = new Superclass(
+                new VariableExpr(superclassName),
+                superclassGenericArgs,
+                superclassFinalToken,
+            );
         }
 
         this.consume("LEFT_BRACE", "expect '{' before class body.");
@@ -344,6 +356,21 @@ export default class Parser {
         return new GenericParameter(name, superType);
     }
 
+    private genericArguments(): TypeExpr[] {
+        const genericArgs: TypeExpr[] = [];
+
+        if (this.match("LEFT_BRACKET") && !this.match("RIGHT_BRACKET")) {
+            do {
+                genericArgs.push(this.typeExpr());
+            } while (this.match("COMMA"));
+
+            this.consume(
+                "RIGHT_BRACKET", "expect ']' after generic arguments.");
+        }
+
+        return genericArgs;
+    }
+
     private typeExpr(): TypeExpr {
         let typeExpr = this.nonUnionTypeExpr();
 
@@ -362,16 +389,10 @@ export default class Parser {
 
         const name = this.consume("IDENTIFIER", "Expect type.");
 
-        if (this.match("LEFT_BRACKET") && !this.match("RIGHT_BRACKET")) {
-            const genericArgs = [];
+        const genericArgs = this.genericArguments();
 
-            do {
-                genericArgs.push(this.typeExpr());
-            } while (this.match("COMMA"));
-
-            const closingBracket = this.consume(
-                "RIGHT_BRACKET", "expect ']' after generic arguments.");
-
+        if (genericArgs.length > 0) {
+            const closingBracket = this.previous();
             return new GenericTypeExpr(name, genericArgs, closingBracket);
         }
 

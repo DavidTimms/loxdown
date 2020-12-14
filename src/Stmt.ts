@@ -2,7 +2,7 @@
 
 import Token from "./Token";
 import GenericParameter from "./GenericParameter";
-import VariableExpr from "./VariableExpr";
+import Superclass from "./Superclass";
 import Field from "./Field";
 import Expr from "./Expr";
 import Parameter from "./Parameter";
@@ -22,7 +22,7 @@ export class ClassStmt {
     constructor(
         readonly name: Token,
         readonly genericParams: GenericParameter[],
-        readonly superclass: VariableExpr | null,
+        readonly superclass: Superclass | null,
         readonly fields: Field[],
         readonly methods: FunctionStmt[],
     ) {}

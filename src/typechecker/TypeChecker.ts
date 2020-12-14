@@ -652,26 +652,39 @@ implements ExprVisitor<Type>, StmtVisitor<ControlFlow>, TypeExprVisitor<Type> {
 
         let superType: ClassType | null = null;
 
-        // TODO change superclass from a VariableExpr to a GenericTypeExpr
         if (stmt.superclass) {
             this.currentClass = "SUBCLASS";
 
-            if (stmt.name.lexeme === stmt.superclass.name.lexeme) {
+            if (stmt.name.lexeme === stmt.superclass.expr.name.lexeme) {
                 this.error(
                     "A class cannot inherit from itself.",
-                    stmt.superclass.name,
+                    stmt.superclass,
                 );
             } else {
-                const potentialSuperType = this.checkExpr(stmt.superclass);
+                let superclassType = this.checkExpr(stmt.superclass.expr);
 
-                if (potentialSuperType instanceof ClassType) {
-                    superType = potentialSuperType;
+                if (superclassType instanceof GenericType) {
+                    const genericArgs = stmt.superclass.genericArgs.map(
+                        arg => this.evaluateTypeExpr(arg),
+                    );
+                    const {errors, type} =
+                        superclassType.instantiate(genericArgs);
+
+                    for (const error of errors) {
+                        this.error(error, stmt.superclass);
+                    }
+
+                    superclassType = type;
+                }
+
+                if (superclassType instanceof ClassType) {
+                    superType = superclassType;
                 } else {
-                    const superclassName = stmt.superclass?.name.lexeme;
+                    const superclassName = stmt.superclass.expr.name.lexeme;
                     this.error(
                         `Cannot inherit from '${superclassName}' ` +
                         "because it is not a class.",
-                        stmt.superclass.name,
+                        stmt.superclass.expr,
                     );
                 }
             }

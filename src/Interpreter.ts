@@ -98,7 +98,7 @@ implements ExprVisitor<LoxValue>, StmtVisitor<void> {
         this.environment = new Environment(this.environment);
 
         if (stmt.superclass) {
-            superclass = this.evaluate(stmt.superclass);
+            superclass = this.evaluate(stmt.superclass.expr);
             if (!(superclass instanceof LoxClass)) {
                 throw new ImplementationError("Superclass must be a class.");
             }
