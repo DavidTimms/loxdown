@@ -1,5 +1,5 @@
-import { GenericParamMap } from "./GenericParamMap";
-import Type from "./Type";
+import { FullGenericParamMap, GenericParamMap } from "./GenericParamMap";
+import Type, { isCallableCompatible } from "./Type";
 
 export type CallableNarrowingProducer = (argTypes: Type[]) => Map<number, Type>;
 
@@ -26,7 +26,7 @@ export default class CallableType {
         return `fun (${params})` + (this.returns ? `: ${this.returns}` : "");
     }
 
-    instantiateGenerics(generics: GenericParamMap): Type {
+    instantiateGenerics(generics: FullGenericParamMap): Type {
         const params =
             this.params.map(param => param.instantiateGenerics(generics));
         const returns =
@@ -38,4 +38,12 @@ export default class CallableType {
             this.produceNarrowings,
         );
     }
+
+    unify(candidate: Type, generics: GenericParamMap | null = null): boolean {
+        const callable = candidate.callable;
+
+        // TODO replace isCallableCompatible with a function which does unification
+        return callable !== null && isCallableCompatible(callable, this);
+    }
 }
+

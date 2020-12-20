@@ -1,4 +1,4 @@
-import { GenericParamMap } from "./GenericParamMap";
+import { FullGenericParamMap, GenericParamMap } from "./GenericParamMap";
 import Type from "./Type";
 
 export default class AnyType {
@@ -17,7 +17,11 @@ export default class AnyType {
         return "Any";
     }
 
-    instantiateGenerics(generics: GenericParamMap): Type {
+    instantiateGenerics(generics: FullGenericParamMap): Type {
         return this;
+    }
+
+    unify(candidate: Type, generics: GenericParamMap | null = null): boolean {
+        return true;
     }
 }

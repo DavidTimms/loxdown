@@ -1,10 +1,8 @@
-import Type from "./Type";
+import Type, { isClassCompatible } from "./Type";
 import InstanceType from "./InstanceType";
 import CallableType from "./CallableType";
-import { GenericParamMap } from "./GenericParamMap";
+import { FullGenericParamMap, GenericParamMap } from "./GenericParamMap";
 import { mapValues } from "../helpers";
-import ImplementationError from "../ImplementationError";
-import GenericParamType from "./GenericParamType";
 
 export default class ClassType {
     readonly tag = "CLASS";
@@ -90,7 +88,7 @@ export default class ClassType {
         return new InstanceType(this);
     }
 
-    instantiateGenerics(generics: GenericParamMap): ClassType {
+    instantiateGenerics(generics: FullGenericParamMap): ClassType {
         const fields = mapValues(
             this.fields,
             fieldType => fieldType.instantiateGenerics(generics),
@@ -112,6 +110,11 @@ export default class ClassType {
             this.name,
             {fields, methods, superclass, genericArgs, genericRoot},
         );
+    }
+
+    unify(candidate: Type, generics: GenericParamMap | null = null): boolean {
+        // TODO proper unification for classes
+        return isClassCompatible(candidate, this);
     }
 }
 

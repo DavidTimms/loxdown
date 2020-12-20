@@ -1,5 +1,6 @@
 import { zip } from "../helpers";
-import { GenericParamMap } from "./GenericParamMap";
+import ImplementationError from "../ImplementationError";
+import { GenericParamMap, FullGenericParamMap } from "./GenericParamMap";
 import GenericParamType from "./GenericParamType";
 import Type from "./Type";
 
@@ -77,7 +78,7 @@ export default class GenericType<BodyType extends Type = Type> {
             genericArgs.fill(types.PreviousTypeError, argsLength);
         }
 
-        const genericParamMap: GenericParamMap =
+        const genericParamMap: FullGenericParamMap =
             new Map(zip(genericParams, genericArgs));
 
         const instantiatedType =
@@ -86,10 +87,36 @@ export default class GenericType<BodyType extends Type = Type> {
         return {errors, type: instantiatedType};
     }
 
-    instantiateGenerics(generics: GenericParamMap): Type {
+    instantiateGenerics(generics: FullGenericParamMap): Type {
         return new GenericType(
             this.params,
             this.body.instantiateGenerics(generics),
         );
+    }
+
+    unify(candidate: Type, generics: GenericParamMap | null = null): boolean {
+        // TODO unification
+
+        // To test whether two generic type are compatible, we instantiate
+        // one of them with the generic param types of the other. This
+        // means the same type objects represent each type parameter in
+        // both types, allowing a normal compatibility check to be used.
+        if (
+            candidate instanceof GenericType &&
+                this.params.length === this.params.length
+        ) {
+            const instantiatedCandidate =
+                    candidate.instantiate(this.params);
+
+            if (instantiatedCandidate.errors.length > 0) {
+                throw new ImplementationError(
+                    "Errors while instantiating candidate for generic " +
+                        "compatibility check. " +
+                        instantiatedCandidate.errors.join(" "),
+                );
+            }
+            return Type.isCompatible(instantiatedCandidate.type, this.body);
+        }
+        return false;
     }
 }

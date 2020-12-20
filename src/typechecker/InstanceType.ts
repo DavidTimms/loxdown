@@ -1,5 +1,5 @@
 import ClassType from "./ClassType";
-import { GenericParamMap } from "./GenericParamMap";
+import { FullGenericParamMap, GenericParamMap } from "./GenericParamMap";
 import Type from "./Type";
 
 export default class InstanceType {
@@ -33,9 +33,16 @@ export default class InstanceType {
         return chain;
     }
 
-    instantiateGenerics(generics: GenericParamMap): Type {
+    instantiateGenerics(generics: FullGenericParamMap): Type {
         return new InstanceType(
             this.classType.instantiateGenerics(generics),
+        );
+    }
+
+    unify(candidate: Type, generics: GenericParamMap | null = null): boolean {
+        return (
+            candidate.classType !== null &&
+            this.classType.unify(candidate.classType, generics)
         );
     }
 }

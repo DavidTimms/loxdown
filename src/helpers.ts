@@ -21,6 +21,17 @@ export function zip<L, R>(left: L[], right: R[]): [L, R][] {
     return zipped;
 }
 
+export function padArrayEnd<A, B>(
+    array: A[],
+    length: number,
+    value: B,
+): (A | B)[] {
+    const padded: (A | B)[] = array.slice();
+    padded.length = Math.max(array.length, length);
+    padded.fill(value, array.length, length);
+    return padded;
+}
+
 enum ComparisonResult {
     Lower  = -1,
     Equal  =  0,

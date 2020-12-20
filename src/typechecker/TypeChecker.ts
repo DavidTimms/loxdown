@@ -40,7 +40,7 @@ import {
     UnionTypeExpr,
     GenericTypeExpr,
 } from "../TypeExpr";
-import { zip, comparator, groupBy, s } from "../helpers";
+import { zip, comparator, groupBy, s, padArrayEnd, mapValues } from "../helpers";
 import CallableType from "./CallableType";
 import { default as types } from "./builtinTypes";
 import globalsTypes from "./globalsTypes";
@@ -53,6 +53,7 @@ import GenericParamType from "./GenericParamType";
 import GenericParameter from "../GenericParameter";
 import GenericType from "./GenericType";
 import Superclass from "../Superclass";
+import { GenericParamMap } from "./GenericParamMap";
 
 const DEBUG_SCOPE = false;
 
@@ -239,8 +240,9 @@ implements ExprVisitor<Type>, StmtVisitor<ControlFlow>, TypeExprVisitor<Type> {
         expr: Expr,
         exprType: Type,
         expectedType: Type,
+        generics: GenericParamMap | null = null,
     ): boolean {
-        if (Type.isCompatible(exprType, expectedType)) {
+        if (Type.unify(expectedType, exprType, generics)) {
             return true;
         } else {
             this.error(
@@ -1043,17 +1045,7 @@ implements ExprVisitor<Type>, StmtVisitor<ControlFlow>, TypeExprVisitor<Type> {
     visitCallExprWithNarrowing(expr: CallExpr): TypeWithNarrowings {
         let calleeType = this.checkExpr(expr.callee);
 
-        if (calleeType instanceof GenericType) {
-            calleeType = this.instantiateGenericType(calleeType, expr);
-
-        } else if (expr.genericArgs.length > 0) {
-            this.error(
-                `The type '${calleeType}' is not generic.`,
-                expr.callee,
-            );
-        }
-
-        const callable = calleeType.callable;
+        let callable = GenericType.unwrap(calleeType).callable;
 
         if (callable === null) {
             if (calleeType !== types.PreviousTypeError) {
@@ -1069,8 +1061,35 @@ implements ExprVisitor<Type>, StmtVisitor<ControlFlow>, TypeExprVisitor<Type> {
             };
         }
 
+        if (expr.genericArgs.length > 0) {
+            if (calleeType instanceof GenericType) {
+                calleeType = this.instantiateGenericType(calleeType, expr);
+                callable = calleeType.callable;
+                if (callable === null) {
+                    throw new ImplementationError(
+                        "Callee is no longer callable after generic " +
+                        "instantiation.",
+                    );
+                }
+            } else {
+                this.error(
+                    `The type '${calleeType}' is not generic.`,
+                    expr.callee,
+                );
+            }
+        }
+
+        let generics: GenericParamMap | null = null;
+
+        if (calleeType instanceof GenericType) {
+            generics = new Map(zip(
+                calleeType.params,
+                Array(calleeType.params.length).fill(null),
+            ));
+        }
+
         const args = expr.args;
-        let params = callable.params;
+        let params: (Type | null)[] = callable.params;
 
         if (args.length > params.length) {
             const startOfFirstExtraArg =
@@ -1086,8 +1105,7 @@ implements ExprVisitor<Type>, StmtVisitor<ControlFlow>, TypeExprVisitor<Type> {
 
             // Pad the params array with nulls to ensure the additional
             // arguments still get checked.
-            params =
-                params.concat(Array(args.length - params.length).fill(null));
+            params = padArrayEnd(params, args.length, null);
 
         } else if (args.length < params.length) {
             this.error(
@@ -1097,9 +1115,31 @@ implements ExprVisitor<Type>, StmtVisitor<ControlFlow>, TypeExprVisitor<Type> {
             );
         }
 
-        const argTypes =
-            zip(args, params).map(
-                ([arg, paramType]) => this.checkExpr(arg, paramType));
+        const argTypes: Type[] = [];
+
+        for (const [arg, paramType] of zip(args, params)) {
+            const argType = arg.accept(this);
+            argTypes.push(argType);
+            if (paramType) {
+                this.validateExprType(arg, argType, paramType, generics);
+            }
+        }
+
+        if (generics) {
+            const fullGenerics = mapValues(
+                generics,
+                boundType => boundType ?? types.PreviousTypeError,
+            );
+            callable = (calleeType as GenericType)
+                .body
+                .instantiateGenerics(fullGenerics)
+                .callable;
+            if (callable === null) {
+                throw new ImplementationError(
+                    "Callee is no longer callable after generic instantiation.",
+                );
+            }
+        }
 
         const narrowings: TypeNarrowing[] = [];
 
