@@ -7,7 +7,6 @@ import GenericType from "./GenericType";
 import GenericParamType from "./GenericParamType";
 import types from "./builtinTypes";
 import { zip } from "../helpers";
-import ImplementationError from "../ImplementationError";
 import { GenericParamMap } from "./GenericParamMap";
 
 // TODO add FunctionType (combination of InstanceType and CallableType)
@@ -36,98 +35,17 @@ function unify(
     candidate: Type,
     generics: GenericParamMap | null = null,
 ): boolean {
+    // 'PreviousTypeError' is used to avoid cascading type errors
+    // so it can be unified with anything.
     return (
         candidate === types.PreviousTypeError ||
         target.unify(candidate, generics)
     );
 }
 
+// TODO retire this function and just use `unify` instead.
 function isCompatible(candidate: Type, target: Type): boolean {
-    // 'PreviousTypeError' is used to avoid cascading type errors
-    // so it can be assigned to anything.
-    if (candidate === types.PreviousTypeError) return true;
-
-    return target.unify(candidate);
-
-    // switch (target.tag) {
-    //     // Anything can be assigned to an 'Any' type.
-    //     case "ANY": {
-    //         return true;
-    //     }
-    //     case "INSTANCE": {
-    //         return (
-    //             candidate.classType !== null &&
-    //             isClassCompatible(candidate.classType, target.classType)
-    //         );
-    //     }
-    //     case "CALLABLE": {
-    //         const callable = candidate.callable;
-    //         return (
-    //             callable !== null &&
-    //             isCallableCompatible(callable, target)
-    //         );
-    //     }
-    //     case "UNION": {
-    //         const candidates =
-    //             candidate.tag === "UNION" ? candidate.children : [candidate];
-
-    //         return candidates.every(candidate =>
-    //             target.children.some(child => isCompatible(candidate, child)),
-    //         );
-    //     }
-    //     case "CLASS": {
-    //         return isClassCompatible(candidate, target);
-    //     }
-    //     case "GENERIC": {
-    //         // To test whether two generic type are compatible, we instantiate
-    //         // one of them with the generic param types of the other. This
-    //         // means the same type objects represent each type parameter in
-    //         // both types, allowing a normal compatibility check to be used.
-    //         if (
-    //             candidate instanceof GenericType &&
-    //             target.params.length === target.params.length
-    //         ) {
-    //             const instantiatedCandidate =
-    //                 candidate.instantiate(target.params);
-
-    //             if (instantiatedCandidate.errors.length > 0) {
-    //                 throw new ImplementationError(
-    //                     "Errors while instantiating candidate for generic " +
-    //                     "compatibility check. " +
-    //                     instantiatedCandidate.errors.join(" "),
-    //                 );
-    //             }
-    //             return isCompatible(instantiatedCandidate.type, target.body);
-    //         }
-    //         return false;
-    //     }
-    //     case "GENERIC_PARAM": {
-    //         return candidate === target;
-    //     }
-    // }
-}
-
-export function isClassCompatible(
-    candidate: Type,
-    target: ClassType,
-): boolean {
-    if (!(candidate instanceof ClassType)) return false;
-
-    let current: ClassType | null = candidate;
-    while (current) {
-        if (current.genericRoot === target.genericRoot) {
-            // At the moment, all generic classes are treated as covariant.
-            // This will lead to unsoundness, so could be changed later.
-            return (
-                zip(current.genericArgs, target.genericArgs)
-                    .every(([candidateArg, targetArg]) =>
-                        isCompatible(candidateArg, targetArg),
-                    )
-            );
-        }
-        current = current.superclass;
-    }
-    return false;
+    return unify(target, candidate);
 }
 
 export function isCallableCompatible(

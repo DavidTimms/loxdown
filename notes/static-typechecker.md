@@ -70,7 +70,7 @@
     - [ ] Add type inference for calls to generics.
       - [X] Expand type compatibility algorithm into unification.
       - [X] Allow inference of basic generic parameters.
-      - [ ] Allow deep inference of class instances parameters.
+      - [X] Allow deep inference of class instance parameters.
       - [ ] Allow deep inference of union types.
       - [ ] Allow deep inference of callable types.
     - [ ] Add subtype constraints for generics.

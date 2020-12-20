@@ -1,0 +1,23 @@
+class Request[Data] {
+    data: Data;
+    init(data: Data) {
+        this.data = data;
+    }
+}
+
+class HttpRequest[Data] < Request[Data] {
+    url: String;
+    method: String;
+    init(method: String, url: String, data: Data) {
+        super.init(data);
+        this.method = method;
+        this.url = url;
+    }
+}
+
+fun getData[Data](request: Request[Data]): Data {
+    return request.data;
+}
+
+var req = HttpRequest[Number]("POST", "https://api.com", 888);
+var eightEightEight: Number = getData(req);

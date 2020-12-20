@@ -1,8 +1,8 @@
-import Type, { isClassCompatible } from "./Type";
+import Type from "./Type";
 import InstanceType from "./InstanceType";
 import CallableType from "./CallableType";
 import { FullGenericParamMap, GenericParamMap } from "./GenericParamMap";
-import { mapValues } from "../helpers";
+import { mapValues, zip } from "../helpers";
 
 export default class ClassType {
     readonly tag = "CLASS";
@@ -113,8 +113,25 @@ export default class ClassType {
     }
 
     unify(candidate: Type, generics: GenericParamMap | null = null): boolean {
-        // TODO proper unification for classes
-        return isClassCompatible(candidate, this);
+        if (!(candidate instanceof ClassType)) return false;
+
+        let current: ClassType | null = candidate;
+
+        while (current) {
+            if (current.genericRoot === this.genericRoot) {
+                // At the moment, all generic classes are treated as covariant.
+                // This will lead to unsoundness, so could be changed later.
+                return (
+                    zip(current.genericArgs, this.genericArgs)
+                        .every(([candidateArg, targetArg]) =>
+                            Type.unify(targetArg, candidateArg, generics),
+                        )
+                );
+            }
+            current = current.superclass;
+        }
+
+        return false;
     }
 }
 
