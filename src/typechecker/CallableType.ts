@@ -1,5 +1,5 @@
 import { FullGenericParamMap, GenericParamMap } from "./GenericParamMap";
-import Type, { isCallableCompatible } from "./Type";
+import Type from "./Type";
 
 export type CallableNarrowingProducer = (argTypes: Type[]) => Map<number, Type>;
 
@@ -40,10 +40,35 @@ export default class CallableType {
     }
 
     unify(candidate: Type, generics: GenericParamMap | null = null): boolean {
-        const callable = candidate.callable;
+        const candidateCallable = candidate.callable;
 
-        // TODO replace isCallableCompatible with a function which does unification
-        return callable !== null && isCallableCompatible(callable, this);
+        if (candidateCallable === null) return false;
+
+        // Each *target* parameter type must be a subtype of the *candidate*
+        // parameter type.
+        const areParamsCompatible =
+            candidateCallable.params.length === this.params.length &&
+            candidateCallable.params.every(
+                (candidateParam, i) => Type.unify(
+                    candidateParam,
+                    this.params[i],
+                    generics,
+                ));
+
+        if (!areParamsCompatible) return false;
+
+        // The *candidate* return type must be a subtype of the *target*
+        // return type.
+        const areReturnTypesCompatible =
+            (
+                candidateCallable.returns &&
+                this.returns &&
+                Type.unify(this.returns, candidateCallable.returns, generics)
+            ) || (
+                candidateCallable.returns === null &&
+                this.returns === null
+            );
+
+        return areReturnTypesCompatible;
     }
 }
-

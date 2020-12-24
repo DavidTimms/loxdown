@@ -35,6 +35,24 @@ function unify(
     candidate: Type,
     generics: GenericParamMap | null = null,
 ): boolean {
+    // Normally the parameters being inferred will be in the target type,
+    // but when unifying function parameters, the subtyping relationship
+    // gets flipped. Here we bind the candidate parameter if possible.
+    if (candidate instanceof GenericParamType) {
+        const boundType = generics?.get(candidate);
+        if (boundType) {
+            // The parameter is being inferred, and has already been bound
+            // to type, so we attempt to unify the target with that bound type.
+            return target.unify(boundType, generics);
+
+        } else if (boundType === null) {
+            // The parameter is being inferred, but has not yet been bound
+            // to a type, so we bind it to the target type here.
+            generics?.set(candidate, target);
+            return true;
+        }
+    }
+
     // 'PreviousTypeError' is used to avoid cascading type errors
     // so it can be unified with anything.
     return (
@@ -46,37 +64,6 @@ function unify(
 // TODO retire this function and just use `unify` instead.
 function isCompatible(candidate: Type, target: Type): boolean {
     return unify(target, candidate);
-}
-
-export function isCallableCompatible(
-    candidate: CallableType,
-    target: CallableType,
-): boolean {
-    // Each *target* parameter type must be a subtype of the *candidate*
-    // parameter type.
-    const areParamsCompatible =
-    candidate.params.length === target.params.length &&
-    candidate.params.every(
-        (candidateParam, i) => isCompatible(
-            target.params[i],
-            candidateParam,
-        ));
-
-    if (!areParamsCompatible) return false;
-
-    // The *candidate* return type must be a subtype of the *target*
-    // return type.
-    const areReturnTypesCompatible =
-        (
-            candidate.returns &&
-            target.returns &&
-            isCompatible(candidate.returns, target.returns)
-        ) || (
-            candidate.returns === null &&
-            target.returns === null
-        );
-
-    return areReturnTypesCompatible;
 }
 
 function union(left: Type, right: Type): Type {

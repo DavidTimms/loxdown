@@ -1,0 +1,20 @@
+fun compose[A, B, C](f1: fun(B): C, f2: fun(A): B): fun(A): C {
+    fun composed(a: A): C {
+        return f1(f2(a));
+    }
+    return composed;
+}
+
+
+fun isGreaterThan2(x: Number): Boolean {
+    return x > 2;
+}
+
+fun yesNo(bool: Boolean): String {
+    if (bool) return "yes";
+    else return "no";
+}
+
+var isGreaterThan2YesNo = compose(yesNo, isGreaterThan2);
+
+assert(isGreaterThan2YesNo(4) == "yes", "composed function type is inferred");

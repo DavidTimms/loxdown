@@ -42,7 +42,7 @@ export default class InstanceType {
     unify(candidate: Type, generics: GenericParamMap | null = null): boolean {
         return (
             candidate.classType !== null &&
-            this.classType.unify(candidate.classType, generics)
+            Type.unify(this.classType, candidate.classType, generics)
         );
     }
 }
