@@ -1,0 +1,11 @@
+fun f[T](x: Number): T | Number {
+    return x;
+}
+
+var fx: String = f(4);
+
+-- ERROR --
+5:18 - error: Unable to infer a type for the generic parameter 'T'. Please provide the type explicitly.
+
+5     var fx: String = f(4);
+                       ^^^^

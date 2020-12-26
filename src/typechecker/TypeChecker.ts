@@ -1128,8 +1128,16 @@ implements ExprVisitor<Type>, StmtVisitor<ControlFlow>, TypeExprVisitor<Type> {
         if (generics) {
             const fullGenerics = mapValues(
                 generics,
-                boundType => boundType ?? types.PreviousTypeError,
+                (boundType, generic) => {
+                    return boundType || this.error(
+                        "Unable to infer a type for the generic parameter " +
+                        `'${generic.name}'. Please provide the type ` +
+                        "explicitly.",
+                        expr,
+                    );
+                },
             );
+
             callable = (calleeType as GenericType)
                 .body
                 .instantiateGenerics(fullGenerics)
