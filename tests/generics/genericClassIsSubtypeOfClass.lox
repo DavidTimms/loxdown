@@ -1,0 +1,11 @@
+class Pair[A, B] {
+    a: A;
+    b: B;
+
+    init(a: A, b: B) {
+        this.a = a;
+        this.b = b;
+    }
+}
+
+var cls: Class = Pair;

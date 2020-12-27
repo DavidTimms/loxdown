@@ -1,17 +1,21 @@
 import { zip } from "../helpers";
 import ImplementationError from "../ImplementationError";
+import ClassType from "./ClassType";
 import { GenericParamMap, FullGenericParamMap } from "./GenericParamMap";
 import GenericParamType from "./GenericParamType";
 import Type from "./Type";
 
 export default class GenericType<BodyType extends Type = Type> {
     readonly tag = "GENERIC";
-    readonly classType = null;
 
     constructor(
         readonly params: GenericParamType[],
         readonly body: BodyType,
     ) {}
+
+    get classType(): ClassType | null {
+        return this.body.classType;
+    }
 
     get callable(): null {
         return null;
