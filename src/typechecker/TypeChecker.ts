@@ -982,10 +982,10 @@ implements ExprVisitor<Type>, StmtVisitor<ControlFlow>, TypeExprVisitor<Type> {
                     return types.PreviousTypeError;
                 }
 
-                for (const candidate of [types.Number, types.String]) {
-                    if (Type.isCompatible(leftType, candidate)) {
-                        this.checkExpr(expr.right, candidate);
-                        return candidate;
+                for (const plusType of [types.Number, types.String]) {
+                    if (Type.unify(plusType, leftType)) {
+                        this.checkExpr(expr.right, plusType);
+                        return plusType;
                     }
                 }
 

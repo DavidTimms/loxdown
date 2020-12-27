@@ -1,0 +1,21 @@
+class Pair[A, B] {
+    a: A;
+    b: B;
+
+    init(a: A, b: B) {
+        this.a = a;
+        this.b = b;
+    }
+}
+
+fun maybeSwap[A, B](pair: Pair[A, B] | Nil): Pair[B, A] | Nil {
+    if (isInstance(pair, Pair)) {
+        return Pair(pair.b, pair.a);
+    }
+    return nil;
+}
+
+assert(
+    maybeSwap(Pair("abc", 123)) == Pair(123, "abc"),
+    "The generic arguments for maybeSwap are inferred."
+);

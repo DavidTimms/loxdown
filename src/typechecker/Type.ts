@@ -26,6 +26,7 @@ const Type = {
     union,
     intersection,
     complement,
+    children,
 };
 
 export default Type;
@@ -83,8 +84,8 @@ function union(left: Type, right: Type): Type {
         );
     }
 
-    let combinedChildren = left.tag === "UNION" ? left.children : [left];
-    const rightChildren = right.tag === "UNION" ? right.children : [right];
+    let combinedChildren = Type.children(left);
+    const rightChildren = Type.children(right);
 
     for (const newChild of rightChildren) {
         if (!combinedChildren.some(existingChild =>
@@ -163,4 +164,8 @@ function complement(left: Type, right: Type): Type {
     }
 
     return left;
+}
+
+function children(type: Type): Type[] {
+    return type.tag === "UNION" ? type.children : [type];
 }

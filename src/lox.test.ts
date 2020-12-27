@@ -24,7 +24,7 @@ function findFilesRecursively(dirPath: string, suffix: string): string[] {
 
 const testsDirPath = `${__dirname}/../tests/`;
 
-for (const fileName of findFilesRecursively(testsDirPath, ".lox")) {
+for (const fileName of findFilesRecursively(testsDirPath, "genericInferenceUnion.lox")) {
     test(fileName, () => {
         const filePath = `${testsDirPath}/${fileName}`;
         const content = fs.readFileSync(filePath, {encoding: "utf8"});

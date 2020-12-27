@@ -35,11 +35,8 @@ export default class UnionType {
     }
 
     unify(candidate: Type, generics: GenericParamMap | null = null): boolean {
-        const candidates =
-                candidate.tag === "UNION" ? candidate.children : [candidate];
-
         // TODO deep unification for unions
-        return candidates.every(candidate =>
+        return Type.children(candidate).every(candidate =>
             this.children.some(child => Type.isCompatible(candidate, child)),
         );
     }

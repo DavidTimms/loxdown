@@ -2,6 +2,7 @@ import CallableType, { CallableNarrowingProducer } from "./CallableType";
 import { default as types } from "./builtinTypes";
 import ClassType from "./ClassType";
 import Type from "./Type";
+import GenericType from "./GenericType";
 
 /**
  * This informs the calling context that if an `isInstance` call returns
@@ -9,8 +10,17 @@ import Type from "./Type";
  */
 const isInstanceNarrowingsProducer: CallableNarrowingProducer = (argTypes) => {
     const argNarrowings = new Map<number, Type>();
-    if (argTypes[1] instanceof ClassType) {
-        argNarrowings.set(0, argTypes[1].instance());
+    const rootClassType = GenericType.unwrap(argTypes[1]);
+
+    if (rootClassType instanceof ClassType) {
+        const narrowedChildren = Type.children(argTypes[0]).filter(child => {
+            const classType = child.classType;
+            return classType && classType.genericRoot === rootClassType;
+        });
+
+        if (narrowedChildren.length > 0) {
+            argNarrowings.set(0, narrowedChildren.reduce(Type.union));
+        }
     }
     return argNarrowings;
 };
