@@ -15,7 +15,10 @@ fun maybeSwap[A, B](pair: Pair[A, B] | Nil): Pair[B, A] | Nil {
     return nil;
 }
 
+var original = Pair("abc", 123);
+var swapped = maybeSwap(original);
+
 assert(
-    maybeSwap(Pair("abc", 123)) == Pair(123, "abc"),
+    swapped != nil and swapped.a == original.b and swapped.b == original.a,
     "The generic arguments for maybeSwap are inferred."
 );

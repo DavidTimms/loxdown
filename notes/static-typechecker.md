@@ -71,7 +71,7 @@
       - [X] Expand type compatibility algorithm into unification.
       - [X] Allow inference of basic generic parameters.
       - [X] Allow deep inference of class instance parameters.
-      - [ ] Allow deep inference of union types.
+      - [X] Allow deep inference of union types.
       - [X] Allow deep inference of callable types.
     - [ ] Add subtype constraints for generics.
   - [X] Check object field exists when setting.

@@ -35,9 +35,8 @@ export default class UnionType {
     }
 
     unify(candidate: Type, generics: GenericParamMap | null = null): boolean {
-        // TODO deep unification for unions
         return Type.children(candidate).every(candidate =>
-            this.children.some(child => Type.isCompatible(candidate, child)),
+            this.children.some(child => Type.unify(child, candidate, generics)),
         );
     }
 }
