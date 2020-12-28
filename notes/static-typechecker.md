@@ -54,7 +54,7 @@
     - [X] Fix unsoundness from narrowing applying to functions which may be called after reassignment.
     - [X] Allow assignment to unnarrowed type.
   - [ ] Add a `Never` type to allow expression statements to be impassable and reflect impossible narrowings.
-  - [ ] Add generics.
+  - [X] Add generics.
     - [X] Extend grammar definitions.
     - [X] Add generics to AST.
     - [X] Implement parsing.
@@ -73,5 +73,6 @@
       - [X] Allow deep inference of class instance parameters.
       - [X] Allow deep inference of union types.
       - [X] Allow deep inference of callable types.
+      - [ ] Allow unification of generic params from generic types.
     - [ ] Add subtype constraints for generics.
   - [X] Check object field exists when setting.

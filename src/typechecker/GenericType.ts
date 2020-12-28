@@ -119,7 +119,7 @@ export default class GenericType<BodyType extends Type = Type> {
                         instantiatedCandidate.errors.join(" "),
                 );
             }
-            return Type.isCompatible(instantiatedCandidate.type, this.body);
+            return Type.unify(this.body, instantiatedCandidate.type);
         }
         return false;
     }

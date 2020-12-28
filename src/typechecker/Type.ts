@@ -21,7 +21,6 @@ type Type =
     | GenericParamType;
 
 const Type = {
-    isCompatible,
     unify,
     union,
     intersection,
@@ -31,6 +30,11 @@ const Type = {
 
 export default Type;
 
+/**
+ * Returns true if the candidate is a subtype of the target. If a map of
+ * generics is provided, it may bind types to the generic parameters by
+ * modifying the map.
+ */
 function unify(
     target: Type,
     candidate: Type,
@@ -67,11 +71,6 @@ function unify(
     );
 }
 
-// TODO retire this function and just use `unify` instead.
-function isCompatible(candidate: Type, target: Type): boolean {
-    return unify(target, candidate);
-}
-
 function union(left: Type, right: Type): Type {
     if (left === right) return left;
 
@@ -94,12 +93,12 @@ function union(left: Type, right: Type): Type {
 
     for (const newChild of rightChildren) {
         if (!combinedChildren.some(existingChild =>
-            isCompatible(newChild, existingChild))
+            Type.unify(existingChild, newChild))
         ) {
             combinedChildren =
                 combinedChildren
                     .filter(existingChild =>
-                        !isCompatible(existingChild, newChild))
+                        !Type.unify(newChild, existingChild))
                     .concat([newChild]);
         }
     }
@@ -137,9 +136,9 @@ function attemptUnionOfCallables(
  * Find the type which is compatible with both types.
  */
 function intersection(left: Type, right: Type): Type | null {
-    if (isCompatible(left, right)) {
+    if (Type.unify(right, left)) {
         return left;
-    } else if (isCompatible(right, left)) {
+    } else if (Type.unify(left, right)) {
         return right;
     }
     return null;
@@ -154,7 +153,7 @@ function complement(left: Type, right: Type): Type {
 
     if (left.tag === "UNION") {
         const childrenNotInRight =
-            left.children.filter(child => !isCompatible(child, right));
+            left.children.filter(child => !Type.unify(right, child));
 
         if (childrenNotInRight.length === 0) {
             return types.PreviousTypeError;
@@ -164,7 +163,7 @@ function complement(left: Type, right: Type): Type {
         return new UnionType(childrenNotInRight);
     }
 
-    if (isCompatible(left, right)) {
+    if (Type.unify(right, left)) {
         return types.PreviousTypeError;
     }
 
