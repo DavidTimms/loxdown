@@ -1,0 +1,15 @@
+fun callN[T](func: fun(T): T, value: T, n: Number): T {
+    if (n > 0) {
+        return callN(func, func(value), n - 1);
+    }
+    return value;
+}
+
+fun exclaim(s: String): String {
+    return s + "!";
+}
+
+assert(
+    callN(exclaim, "Hello", 3) == "Hello!!!",
+    "The function is called 3 times."
+);

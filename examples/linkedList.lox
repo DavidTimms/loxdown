@@ -14,19 +14,19 @@ type LinkedList[T] = Cons[T] | Nil;
 fun printAll[T](list: LinkedList[T]) {
 	if (list != nil) {
         print list.head;
-        printAll[T](list.tail);
+        printAll(list.tail);
     }
 }
 
-fun map[In, Out](f: fun (In): Out, list: LinkedList[In]): LinkedList[Out] {
+fun map[In, Out](f: fun(In): Out, list: LinkedList[In]): LinkedList[Out] {
 	if (list == nil) return nil;
-    return Cons[Out](f(list.head), map[In, Out](f, list.tail));
+    return Cons(f(list.head), map(f, list.tail));
 }
 
 fun isGreaterThan2(x: Number): Boolean {
     return x > 2;
 }
 
-var numbers = Cons[Number](1, Cons[Number](2, Cons[Number](3, nil)));
+var numbers = Cons(1, Cons(2, Cons(3, nil)));
 
-printAll[Boolean](map[Number, Boolean](isGreaterThan2, numbers));
+printAll(map(isGreaterThan2, numbers));

@@ -1045,6 +1045,8 @@ implements ExprVisitor<Type>, StmtVisitor<ControlFlow>, TypeExprVisitor<Type> {
     visitCallExprWithNarrowing(expr: CallExpr): TypeWithNarrowings {
         let calleeType = this.checkExpr(expr.callee);
 
+        // Check that the callee is callable.
+
         let callable = GenericType.unwrap(calleeType).callable;
 
         if (callable === null) {
@@ -1060,6 +1062,9 @@ implements ExprVisitor<Type>, StmtVisitor<ControlFlow>, TypeExprVisitor<Type> {
                 narrowings: [],
             };
         }
+
+        // Instantiate the generics if generic arguments have been explicitly
+        // provided.
 
         if (expr.genericArgs.length > 0) {
             if (calleeType instanceof GenericType) {
@@ -1079,14 +1084,7 @@ implements ExprVisitor<Type>, StmtVisitor<ControlFlow>, TypeExprVisitor<Type> {
             }
         }
 
-        let generics: GenericParamMap | null = null;
-
-        if (calleeType instanceof GenericType) {
-            generics = new Map(zip(
-                calleeType.params,
-                Array(calleeType.params.length).fill(null),
-            ));
-        }
+        // Check that the correct number of arguments were provided.
 
         const args = expr.args;
         let params: (Type | null)[] = callable.params;
@@ -1115,15 +1113,30 @@ implements ExprVisitor<Type>, StmtVisitor<ControlFlow>, TypeExprVisitor<Type> {
             );
         }
 
+        // Type-check the arguments to the function, while inferring
+        // concrete types for any generic parameters.
+
+        let generics: GenericParamMap | null = null;
+
+        if (calleeType instanceof GenericType) {
+            generics = new Map(zip(
+                calleeType.params,
+                Array(calleeType.params.length).fill(null),
+            ));
+        }
+
         const argTypes: Type[] = [];
 
         for (const [arg, paramType] of zip(args, params)) {
             const argType = arg.accept(this);
             argTypes.push(argType);
             if (paramType) {
+                debugger;
                 this.validateExprType(arg, argType, paramType, generics);
             }
         }
+
+        // Use the inferred types to instantiate the generic function type.
 
         if (generics) {
             const fullGenerics = mapValues(
@@ -1148,6 +1161,9 @@ implements ExprVisitor<Type>, StmtVisitor<ControlFlow>, TypeExprVisitor<Type> {
                 );
             }
         }
+
+        // If necessary, produce type narrowings which can be inferred from
+        // the result of the call.
 
         const narrowings: TypeNarrowing[] = [];
 

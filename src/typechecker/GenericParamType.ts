@@ -29,10 +29,15 @@ export default class GenericParamType {
     unify(candidate: Type, generics: GenericParamMap | null = null): boolean {
         const boundType = generics?.get(this);
         if (boundType) {
+            // If a type is bound to itself, that means it is a recursive call,
+            // so we must return here to avoid an infinite loop.
+            if (boundType === this) {
+                return true;
+            }
             // The parameter is being inferred, and has already been bound
             // to type, so we attempt to unify that bound type with the
             // candidate.
-            return boundType.unify(candidate, generics);
+            return Type.unify(boundType, candidate, generics);
 
         } else if (boundType === null) {
             // The parameter is being inferred, but has not yet been bound

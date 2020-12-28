@@ -42,6 +42,11 @@ function unify(
     if (candidate instanceof GenericParamType) {
         const boundType = generics?.get(candidate);
         if (boundType) {
+            // If a type is bound to itself, that means it is a recursive call,
+            // so we must return here to avoid an infinite loop.
+            if (boundType === candidate) {
+                return true;
+            }
             // The parameter is being inferred, and has already been bound
             // to type, so we attempt to unify the target with that bound type.
             return target.unify(boundType, generics);
