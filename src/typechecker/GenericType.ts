@@ -99,8 +99,6 @@ export default class GenericType<BodyType extends Type = Type> {
     }
 
     unify(candidate: Type, generics: GenericParamMap | null = null): boolean {
-        // TODO unification
-
         // To test whether two generic type are compatible, we instantiate
         // one of them with the generic param types of the other. This
         // means the same type objects represent each type parameter in
@@ -119,8 +117,12 @@ export default class GenericType<BodyType extends Type = Type> {
                         instantiatedCandidate.errors.join(" "),
                 );
             }
-            return Type.unify(this.body, instantiatedCandidate.type);
+            return Type.unify(this.body, instantiatedCandidate.type, generics);
         }
         return false;
+    }
+
+    cloneParams(): GenericParamType[] {
+        return this.params.map(({name}) => new GenericParamType(name));
     }
 }

@@ -1,0 +1,12 @@
+fun call[A, B](func: fun(A): B, value: A): B {
+    return func(value);
+}
+
+fun identity[T](value: T): T {
+    return value;
+}
+
+assert(
+    call(identity, 1) + 1 == 2,
+    "The return type is correctly inferred as a number"
+);
