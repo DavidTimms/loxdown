@@ -8,6 +8,7 @@ import GenericParamType from "./GenericParamType";
 import types from "./builtinTypes";
 import { zip } from "../helpers";
 import { GenericParamMap } from "./GenericParamMap";
+import ImplementationError from "../ImplementationError";
 
 // TODO add FunctionType (combination of InstanceType and CallableType)
 
@@ -26,7 +27,6 @@ const Type = {
     intersection,
     complement,
     children,
-    resolveBoundType,
 };
 
 export default Type;
@@ -44,10 +44,10 @@ function unify(
     // Normally the parameters being inferred will be in the target type,
     // but when unifying function parameters, the subtyping relationship
     // gets flipped. Here we bind the candidate parameter if possible.
-    if (generics && candidate instanceof GenericParamType) {
-        const [status, boundType] = Type.resolveBoundType(generics, candidate);
+    if (candidate instanceof GenericParamType) {
+        const boundType = generics?.get(candidate);
 
-        if (status === "BOUND" && boundType) {
+        if (boundType) {
             // If a type is bound to itself, that means it is a recursive call,
             // so we must return here to avoid an infinite loop.
             if (boundType === candidate) {
@@ -57,14 +57,16 @@ function unify(
             // to type, so we attempt to unify the target with that bound type.
             return target.unify(boundType, generics);
 
-        } else if (status === "UNBOUND") {
+        } else if (boundType === null) {
             // The parameter is being inferred, but has not yet been bound
             // to a type, so we bind it to the target type here.
             generics?.set(candidate, target);
             return true;
         }
-    } else if (candidate instanceof GenericType) {
-        // Should we always clone the map in this situation?
+    } else if (
+        candidate instanceof GenericType &&
+        !(target instanceof GenericType)
+    ) {
         generics = generics ?? new Map();
         const distinctParams = candidate.cloneParams();
         for (const distinctParam of distinctParams) {
@@ -184,23 +186,4 @@ function complement(left: Type, right: Type): Type {
 
 function children(type: Type): Type[] {
     return type.tag === "UNION" ? type.children : [type];
-}
-
-function resolveBoundType(
-    generics: GenericParamMap,
-    param: GenericParamType,
-): ["BOUND", Type] | ["UNBOUND"] | ["OUT_OF_SCOPE"] {
-    if (!generics.has(param)) return ["OUT_OF_SCOPE"];
-
-    let boundType: Type | null | undefined = param;
-
-    do {
-        boundType = generics.get(boundType as GenericParamType);
-    } while (generics.has(boundType as GenericParamType));
-
-    return (
-        boundType
-            ? ["BOUND", boundType]
-            : ["UNBOUND"]
-    );
 }

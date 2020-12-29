@@ -1131,30 +1131,33 @@ implements ExprVisitor<Type>, StmtVisitor<ControlFlow>, TypeExprVisitor<Type> {
             const argType = arg.accept(this);
             argTypes.push(argType);
             if (paramType) {
-                debugger;
                 this.validateExprType(arg, argType, paramType, generics);
             }
         }
 
         // Use the inferred types to instantiate the generic function type.
 
-        if (generics) {
-            const fullGenerics = mapValues(
-                generics,
-                (boundType, generic) => {
-                    return boundType || this.error(
+        if (calleeType instanceof GenericType) {
+
+            const inferredGenerics =
+                calleeType.params.map(param =>
+                    generics &&
+                    this.resolveBoundGeneric(generics, param) ||
+                    this.error(
                         "Unable to infer a type for the generic parameter " +
-                        `'${generic.name}'. Please provide the type ` +
-                        "explicitly.",
+                            `'${param.name}'. Please provide the type ` +
+                            "explicitly.",
                         expr,
-                    );
-                },
+                    ),
+                );
+
+            callable = (
+                calleeType
+                    .instantiate(inferredGenerics)
+                    .type
+                    .callable
             );
 
-            callable = (calleeType as GenericType)
-                .body
-                .instantiateGenerics(fullGenerics)
-                .callable;
             if (callable === null) {
                 throw new ImplementationError(
                     "Callee is no longer callable after generic instantiation.",
@@ -1185,6 +1188,29 @@ implements ExprVisitor<Type>, StmtVisitor<ControlFlow>, TypeExprVisitor<Type> {
             narrowings,
         };
     }
+
+    /**
+     * Since a generic parameter may be unified with another generic parameter
+     * which is then unified with a values, we have to recursively keep
+     * resolving the generics until we find a real type, or null which
+     * represents that the parameter was not bound to a type during unification.
+     */
+    private resolveBoundGeneric(
+        generics: GenericParamMap,
+        param: GenericParamType,
+    ): Type | null {
+        const boundType = generics.get(param);
+        if (boundType === undefined) {
+            throw new ImplementationError(
+                `Generic parameter '${param}' is missing from generics map.`);
+        }
+        if (boundType instanceof GenericParamType && generics.has(boundType)) {
+            if (boundType === param) return param;
+            return this.resolveBoundGeneric(generics, boundType);
+        }
+        return boundType;
+    }
+
 
     visitCallExpr(expr: CallExpr): Type {
         return this.visitCallExprWithNarrowing(expr).type;

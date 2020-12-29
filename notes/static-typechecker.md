@@ -73,6 +73,6 @@
       - [X] Allow deep inference of class instance parameters.
       - [X] Allow deep inference of union types.
       - [X] Allow deep inference of callable types.
-      - [ ] Allow unification of generic params from generic types.
+      - [X] Allow unification of generic params from generic types.
     - [ ] Add subtype constraints for generics.
   - [X] Check object field exists when setting.

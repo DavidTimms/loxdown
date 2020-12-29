@@ -1,5 +1,6 @@
 import { zip } from "../helpers";
 import ImplementationError from "../ImplementationError";
+import CallableType from "./CallableType";
 import ClassType from "./ClassType";
 import { GenericParamMap, FullGenericParamMap } from "./GenericParamMap";
 import GenericParamType from "./GenericParamType";
@@ -26,7 +27,11 @@ export default class GenericType<BodyType extends Type = Type> {
     }
 
     toString(): string {
-        return this.body.toString();
+        const bodyString = this.body.toString();
+        if (this.body instanceof CallableType) {
+            return `fun [${this.params.join(", ")}]${bodyString.slice(4)}`;
+        }
+        return bodyString;
     }
 
     static wrap<BodyType extends Type = Type>(
