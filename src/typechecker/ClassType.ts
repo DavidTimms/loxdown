@@ -3,11 +3,12 @@ import InstanceType from "./InstanceType";
 import CallableType from "./CallableType";
 import { FullGenericParamMap, GenericParamMap } from "./GenericParamMap";
 import { mapValues, zip } from "../helpers";
+import { Lazy } from "../Lazy";
 
 export default class ClassType {
     readonly tag = "CLASS";
-    fields: Map<string, Type>;
-    methods: Map<string, Type>;
+    fields!: Map<string, Type>;
+    methods!: Map<string, Type>;
     readonly superclass: ClassType | null;
     readonly genericArgs: Type[];
 
@@ -28,15 +29,15 @@ export default class ClassType {
             genericArgs = [],
             genericRoot = null,
         }: {
-            fields?: ClassType["fields"];
-            methods?: ClassType["methods"];
+            fields?: Lazy<ClassType["fields"]>;
+            methods?: Lazy<ClassType["methods"]>;
             superclass?: ClassType["superclass"];
             genericArgs?: ClassType["genericArgs"];
             genericRoot?: ClassType["genericRoot"] | null;
         } = {},
     ) {
-        this.fields = fields;
-        this.methods = methods;
+        Lazy.defineProperty(this, "fields", fields);
+        Lazy.defineProperty(this, "methods", methods);
         this.superclass = superclass;
         this.genericArgs = genericArgs;
         this.genericRoot = genericRoot ?? this;
@@ -89,11 +90,16 @@ export default class ClassType {
     }
 
     instantiateGenerics(generics: FullGenericParamMap): ClassType {
-        const fields = mapValues(
+        // We use lazy properties for the fields and methods, as these
+        // may not have been fully initialized yet. This happens when
+        // a generic class references itself in one of its method
+        // signatures.
+
+        const fields: Lazy<this["fields"]> = () => mapValues(
             this.fields,
             fieldType => fieldType.instantiateGenerics(generics),
         );
-        const methods = mapValues(
+        const methods: Lazy<this["methods"]> = () => mapValues(
             this.methods,
             methodType => methodType.instantiateGenerics(generics),
         );

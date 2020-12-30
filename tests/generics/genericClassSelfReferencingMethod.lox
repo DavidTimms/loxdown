@@ -1,0 +1,18 @@
+// This is a regression test for a bug with generic class which
+// reference themselves in method type signatures. Because the
+// type 'Box[T]' in the signature of 'set' is instantiated before
+// the methods are defined, it did not contain the correct methods
+// when later used.
+
+class Box[T] {
+    value: T;
+    init(value: T) {
+        this.value = value;
+    }
+    set(value: T): Box[T] {
+        this.value = value;
+        return this;
+    }
+}
+
+Box(1).set(2).set(3);
