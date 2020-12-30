@@ -1,31 +1,50 @@
-class Cons {
-    head: Number;
-    tail: Cons | Nil;
+// We can define a generic class which contains an item and a reference
+// to the next node.
 
-    init(head: Number, tail: Cons | Nil) {
+class Node[T] {
+    head: T;
+    tail: Node[T] | Nil;
+
+    init(head: T, tail: Node[T] | Nil) {
         this.head = head;
         this.tail = tail;
     }
 }
 
-type LinkedList = Cons | Nil;
+// We use a union type to represent a list. "nil" presents an empty list.
 
+type LinkedList[T] = Node[T] | Nil;
 
-fun printAll(list: LinkedList) {
-	if (list != nil) {
+// We can loop over the list to print each element. This function works
+// on a list containing any type of data, because the print operator
+// works on any type.
+
+fun printAll(list: LinkedList[Any]) {
+	while (list != nil) {
         print list.head;
-        printAll(list.tail);
+        list = list.tail;
     }
 }
 
-fun map(f: fun (Number): Number, list: LinkedList): LinkedList {
-    return list and Cons(f(list.head), map(f, list.tail));
+// We can define a generic map function using recursion.
+
+fun map[In, Out](f: fun(In): Out, list: LinkedList[In]): LinkedList[Out] {
+	if (list == nil) return nil;
+    return Node(f(list.head), map(f, list.tail));
 }
 
-fun inc(x: Number): Number {
-    return x + 1;
+// Loxdown does not have variadic functions, so we need to call "Node"
+// repeatedly to construct a list. The type of "numbers" is inferred as
+// "Node[Number]".
+
+var numbers = Node(1, Node(2, Node(3, nil)));
+
+// When we call "map", the types for the generic parameters "In" and
+// "Out" are inferred as "Number" and "Boolean" by analysing the type
+// of the "isGreaterThan2" function.
+
+fun isGreaterThan2(x: Number): Boolean {
+    return x > 2;
 }
 
-var numbers = Cons(1, Cons(2, Cons(3, nil)));
-
-printAll(map(inc, numbers));
+printAll(map(isGreaterThan2, numbers));

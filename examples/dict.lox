@@ -1,0 +1,91 @@
+class DictNode[K, V] {
+    key: K;
+    value: V;
+    next: DictNode[K, V] | Nil;
+
+    init(key: K, value: V, next: DictNode[K, V] | Nil) {
+        this.key = key;
+        this.value = value;
+        this.next = next;
+    }
+}
+
+
+class Dict[K, V] {
+    nodes: DictNode[K, V] | Nil;
+
+    init() {
+        this.nodes = nil;
+    }
+
+    set(key: K, value: V): Dict[K, V] {
+        for (var node = this.nodes; node != nil; node = node.next) {
+            if (node.key == key) {
+                node.value = value;
+                return this;
+            }
+        }
+        this.nodes = DictNode(key, value, this.nodes);
+        return this;
+    }
+
+    get(key: K): V | Nil {
+        for (var node = this.nodes; node != nil; node = node.next) {
+            if (node.key == key) return node.value;
+        }
+        return nil;
+    }
+
+    remove(key: K): Dict[K, V] {
+        var nodes = this.nodes;
+        if (nodes and nodes.key == key) {
+            this.nodes = nodes.next;
+        }
+        else {
+            for (var node = nodes; node != nil; node = node.next) {
+                var next = node.next;
+                if (next and next.key == key) {
+                    node.next = next.next;
+                }
+            }
+        }
+        return this;
+    }
+
+    has(key: K): Boolean {
+        for (var node = this.nodes; node != nil; node = node.next) {
+            if (node.key == key) return true;
+        }
+        return false;
+    }
+
+    size(): Number {
+        var size = 0;
+        for (var node = this.nodes; node != nil; node = node.next) {
+            size = size + 1;
+        }
+        return size;
+    }
+}
+
+var continentsByCountry =
+    Dict[String, String]()
+        .set("UK", "Europe")
+        .set("Ireland", "Europe")
+        .set("Canada", "North America")
+        .set("China", "Asia");
+
+print (
+    "The continents of " +
+    String(continentsByCountry.size()) +
+    " countries are known"
+);
+
+var continent = continentsByCountry.get("Canada");
+if (continent) {
+    print "Canada is in " + continent;
+}
+
+continentsByCountry.remove("Canada");
+
+print "The dict contains Canada? " + String(continentsByCountry.has("Canada"));
