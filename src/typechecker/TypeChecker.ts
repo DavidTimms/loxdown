@@ -40,7 +40,7 @@ import {
     UnionTypeExpr,
     GenericTypeExpr,
 } from "../TypeExpr";
-import { zip, comparator, groupBy, s, padArrayEnd, mapValues } from "../helpers";
+import { zip, comparator, groupBy, s, padArrayEnd } from "../helpers";
 import CallableType from "./CallableType";
 import { default as types } from "./builtinTypes";
 import globalsTypes from "./globalsTypes";

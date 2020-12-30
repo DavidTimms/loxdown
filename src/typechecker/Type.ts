@@ -8,7 +8,6 @@ import GenericParamType from "./GenericParamType";
 import types from "./builtinTypes";
 import { zip } from "../helpers";
 import { GenericParamMap } from "./GenericParamMap";
-import ImplementationError from "../ImplementationError";
 
 // TODO add FunctionType (combination of InstanceType and CallableType)
 
