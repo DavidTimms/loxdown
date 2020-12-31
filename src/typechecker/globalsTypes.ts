@@ -3,6 +3,7 @@ import { default as types } from "./builtinTypes";
 import ClassType from "./ClassType";
 import Type from "./Type";
 import GenericType from "./GenericType";
+import { arrayClassType } from "./arrayTypes";
 
 /**
  * This informs the calling context that if an `isInstance` call returns
@@ -30,6 +31,7 @@ export default {
     Boolean: types.Boolean.classType,
     Number: types.Number.classType,
     String: types.String.classType,
+    Array: arrayClassType,
     Function: types.Function.classType,
     Class: types.Class.classType,
     clock: new CallableType([], types.Number),

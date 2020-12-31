@@ -1,0 +1,2 @@
+var numbers = Array[Number]();
+assert(String(numbers) == "[]", "Can construct an empty array");

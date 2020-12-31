@@ -7,6 +7,7 @@ import { nil, LoxNil } from "./LoxNil";
 import { isTruthy } from "./coreSemantics";
 import LoxString from "./LoxString";
 import NativeRuntimeError from "./NativeRuntimeError";
+import LoxArray from "./LoxArray";
 
 export const clock = new NativeFunction(
     () => new LoxNumber(Date.now() / 1000),
@@ -94,4 +95,11 @@ export const Class = new LoxClass("Class").withNativeMethods({
     getSuperclass(this: LoxClass): LoxClass | LoxNil {
         return this.superclass ?? nil;
     },
+});
+
+export const Array = new LoxClass("Array").withNativeMethods({
+    init(): LoxArray {
+        return new LoxArray();
+    },
+    append: LoxArray.prototype.append,
 });

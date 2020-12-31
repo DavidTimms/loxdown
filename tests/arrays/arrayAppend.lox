@@ -1,0 +1,3 @@
+var names = Array[String]();
+names.append("Martin").append("Amelia");
+assert(String(names) == "[Martin, Amelia]", "The names have been appended");

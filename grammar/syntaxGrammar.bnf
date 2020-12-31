@@ -47,11 +47,13 @@ multiplication → unary ( ( "/" | "*" ) unary )* ;
 
 unary          → ( "!" | "-" ) unary | call ;
 call           → primary (
-                   ( "[" genericArgs "]" )? "(" arguments? ")" | "." IDENTIFIER
+                   ( "[" genericArgs "]" )? "(" expressionList? ")"
+                   | "." IDENTIFIER
                  )* ;
 primary        → "true" | "false" | "nil" | "this"
-               | NUMBER | STRING | IDENTIFIER | "(" expression ")"
+               | NUMBER | STRING | IDENTIFIER | "(" expression ")" | array
                | "super" "." IDENTIFIER ;
+array          → "[" expressionList? "]" ;
 
 
 typeExpr       → nonUnionType ( "|" nonUnionType )* ;
@@ -68,7 +70,7 @@ function       → IDENTIFIER ( "[" genericParams "]" )?
                  "(" parameters? ")" (":" typeExpr)? block ;
 parameters     → parameter ( "," parameter )* ;
 parameter      → IDENTIFIER ":" typeExpr ;
-arguments      → expression ( "," expression )* ;
+expressionList → expression ( "," expression )* ;
 
 genericParams  → genericParam ( "," genericParam )* ;
 genericParam   → IDENTIFIER ( "<" typeExpr )? ;

@@ -6,8 +6,10 @@ import LoxNumber from "./LoxNumber";
 import LoxFunction from "./LoxFunction";
 import NativeFunction from "./NativeFunction";
 import LoxClass from "./LoxClass";
+import LoxArray from "./LoxArray";
 
 type LoxValue =
+    LoxArray |
     LoxNumber |
     LoxString |
     LoxBool |

@@ -1,6 +1,7 @@
 import AnyType from "./AnyType";
 import ClassType from "./ClassType";
 import CallableType from "./CallableType";
+import { arrayInstanceType } from "./arrayTypes";
 
 const Any = new AnyType();
 
@@ -23,6 +24,7 @@ export default {
             ["init", new CallableType([Any])],
         ]),
     }).instance(),
+    Array: arrayInstanceType,
     Function: new ClassType("Function").instance(),
     Class: ClassType.metaClass.instance(),
 };
