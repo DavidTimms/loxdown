@@ -101,5 +101,11 @@ export const Array = new LoxClass("Array").withNativeMethods({
     init(): LoxArray {
         return new LoxArray();
     },
+    get: LoxArray.prototype.getItem,
+    size: LoxArray.prototype.size,
     append: LoxArray.prototype.append,
+    reverse: LoxArray.prototype.reverse,
+    clear: LoxArray.prototype.clear,
+    insertAt: LoxArray.prototype.insertAt,
+    removeAt: LoxArray.prototype.removeAt,
 });

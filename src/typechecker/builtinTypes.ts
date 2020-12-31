@@ -2,6 +2,7 @@ import AnyType from "./AnyType";
 import ClassType from "./ClassType";
 import CallableType from "./CallableType";
 import { arrayInstanceType } from "./arrayTypes";
+import { numberInstanceType } from "./numberTypes";
 
 const Any = new AnyType();
 
@@ -14,11 +15,7 @@ export default {
             ["init", new CallableType([Any])],
         ]),
     }).instance(),
-    Number: new ClassType("Number", {
-        methods: new Map([
-            ["init", new CallableType([Any])],
-        ]),
-    }).instance(),
+    Number: numberInstanceType,
     String: new ClassType("String", {
         methods: new Map([
             ["init", new CallableType([Any])],

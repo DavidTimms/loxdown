@@ -1,0 +1,13 @@
+var numbers = Array[Number]().append(1).append(12).append(123);
+
+var result = numbers.insertAt(0, 55.5);
+assert(result == numbers, "The method returns the mutated array.");
+assert(numbers.get(0) == 55.5, "The item has been added.");
+assert(numbers.get(1) == 1, "The other items have been moved up.");
+assert(numbers.size() == 4, "The size has increased by one.");
+
+numbers.insertAt(2, 444);
+assert(numbers.get(2) == 444, "The item has been added.");
+assert(numbers.get(1) == 1, "The items before the index are unchanged.");
+assert(numbers.get(3) == 12, "The other items have been moved up.");
+assert(numbers.size() == 5, "The size has increased by one.");

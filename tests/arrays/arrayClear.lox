@@ -1,0 +1,6 @@
+var numbers = Array[Number]().append(1).append(12).append(123);
+assert(numbers.size() == 3, "The array has 3 elements.");
+
+numbers.clear();
+assert(numbers.size() == 0, "The array is empty after being cleared.");
+assert(numbers.get(0) == nil, "The items are no longer present.");

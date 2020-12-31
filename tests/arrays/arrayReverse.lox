@@ -1,0 +1,7 @@
+var numbers = Array[Number]().append(1).append(12).append(123);
+var result = numbers.reverse();
+
+assert(result == numbers, "The method returns the mutated array.");
+assert(numbers.get(0) == 123, "The last item is first.");
+assert(numbers.get(1) == 12, "The middle item remains.");
+assert(numbers.get(2) == 1, "The first items is last.");

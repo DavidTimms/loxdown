@@ -1,0 +1,7 @@
+var numbers = Array[Number]().append(1).append(12).append(123);
+
+var result = numbers.removeAt(1);
+assert(result == 12, "The method returns the removed item.");
+assert(numbers.get(0) == 1, "The items before the index are unchanged.");
+assert(numbers.get(1) == 123, "The other items have been moved down.");
+assert(numbers.size() == 2, "The size has decreased by one.");

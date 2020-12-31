@@ -1,0 +1,7 @@
+var names = Array[String]().append("Dave").append("Matt").append("Nicola");
+
+assert(names.get(0) == "Dave", "First element.");
+assert(names.get(1) == "Matt", "Second element.");
+assert(names.get(2) == "Nicola", "Third element.");
+assert(names.get(3) == nil, "Indexing beyond the end returns nil.");
+assert(names.get(-1) == "Nicola", "Negative indexes count backwards from the end.");

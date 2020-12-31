@@ -1,0 +1,5 @@
+var numbers = Array[Number]();
+assert(numbers.size() == 0, "The array is empty.");
+
+numbers.append(1).append(12).append(123);
+assert(numbers.size() == 3, "The size changes as items are added.");
