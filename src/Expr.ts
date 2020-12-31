@@ -5,6 +5,24 @@ import TypeExpr from "./TypeExpr";
 import LoxValue from "./LoxValue";
 import SourceRange from "./SourceRange";
 
+export class ArrayExpr {
+    constructor(
+        readonly openingBracket: Token,
+        readonly items: Expr[],
+        readonly closingBracket: Token,
+    ) {}
+
+    accept<R>(visitor: ExprVisitor<R>): R {
+        return visitor.visitArrayExpr(this);
+    }
+
+    sourceRange(): SourceRange {
+        const start = (this.openingBracket).sourceRange().start;
+        const end = (this.closingBracket).sourceRange().end;
+        return new SourceRange(start, end);
+    }
+}
+
 export class AssignExpr {
     constructor(
         readonly name: Token,
@@ -212,6 +230,7 @@ export class VariableExpr {
 }
 
 export type Expr =
+    ArrayExpr |
     AssignExpr |
     BinaryExpr |
     CallExpr |
@@ -228,6 +247,7 @@ export type Expr =
 export default Expr;
 
 export interface ExprVisitor<R> {
+    visitArrayExpr(expr: ArrayExpr): R;
     visitAssignExpr(expr: AssignExpr): R;
     visitBinaryExpr(expr: BinaryExpr): R;
     visitCallExpr(expr: CallExpr): R;

@@ -1,0 +1,21 @@
+class Bird {
+  fly() {
+    print "flap flap";
+  }
+}
+
+class Bee {
+  fly() {
+    print "buzzzzz";
+  }
+}
+
+// The type of the array is inferred as Array[Bird | Bee]
+var flyingThings = [Bird(), Bee()];
+
+flyingThings.get(0).fly();
+flyingThings.get(1).fly();
+
+-- OUTPUT --
+flap flap
+buzzzzz

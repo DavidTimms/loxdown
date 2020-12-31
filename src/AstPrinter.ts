@@ -13,12 +13,17 @@ import {
     GetExpr,
     ThisExpr,
     SuperExpr,
+    ArrayExpr,
 } from "./Expr";
 
 // Creates an unambiguous, if ugly, string representation of AST nodes
 export default class AstPrinter implements ExprVisitor<string> {
     print(expr: Expr): string {
         return expr.accept(this);
+    }
+
+    visitArrayExpr(expr: ArrayExpr): string {
+        return `[${expr.items.map(item => item.accept(this)).join(" ")}]`;
     }
 
     visitAssignExpr(expr: AssignExpr): string {

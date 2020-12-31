@@ -18,6 +18,7 @@ import {
     SetExpr,
     ThisExpr,
     SuperExpr,
+    ArrayExpr,
 } from "./Expr";
 import {
     Stmt,
@@ -46,6 +47,7 @@ import { isTruthy, isEqual } from "./coreSemantics";
 import * as globals from "./globals";
 import ImplementationError from "./ImplementationError";
 import OutputHandler from "./OutputHandler";
+import LoxArray from "./LoxArray";
 
 export default class Interpreter
 implements ExprVisitor<LoxValue>, StmtVisitor<void> {
@@ -160,6 +162,10 @@ implements ExprVisitor<LoxValue>, StmtVisitor<void> {
         while (isTruthy(this.evaluate(stmt.condition))) {
             this.execute(stmt.body);
         }
+    }
+
+    visitArrayExpr(expr: ArrayExpr): LoxValue {
+        return new LoxArray(expr.items.map(item => this.evaluate(item)));
     }
 
     visitAssignExpr(expr: AssignExpr): LoxValue {

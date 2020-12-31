@@ -7,7 +7,10 @@ import { nil } from "./LoxNil";
 class LoxArray {
     readonly type = "ARRAY";
     static readonly loxClassName = "Array";
-    readonly items: LoxValue[] = [];
+
+    constructor(
+        readonly items: LoxValue[] = [],
+    ) {}
 
     toString(): string {
         return `[${this.items.join(", ")}]`;

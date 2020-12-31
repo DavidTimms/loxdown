@@ -14,6 +14,7 @@ import {
     SetExpr,
     ThisExpr,
     SuperExpr,
+    ArrayExpr,
 } from "./Expr";
 import {
     Stmt,
@@ -43,6 +44,7 @@ import SyntaxError from "./SyntaxError";
 import SourceRange from "./SourceRange";
 import GenericParameter from "./GenericParameter";
 import Superclass from "./Superclass";
+import { clear } from "console";
 
 type Associativity = "LEFT" | "RIGHT";
 
@@ -577,7 +579,30 @@ export default class Parser {
             return new GroupingExpr(expr);
         }
 
+        if (this.match("LEFT_BRACKET")) {
+            return this.array();
+        }
+
         throw this.error("Expect expression.", this.peek());
+    }
+
+    private array(): Expr {
+        const openingBracket = this.previous();
+        const items: Expr[] = [];
+
+        if (this.match("RIGHT_BRACKET")) {
+            throw Error("TODO no empty array literal error");
+        } else {
+            do {
+                items.push(this.expression());
+            } while (this.match("COMMA"));
+
+            this.consume(
+                "RIGHT_BRACKET", "expect ']' after array items.");
+        }
+
+        const closingBracket = this.previous();
+        return new ArrayExpr(openingBracket, items, closingBracket);
     }
 
     private consume(type: TokenType, message: string): Token {

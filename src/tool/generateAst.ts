@@ -26,6 +26,9 @@ function main(args: string[]): void {
         baseName: "Expr",
         withSourceRange: true,
         classes: [
+            `Array    -> openingBracket: Token,
+                         items: Expr[],
+                         closingBracket: Token`,
             `Assign   -> name: Token,
                          value: Expr`,
             `Binary   -> left: Expr,

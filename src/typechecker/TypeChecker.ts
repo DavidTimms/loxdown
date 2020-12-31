@@ -13,6 +13,7 @@ import {
     SetExpr,
     ThisExpr,
     SuperExpr,
+    ArrayExpr,
 } from "../Expr";
 import {
     Stmt,
@@ -906,6 +907,11 @@ implements ExprVisitor<Type>, StmtVisitor<ControlFlow>, TypeExprVisitor<Type> {
             () => this.checkStmt(stmt.body),
             () => (this.passable()),
         );
+    }
+
+    visitArrayExpr(expr: ArrayExpr): Type {
+        const itemType = expr.items.map(item => this.checkExpr(item)).reduce(Type.union);
+        return types.Array.instantiate([itemType]).type;
     }
 
     visitAssignExpr(expr: AssignExpr): Type {

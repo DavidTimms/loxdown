@@ -1,0 +1,6 @@
+var bools = [true, false, true];
+
+assert(bools.size() == 3, "The array has been constructed.");
+
+// The item type has been correctly inferred:
+var b: Boolean = bools.get(1);
