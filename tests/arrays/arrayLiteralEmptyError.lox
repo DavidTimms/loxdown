@@ -1,0 +1,7 @@
+var things = [];
+
+-- ERROR --
+1:14 - error: Unable to determine the item type for an empty array literal. Please use 'Array[Type]()' instead.
+
+1     var things = [];
+                   ^^

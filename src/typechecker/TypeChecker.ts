@@ -910,6 +910,13 @@ implements ExprVisitor<Type>, StmtVisitor<ControlFlow>, TypeExprVisitor<Type> {
     }
 
     visitArrayExpr(expr: ArrayExpr): Type {
+        if (expr.items.length === 0) {
+            return this.error(
+                "Unable to determine the item type for an empty array literal. " +
+                "Please use 'Array[Type]()' instead.",
+                expr,
+            );
+        }
         const itemType = expr.items.map(item => this.checkExpr(item)).reduce(Type.union);
         return types.Array.instantiate([itemType]).type;
     }

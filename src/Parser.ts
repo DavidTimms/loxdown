@@ -590,9 +590,7 @@ export default class Parser {
         const openingBracket = this.previous();
         const items: Expr[] = [];
 
-        if (this.match("RIGHT_BRACKET")) {
-            throw Error("TODO no empty array literal error");
-        } else {
+        if (!this.match("RIGHT_BRACKET")) {
             do {
                 items.push(this.expression());
             } while (this.match("COMMA"));
