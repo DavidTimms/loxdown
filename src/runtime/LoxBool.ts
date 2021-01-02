@@ -1,5 +1,5 @@
 import NativeTypeMixin from "./NativeTypeMixin";
-import { applyMixin } from "./helpers";
+import { applyMixin } from "../helpers";
 
 class LoxBool {
     readonly type = "BOOL";

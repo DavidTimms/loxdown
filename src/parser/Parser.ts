@@ -1,5 +1,5 @@
-import Token from "./ast/Token";
-import TokenType from "./ast/TokenType";
+import Token from "../ast/Token";
+import TokenType from "../ast/TokenType";
 import {
     Expr,
     BinaryExpr,
@@ -15,7 +15,7 @@ import {
     ThisExpr,
     SuperExpr,
     ArrayExpr,
-} from "./ast/Expr";
+} from "../ast/Expr";
 import {
     Stmt,
     PrintStmt,
@@ -28,22 +28,22 @@ import {
     ReturnStmt,
     ClassStmt,
     TypeStmt,
-} from "./ast/Stmt";
-import LoxValue from "./LoxValue";
-import { loxTrue, loxFalse } from "./LoxBool";
-import Parameter from "./ast/Parameter";
+} from "../ast/Stmt";
+import LoxValue from "../runtime/LoxValue";
+import { loxTrue, loxFalse } from "../runtime/LoxBool";
+import Parameter from "../ast/Parameter";
 import {
     TypeExpr,
     VariableTypeExpr,
     CallableTypeExpr,
     UnionTypeExpr,
     GenericTypeExpr,
-} from "./ast/TypeExpr";
-import Field from "./ast/Field";
+} from "../ast/TypeExpr";
+import Field from "../ast/Field";
 import SyntaxError from "./SyntaxError";
-import SourceRange from "./ast/SourceRange";
-import GenericParameter from "./ast/GenericParameter";
-import Superclass from "./ast/Superclass";
+import SourceRange from "../ast/SourceRange";
+import GenericParameter from "../ast/GenericParameter";
+import Superclass from "../ast/Superclass";
 
 type Associativity = "LEFT" | "RIGHT";
 

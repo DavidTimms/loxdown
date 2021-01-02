@@ -1,6 +1,6 @@
 import LoxValue from "./LoxValue";
-import Token from "./ast/Token";
-import ImplementationError from "./ImplementationError";
+import Token from "../ast/Token";
+import ImplementationError from "../ImplementationError";
 
 export default class Environment {
     private readonly values = new Map<string, LoxValue>();

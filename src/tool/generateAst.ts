@@ -22,7 +22,7 @@ function main(args: string[]): void {
     const outputDir = args[0];
 
     const importMap = new Map([
-        ["LoxValue", "../LoxValue"],
+        ["LoxValue", "../runtime/LoxValue"],
     ]);
 
     defineAst({

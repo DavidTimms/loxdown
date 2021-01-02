@@ -1,11 +1,11 @@
-import Scanner from "./Scanner";
-import Parser from "./Parser";
-import Interpreter from "./Interpreter";
+import Scanner from "./parser/Scanner";
+import Parser from "./parser/Parser";
+import Interpreter from "./runtime/Interpreter";
 import Stmt, { ExpressionStmt, PrintStmt } from "./ast/Stmt";
 import TypeChecker from "./typechecker/TypeChecker";
 import SourceRange from "./ast/SourceRange";
-import SyntaxError from "./SyntaxError";
-import RuntimeError from "./RuntimeError";
+import SyntaxError from "./parser/SyntaxError";
+import RuntimeError from "./runtime/RuntimeError";
 import OutputHandler from "./OutputHandler";
 
 export type CheckStatus =

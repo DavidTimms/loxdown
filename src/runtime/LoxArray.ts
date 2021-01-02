@@ -1,5 +1,5 @@
 import NativeTypeMixin from "./NativeTypeMixin";
-import { applyMixin } from "./helpers";
+import { applyMixin } from "../helpers";
 import LoxValue from "./LoxValue";
 import LoxNumber from "./LoxNumber";
 import { nil } from "./LoxNil";

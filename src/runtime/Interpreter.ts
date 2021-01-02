@@ -1,5 +1,5 @@
 import LoxValue from "./LoxValue";
-import Token from "./ast/Token";
+import Token from "../ast/Token";
 import Environment from "./Environment";
 import RuntimeError from "./RuntimeError";
 import NativeRuntimeError from "./NativeRuntimeError";
@@ -19,7 +19,7 @@ import {
     ThisExpr,
     SuperExpr,
     ArrayExpr,
-} from "./ast/Expr";
+} from "../ast/Expr";
 import {
     Stmt,
     StmtVisitor,
@@ -33,7 +33,7 @@ import {
     ReturnStmt,
     ClassStmt,
     TypeStmt,
-} from "./ast/Stmt";
+} from "../ast/Stmt";
 import {isLoxCallable} from "./LoxCallable";
 import LoxFunction from "./LoxFunction";
 import LoxClass from "./LoxClass";
@@ -45,8 +45,8 @@ import LoxNumber from "./LoxNumber";
 import LoxString from "./LoxString";
 import { isTruthy, isEqual } from "./coreSemantics";
 import * as globals from "./globals";
-import ImplementationError from "./ImplementationError";
-import OutputHandler from "./OutputHandler";
+import ImplementationError from "../ImplementationError";
+import OutputHandler from "../OutputHandler";
 import LoxArray from "./LoxArray";
 
 export default class Interpreter

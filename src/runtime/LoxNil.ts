@@ -1,5 +1,5 @@
 import NativeTypeMixin from "./NativeTypeMixin";
-import { applyMixin } from "./helpers";
+import { applyMixin } from "../helpers";
 
 // store instance here to ensure LoxNil is a singleton
 let _nil: LoxNil | null = null;

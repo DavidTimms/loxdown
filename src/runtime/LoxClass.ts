@@ -3,7 +3,7 @@ import LoxCallable from "./LoxCallable";
 import LoxValue from "./LoxValue";
 import LoxInstance from "./LoxInstance";
 import NativeTypeMixin from "./NativeTypeMixin";
-import { applyMixin } from "./helpers";
+import { applyMixin } from "../helpers";
 import NativeFunction from "./NativeFunction";
 
 type NativeCompatibleMethods = {

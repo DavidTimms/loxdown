@@ -29,7 +29,7 @@ import {
     ClassStmt,
     TypeStmt,
 } from "../ast/Stmt";
-import Interpreter from "../Interpreter";
+import Interpreter from "../runtime/Interpreter";
 import Token from "../ast/Token";
 import Type from "./Type";
 import ClassType from "./ClassType";
@@ -49,7 +49,7 @@ import ImplementationError from "../ImplementationError";
 import Field from "../ast/Field";
 import SourceRange from "../ast/SourceRange";
 import InstanceType from "./InstanceType";
-import { nil } from "../LoxNil";
+import { nil } from "../runtime/LoxNil";
 import GenericParamType from "./GenericParamType";
 import GenericParameter from "../ast/GenericParameter";
 import GenericType from "./GenericType";

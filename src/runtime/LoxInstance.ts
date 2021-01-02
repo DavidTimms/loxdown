@@ -1,6 +1,6 @@
 import LoxClass from "./LoxClass";
 import LoxValue from "./LoxValue";
-import Token from "./ast/Token";
+import Token from "../ast/Token";
 import RuntimeError from "./RuntimeError";
 
 export default class LoxInstance {

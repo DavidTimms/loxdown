@@ -2,7 +2,7 @@ import Interpreter from "./Interpreter";
 import LoxCallable from "./LoxCallable";
 import LoxValue from "./LoxValue";
 import NativeTypeMixin from "./NativeTypeMixin";
-import { applyMixin } from "./helpers";
+import { applyMixin } from "../helpers";
 
 // Wraps a JavaScript/TypeScript function into a Lox callable
 class NativeFunction implements LoxCallable {

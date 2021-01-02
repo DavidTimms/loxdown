@@ -1,6 +1,6 @@
 import "codemirror/addon/mode/simple";
 import * as CodeMirror from "codemirror";
-import keywords from "../keywords.js";
+import keywords from "../parser/keywords.js";
 
 const keywordList = [...keywords.keys()];
 

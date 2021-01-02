@@ -1,4 +1,4 @@
-import SourceRange from "./ast/SourceRange";
+import SourceRange from "../ast/SourceRange";
 
 export default class SyntaxError {
     constructor(

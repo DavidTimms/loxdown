@@ -2,7 +2,7 @@
 
 import Token from "./Token";
 import TypeExpr from "./TypeExpr";
-import LoxValue from "../LoxValue";
+import LoxValue from "../runtime/LoxValue";
 import SourceRange from "./SourceRange";
 
 export class ArrayExpr {

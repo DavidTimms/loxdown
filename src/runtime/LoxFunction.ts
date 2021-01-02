@@ -1,12 +1,12 @@
 import Interpreter from "./Interpreter";
 import LoxCallable from "./LoxCallable";
 import LoxValue from "./LoxValue";
-import {FunctionStmt} from "./ast/Stmt";
+import {FunctionStmt} from "../ast/Stmt";
 import Environment from "./Environment";
 import Return from "./Return";
 import { nil } from "./LoxNil";
 import NativeTypeMixin from "./NativeTypeMixin";
-import { applyMixin } from "./helpers";
+import { applyMixin } from "../helpers";
 
 class LoxFunction implements LoxCallable {
     readonly type = "FUNCTION";
