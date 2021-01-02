@@ -1,0 +1,51 @@
+fun mergeSort(array: Array[Number]): Array[Number] {
+    if (array.size() <= 1) return array;
+    
+    var left = Array[Number]();
+    var right = Array[Number]();
+
+    var middle = array.size() / 2;
+
+    for (var i = 0; i < middle; i = i + 1) {
+        left.append(array.get(i));
+    }
+    for (var i = middle; i < array.size(); i = i + 1) {
+        right.append(array.get(i));
+    }
+
+    left = mergeSort(left);
+    right = mergeSort(right);
+
+    if (left.get(-1) <= right.get(0)) {
+        for (var i = 0; i < right.size(); i = i + 1) {
+            left.append(right.get(i));
+        }
+        return left;
+    }
+    return merge(left, right);
+}
+
+fun merge(left: Array[Number], right: Array[Number]): Array[Number] {
+    var result = Array[Number]();
+
+    while (left.size() > 0 and right.size() > 0) {
+        if (left.get(0) <= right.get(0)) {
+            result.append(left.removeAt(0));
+        } else {
+            result.append(right.removeAt(0));
+        }
+    }
+    if (left.size() > 0) {
+        for (var i = 0; i < left.size(); i = i + 1) {
+            result.append(left.get(i));
+        }
+    }
+    if (right.size() > 0) {
+        for (var i = 0; i < right.size(); i = i + 1) {
+            result.append(right.get(i));
+        }
+    }
+    return result;
+}
+
+print mergeSort([6, 3, 78, 2, 345, 4, 88, 6]);
