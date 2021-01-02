@@ -1,5 +1,5 @@
 import LoxValue from "./LoxValue";
-import Token from "./Token";
+import Token from "./ast/Token";
 import Environment from "./Environment";
 import RuntimeError from "./RuntimeError";
 import NativeRuntimeError from "./NativeRuntimeError";
@@ -19,7 +19,7 @@ import {
     ThisExpr,
     SuperExpr,
     ArrayExpr,
-} from "./Expr";
+} from "./ast/Expr";
 import {
     Stmt,
     StmtVisitor,
@@ -33,7 +33,7 @@ import {
     ReturnStmt,
     ClassStmt,
     TypeStmt,
-} from "./Stmt";
+} from "./ast/Stmt";
 import {isLoxCallable} from "./LoxCallable";
 import LoxFunction from "./LoxFunction";
 import LoxClass from "./LoxClass";

@@ -1,11 +1,11 @@
-import Token from "./Token";
-import TokenType from "./TokenType";
+import Token from "./ast/Token";
+import TokenType from "./ast/TokenType";
 import LoxValue from "./LoxValue";
 import { nil } from "./LoxNil";
 import LoxString from "./LoxString";
 import LoxNumber from "./LoxNumber";
 import SyntaxError from "./SyntaxError";
-import SourceRange from "./SourceRange";
+import SourceRange from "./ast/SourceRange";
 import keywords from "./keywords";
 
 export default class Scanner {

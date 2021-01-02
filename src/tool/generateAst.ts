@@ -21,10 +21,15 @@ function main(args: string[]): void {
     }
     const outputDir = args[0];
 
+    const importMap = new Map([
+        ["LoxValue", "../LoxValue"],
+    ]);
+
     defineAst({
         outputDir,
         baseName: "Expr",
         withSourceRange: true,
+        importMap,
         classes: [
             `Array    -> openingBracket: Token,
                          items: Expr[],
@@ -61,6 +66,7 @@ function main(args: string[]): void {
     defineAst({
         outputDir,
         baseName: "Stmt",
+        importMap,
         classes: [
             "Block      -> statements: Stmt[]",
             `Class      -> name: Token,
@@ -95,6 +101,7 @@ function main(args: string[]): void {
         outputDir,
         baseName: "TypeExpr",
         withSourceRange: true,
+        importMap,
         classes: [
             `Callable   -> fun: Token,
                            genericParams: GenericParameter[],
@@ -112,9 +119,10 @@ function main(args: string[]): void {
     });
 }
 
-function defineAst({ outputDir, baseName, classes, withSourceRange = false }: {
+function defineAst({ outputDir, baseName, importMap, classes, withSourceRange = false }: {
     outputDir: string;
     baseName: string;
+    importMap: Map<string, string>;
     classes: string[];
     withSourceRange?: boolean;
 }): void {
@@ -146,7 +154,8 @@ function defineAst({ outputDir, baseName, classes, withSourceRange = false }: {
         "// This file is programmatically generated. Do not edit it directly.",
         "",
         ...Array.from(importedTypes)
-            .map(type => `import ${type} from "./${type}";`),
+            .map(type => ({type, location: importMap.get(type) ?? `./${type}`}))
+            .map(({type, location}) => `import ${type} from "${location}";`),
         "",
         ...classDefs.flatMap(defineType),
         `export type ${baseName} =`,

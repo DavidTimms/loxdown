@@ -14,7 +14,7 @@ import {
     ThisExpr,
     SuperExpr,
     ArrayExpr,
-} from "../Expr";
+} from "../ast/Expr";
 import {
     Stmt,
     StmtVisitor,
@@ -28,9 +28,9 @@ import {
     PrintStmt,
     ClassStmt,
     TypeStmt,
-} from "../Stmt";
+} from "../ast/Stmt";
 import Interpreter from "../Interpreter";
-import Token from "../Token";
+import Token from "../ast/Token";
 import Type from "./Type";
 import ClassType from "./ClassType";
 import {
@@ -40,20 +40,20 @@ import {
     CallableTypeExpr,
     UnionTypeExpr,
     GenericTypeExpr,
-} from "../TypeExpr";
+} from "../ast/TypeExpr";
 import { zip, comparator, groupBy, s, padArrayEnd } from "../helpers";
 import CallableType from "./CallableType";
 import { default as types } from "./builtinTypes";
 import globalsTypes from "./globalsTypes";
 import ImplementationError from "../ImplementationError";
-import Field from "../Field";
-import SourceRange from "../SourceRange";
+import Field from "../ast/Field";
+import SourceRange from "../ast/SourceRange";
 import InstanceType from "./InstanceType";
 import { nil } from "../LoxNil";
 import GenericParamType from "./GenericParamType";
-import GenericParameter from "../GenericParameter";
+import GenericParameter from "../ast/GenericParameter";
 import GenericType from "./GenericType";
-import Superclass from "../Superclass";
+import Superclass from "../ast/Superclass";
 import { GenericParamMap } from "./GenericParamMap";
 
 const DEBUG_SCOPE = false;

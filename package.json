@@ -11,7 +11,7 @@
     "format": "eslint . --ext .js,.ts --fix",
     "test": "npm run-script build && jest",
     "test-watch": "jest --watchAll",
-    "generate-ast": "./src/tool/generateAst.ts src/"
+    "generate-ast": "./src/tool/generateAst.ts src/ast/"
   },
   "bin": {
     "loxdown": "src/main.ts"

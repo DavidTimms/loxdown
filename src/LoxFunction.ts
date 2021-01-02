@@ -1,7 +1,7 @@
 import Interpreter from "./Interpreter";
 import LoxCallable from "./LoxCallable";
 import LoxValue from "./LoxValue";
-import {FunctionStmt} from "./Stmt";
+import {FunctionStmt} from "./ast/Stmt";
 import Environment from "./Environment";
 import Return from "./Return";
 import { nil } from "./LoxNil";

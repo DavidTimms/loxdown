@@ -1,4 +1,4 @@
-import Token from "./Token";
+import Token from "./ast/Token";
 import LoxValue from "./LoxValue";
 import RuntimeError from "./RuntimeError";
 import LoxClass from "./LoxClass";

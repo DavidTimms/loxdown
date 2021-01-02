@@ -1,4 +1,4 @@
-import SourceRange from "./SourceRange";
+import SourceRange from "./ast/SourceRange";
 
 export default class RuntimeError {
     readonly sourceRange: SourceRange;

@@ -1,5 +1,5 @@
 import TokenType from "./TokenType";
-import LoxValue from "./LoxValue";
+import LoxValue from "../LoxValue";
 import SourceRange from "./SourceRange";
 
 export default class Token {

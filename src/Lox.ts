@@ -1,9 +1,9 @@
 import Scanner from "./Scanner";
 import Parser from "./Parser";
 import Interpreter from "./Interpreter";
-import Stmt, { ExpressionStmt, PrintStmt } from "./Stmt";
+import Stmt, { ExpressionStmt, PrintStmt } from "./ast/Stmt";
 import TypeChecker from "./typechecker/TypeChecker";
-import SourceRange from "./SourceRange";
+import SourceRange from "./ast/SourceRange";
 import SyntaxError from "./SyntaxError";
 import RuntimeError from "./RuntimeError";
 import OutputHandler from "./OutputHandler";

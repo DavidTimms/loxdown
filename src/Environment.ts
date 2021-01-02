@@ -1,5 +1,5 @@
 import LoxValue from "./LoxValue";
-import Token from "./Token";
+import Token from "./ast/Token";
 import ImplementationError from "./ImplementationError";
 
 export default class Environment {

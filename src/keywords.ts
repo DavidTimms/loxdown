@@ -1,4 +1,4 @@
-import TokenType from "./TokenType";
+import TokenType from "./ast/TokenType";
 
 const keywords = new Map<string, TokenType>([
     ["and", "AND"],
