@@ -6,7 +6,8 @@
         "lib": ["ES2019"],
         "module": "CommonJS",
         "moduleResolution": "Node",
-        "strict": true
+        "strict": true,
+        "allowJs": true
     },
     "include": [
         "./src/**/*"

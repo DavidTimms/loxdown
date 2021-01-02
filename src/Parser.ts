@@ -44,7 +44,6 @@ import SyntaxError from "./SyntaxError";
 import SourceRange from "./SourceRange";
 import GenericParameter from "./GenericParameter";
 import Superclass from "./Superclass";
-import { clear } from "console";
 
 type Associativity = "LEFT" | "RIGHT";
 

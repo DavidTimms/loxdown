@@ -1,6 +1,7 @@
 /// <reference lib="dom" />
 
 import * as CodeMirror from "codemirror";
+import "./codemirrorModeLoxdown";
 import Lox, { CheckStatus, RunStatus } from "../Lox.js";
 
 const leftColumn =
@@ -19,7 +20,7 @@ const outputTitle =
     document.getElementById("output-title") as HTMLHeadingElement;
 
 const codeMirror = CodeMirror(leftColumn, {
-    mode: "null",
+    mode: "loxdown",
     lineNumbers: true,
     autofocus: true,
 });
